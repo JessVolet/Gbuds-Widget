@@ -16,7 +16,6 @@ Item {
     property var config: ({})
     property bool desktopMode: false
     property string activePage: "main"
-    property bool cardVisible: false
     property int requestId: 0
 
     PluginGlobalVar { id: telemetry; varName: "telemetry"; defaultValue: ({ phase: "checking-cli", detail: "", status: null, event: "" }) }
@@ -26,7 +25,6 @@ Item {
     PluginGlobalVar { id: selectedDevice; varName: "selectedDevice"; defaultValue: "" }
 
     readonly property var snapshot: telemetry.value || ({})
-    readonly property var latestEvent: snapshot.latestEvent || null
     readonly property var status: snapshot.status || ({})
     readonly property var device: deviceInfo.value || ({})
     readonly property var command: commandResult.value || ({})
@@ -36,7 +34,6 @@ Item {
     readonly property var budsDevices: BluetoothService.pairedDevices.filter(device => /buds/i.test(device.name || ""))
     readonly property string installUrl: "https://github.com/JessVolet/gbuds-cli/blob/main/docs/INSTALLATION.md"
     readonly property int lowThreshold: 30
-    readonly property string cardPosition: config.statusCardPosition || "bottom-right"
 
     readonly property color accentColor: {
         var mode = config.colorMode || "primary";
@@ -118,16 +115,6 @@ Item {
         root.config = Object.assign({}, root.config, { [key]: value });
     }
 
-    onLatestEventChanged: {
-        var event = root.latestEvent;
-        var batteryEvent = event && (event.kind === "critical-battery" || event.kind === "low-battery");
-        var duration = Math.max(1500, Number(root.config.dismissTimeout || 5) * 1000);
-        root.cardVisible = !!event && root.config.showStatusCards !== false && (!batteryEvent || root.config.showBatteryCards !== false) && Date.now() - event.at < duration;
-        if (root.cardVisible)
-            eventDismissTimer.restart();
-    }
-    onConfigChanged: if (root.config.showStatusCards === false) root.cardVisible = false
-
     Rectangle {
         anchors.fill: parent
         radius: 24
@@ -195,101 +182,4 @@ Item {
         }
     }
 
-    Timer {
-        id: eventDismissTimer
-        interval: Math.max(1500, Number(root.config.dismissTimeout || 5) * 1000)
-        repeat: false
-        onTriggered: root.cardVisible = false
-    }
-
-    Rectangle {
-        id: statusCard
-        z: 10
-        width: Math.min(root.width - 24, 230)
-        height: 56
-        radius: 16
-        x: root.cardPosition.endsWith("right") ? root.width - width - 12 : 12
-        y: root.cardPosition.startsWith("bottom") ? root.height - height - 12 : 12
-        visible: opacity > 0.01
-        opacity: root.cardVisible && root.activePage === "main" ? 1 : 0
-        scale: opacity > 0 ? 1 : 0.94
-        color: root.latestEvent && root.latestEvent.severity === "warning" ?
-               Theme.withAlpha(Theme.errorContainer, 0.95) :
-               Theme.withAlpha(Theme.surfaceContainerHighest, 0.95)
-        border.color: root.latestEvent && root.latestEvent.severity === "warning" ?
-                     Theme.withAlpha(Theme.error, 0.7) :
-                     Theme.withAlpha(root.accentColor, 0.5)
-        border.width: 1
-        Behavior on opacity { NumberAnimation { duration: 150 } }
-        Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-        Behavior on x { NumberAnimation { duration: 180 } }
-        Behavior on y { NumberAnimation { duration: 180 } }
-
-        Row {
-            anchors.fill: parent
-            anchors.margins: 11
-            spacing: 9
-
-            Item {
-                width: 28
-                height: 28
-                anchors.verticalCenter: parent.verticalCenter
-
-                // Foreground earbud render when event is about earbuds
-                Image {
-                    id: cardEarbudRender
-                    anchors.fill: parent
-                    source: root.render(0)
-                    fillMode: Image.PreserveAspectFit
-                    visible: root.latestEvent && (root.latestEvent.kind === "in-ear" || root.latestEvent.kind === "out-of-ear" || root.latestEvent.kind === "low-battery" || root.latestEvent.kind === "critical-battery" || root.latestEvent.kind === "connected") && source.toString() !== ""
-                }
-
-                // Case icon when event is about case
-                DIcon {
-                    id: cardCaseIcon
-                    anchors.centerIn: parent
-                    visible: root.latestEvent && root.latestEvent.kind === "stored"
-                    name: "inventory_2"
-                    size: 24
-                    color: root.caseColor
-                }
-
-                DIcon {
-                    anchors.centerIn: parent
-                    visible: !cardEarbudRender.visible && !cardCaseIcon.visible
-                    name: root.latestEvent ? root.latestEvent.icon : "headphones"
-                    size: 22
-                    color: root.latestEvent && root.latestEvent.severity === "warning" ? Theme.error : root.accentColor
-                }
-            }
-            Column {
-                width: parent.width - 66
-                spacing: 2
-                anchors.verticalCenter: parent.verticalCenter
-                StyledText {
-                    width: parent.width
-                    text: root.latestEvent ? root.latestEvent.title : ""
-                    font.pixelSize: 12
-                    font.weight: Font.Bold
-                    color: root.latestEvent && root.latestEvent.severity === "warning" ? Theme.onErrorContainer : Theme.surfaceText
-                    elide: Text.ElideRight
-                }
-                StyledText {
-                    width: parent.width
-                    text: root.latestEvent ? root.latestEvent.detail : ""
-                    font.pixelSize: 10
-                    color: root.latestEvent && root.latestEvent.severity === "warning" ? Theme.onErrorContainer : Theme.surfaceVariantText
-                    elide: Text.ElideRight
-                }
-            }
-            DButton {
-                width: 24; buttonHeight: 24; minimumWidth: 0
-                iconName: "close"; text: ""
-                backgroundColor: "transparent"
-                Accessible.name: "Dismiss status card"
-                onClicked: root.cardVisible = false
-                anchors.verticalCenter: parent.verticalCenter
-            }
-        }
-    }
 }

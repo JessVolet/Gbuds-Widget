@@ -36,6 +36,8 @@ PluginComponent {
             latestEvent: latestEvent || old.latestEvent || null,
             updatedAt: Date.now()
         });
+        if (latestEvent)
+            eventPopup.present(latestEvent, status || root.lastStatus, root.device);
     }
 
     function recordEvent(kind, title, detail, severity, icon) {
@@ -405,5 +407,10 @@ PluginComponent {
             process.running = false;
             process.destroy();
         }
+    }
+
+    BudsEventPopup {
+        id: eventPopup
+        config: root.pluginData
     }
 }
