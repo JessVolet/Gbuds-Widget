@@ -36,7 +36,7 @@ Enable the composite plugin in **DMS Settings → Plugins**, then add the widget
 3. Enable Gbuds Watch, add the bar pill, and place the desktop widget. Confirm all surfaces show the same current device and battery state.
 4. Open the popout. Use the device picker if multiple Buds are paired, then verify the model art and available noise modes match `gbuds info --json`.
 5. Change ANC mode, touchpad lock, and EQ from the popout. Confirm the collapsible CLI drawer shows each real command response and that the live watch resumes afterward.
-6. Change placement, ANC, or battery state in Samsung's app. Confirm the event line and optional DMS notification follow the next `gbuds watch --json` event.
+6. Change placement, ANC, or battery state in Samsung's app. Open the live test panel and confirm frame counts, recent event history, raw JSON, and the dismissible status card follow each actual `gbuds watch --json` change. Use a supported control action in the panel to make a real device state change; the panel does not synthesize telemetry.
 7. Switch between the paired FE and Buds3. The selected model, renders, supported controls, and stream should follow the active device; manually select it from the popout if BlueZ does not expose a unique connected device.
 8. Disconnect and reconnect the Buds. The card should enter its waiting state, retain the last sample, and retry without restarting the shell.
 

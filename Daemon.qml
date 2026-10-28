@@ -19,18 +19,57 @@ PluginComponent {
     property var actionQueue: []
     property int lastRequestId: 0
     property int lastEventAt: 0
+    property int eventSequence: 0
+    property int frameCount: 0
+    property var eventHistory: []
     property int lastLowBatteryAt: 0
     property string targetMac: ""
     readonly property var pairedBuds: BluetoothService.pairedDevices.filter(device => /buds/i.test(device.name || ""))
 
-    function publish(phase, detail, status, eventText) {
+    function publish(phase, detail, status, eventText, latestEvent) {
+        var old = root.pluginService.getGlobalVar(root.pluginId, "telemetry", ({}));
         root.pluginService.setGlobalVar(root.pluginId, "telemetry", {
             phase: phase,
             detail: detail || "",
             status: status || null,
             event: eventText || "",
+            latestEvent: latestEvent || old.latestEvent || null,
+            history: root.eventHistory,
+            frameCount: root.frameCount,
+            changeCount: root.eventSequence,
             updatedAt: Date.now()
         });
+    }
+
+    function valueLabel(value) {
+        if (value === null || value === undefined) return "Not available";
+        if (typeof value === "boolean") return value ? "On" : "Off";
+        if (typeof value === "string") return value.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, letter => letter.toUpperCase());
+        return String(value) + (typeof value === "number" && value <= 100 ? "%" : "");
+    }
+
+    function buildChanges(previous, next) {
+        if (!previous) return [];
+        var fields = [
+            ["left", "Left battery"], ["right", "Right battery"], ["case", "Case battery"],
+            ["left_charging", "Left charging"], ["right_charging", "Right charging"], ["case_charging", "Case charging"],
+            ["is_coupled", "Earbuds connected"], ["placement_left", "Left placement"], ["placement_right", "Right placement"],
+            ["noise_control", "Noise control"], ["equalizer", "Sound profile"], ["ambient_volume", "Ambient volume"],
+            ["voice_detect", "Voice detect"], ["blade_lights", "Blade lights"], ["touchpad_locked", "Touch controls"]
+        ];
+        var changes = [];
+        fields.forEach(field => {
+            if (previous[field[0]] !== next[field[0]])
+                changes.push({ key: field[0], label: field[1], from: root.valueLabel(previous[field[0]]), to: root.valueLabel(next[field[0]]) });
+        });
+        return changes;
+    }
+
+    function recordEvent(title, changes, severity) {
+        root.eventSequence++;
+        var event = { id: root.eventSequence, title: title, changes: changes || [], at: Date.now(), severity: severity || "normal" };
+        root.eventHistory = [event].concat(root.eventHistory).slice(0, 12);
+        return event;
     }
 
     function publishCommand(command, result, success) {
@@ -40,26 +79,6 @@ PluginComponent {
             success: success,
             completedAt: Date.now()
         });
-    }
-
-    function describeChange(previous, next) {
-        if (!previous)
-            return "Live telemetry received";
-        if (previous.noise_control !== next.noise_control && next.noise_control)
-            return "Noise control changed to " + next.noise_control.replace(/_/g, " ");
-        if (previous.placement_left !== next.placement_left)
-            return "Left earbud: " + (next.placement_left || "unknown").replace(/_/g, " ");
-        if (previous.placement_right !== next.placement_right)
-            return "Right earbud: " + (next.placement_right || "unknown").replace(/_/g, " ");
-        if (previous.left !== next.left || previous.right !== next.right || previous.case !== next.case)
-            return "Battery status updated";
-        if (previous.equalizer !== next.equalizer && next.equalizer)
-            return "Equalizer changed to " + next.equalizer.replace(/_/g, " ");
-        if (previous.touchpad_locked !== next.touchpad_locked && next.touchpad_locked !== null)
-            return "Touch controls " + (next.touchpad_locked ? "locked" : "unlocked");
-        if (previous.is_coupled !== next.is_coupled)
-            return "Earbud connection state changed";
-        return "Buds status updated";
     }
 
     function acceptTelemetry(line) {
@@ -79,15 +98,29 @@ PluginComponent {
 
         var previous = root.lastStatus;
         var currentSnapshot = root.pluginService.getGlobalVar(root.pluginId, "telemetry", ({ phase: "" }));
-        var eventText = root.describeChange(previous, parsed);
-        if (currentSnapshot.phase !== "connected" && previous !== null)
+        var changes = root.buildChanges(previous, parsed);
+        var event = null;
+        var eventText = "";
+        if (!previous) {
+            eventText = "Live telemetry received";
+            event = root.recordEvent("Live telemetry connected", [], "success");
+        } else if (currentSnapshot.phase !== "connected") {
             eventText = "Connected to " + (root.device && (root.device.name || root.device.model) || "Galaxy Buds");
-        var hasChange = root.lastStatus !== null && eventText !== "Buds status updated";
+            event = root.recordEvent(eventText, changes, "success");
+        } else if (changes.length > 0) {
+            eventText = changes.map(change => change.label + ": " + change.to).join(" · ");
+            var thresholdForEvent = Number(pluginData.lowBatteryThreshold || 20);
+            var lowBatteryChange = changes.some(change => ["left", "right", "case"].indexOf(change.key) >= 0 &&
+                typeof parsed[change.key] === "number" && parsed[change.key] <= thresholdForEvent);
+            event = root.recordEvent(changes.length === 1 ? changes[0].label + " changed" : changes.length + " status changes", changes,
+                lowBatteryChange ? "warning" : "normal");
+        }
         root.lastStatus = parsed;
+        root.frameCount++;
         root.lastError = "";
         root.retryDelay = 1000;
-        root.publish("connected", "", parsed, eventText);
-        if (hasChange && pluginData.notifyStateChanges !== false && Date.now() - root.lastEventAt > 1200) {
+        root.publish("connected", "", parsed, eventText, event);
+        if (changes.length > 0 && pluginData.notifyStateChanges !== false && Date.now() - root.lastEventAt > 1200) {
             root.lastEventAt = Date.now();
             ToastService.showInfo("Galaxy Buds updated", eventText);
         }
@@ -141,6 +174,9 @@ PluginComponent {
         if (!normalized || normalized === root.targetMac)
             return;
         root.targetMac = normalized;
+        // Do not compare one device's first frame against the previous device.
+        root.lastStatus = null;
+        root.device = null;
         if (persist)
             root.pluginService.savePluginData(root.pluginId, "targetMac", normalized);
         root.pluginService.setGlobalVar(root.pluginId, "selectedDevice", normalized);
@@ -186,7 +222,10 @@ PluginComponent {
             return;
         }
         var detail = root.lastError || ("gbuds watch exited with code " + exitCode + ". Reconnecting…");
-        root.publish("waiting", detail, root.lastStatus, "Connection interrupted");
+        var disconnectedEvent = root.recordEvent("Live stream interrupted", [
+            { key: "connection", label: "Connection", from: "Connected", to: "Reconnecting" }
+        ], "warning");
+        root.publish("waiting", detail, root.lastStatus, "Connection interrupted", disconnectedEvent);
         reconnectTimer.interval = root.retryDelay;
         reconnectTimer.start();
         root.retryDelay = Math.min(root.retryDelay * 2, 15000);

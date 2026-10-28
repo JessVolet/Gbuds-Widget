@@ -15,7 +15,9 @@ Item {
     property bool terminalOpen: false
     property bool settingsOpen: false
     property bool devicesOpen: false
+    property bool liveTestOpen: false
     property int requestId: 0
+    property int dismissedEventId: 0
 
     PluginGlobalVar { id: telemetry; varName: "telemetry"; defaultValue: ({ phase: "checking-cli", detail: "", status: null, event: "" }) }
     PluginGlobalVar { id: deviceInfo; varName: "device"; defaultValue: ({}) }
@@ -24,6 +26,7 @@ Item {
     PluginGlobalVar { id: selectedDevice; varName: "selectedDevice"; defaultValue: "" }
 
     readonly property var snapshot: telemetry.value || ({})
+    readonly property var latestEvent: snapshot.latestEvent || null
     readonly property var status: snapshot.status || ({})
     readonly property var device: deviceInfo.value || ({})
     readonly property var command: commandResult.value || ({})
@@ -110,6 +113,16 @@ Item {
         return Theme.primary;
     }
 
+    function eventValue(change) {
+        return change.label + "  " + change.from + "  →  " + change.to;
+    }
+
+    onLatestEventChanged: {
+        if (root.latestEvent && root.latestEvent.id > root.dismissedEventId) {
+            eventDismissTimer.restart();
+        }
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: Theme.cornerRadius
@@ -189,6 +202,12 @@ Item {
                                 text: ""
                                 onClicked: root.devicesOpen = !root.devicesOpen
                                 Accessible.name: "Choose Galaxy Buds device"
+                            }
+                            DButton {
+                                iconName: "monitoring"
+                                text: ""
+                                onClicked: root.liveTestOpen = !root.liveTestOpen
+                                Accessible.name: "Open live telemetry test panel"
                             }
                             DButton {
                                 iconName: "terminal"
@@ -272,6 +291,65 @@ Item {
                         }
                     }
                 }
+            }
+
+            Rectangle {
+                width: parent.width
+                visible: root.latestEvent && root.latestEvent.id > root.dismissedEventId
+                height: visible ? eventCard.implicitHeight + Theme.spacingM : 0
+                radius: Theme.cornerRadius
+                color: !root.latestEvent ? Theme.surfaceContainerHigh : root.latestEvent.severity === "warning" ? Theme.errorContainer : root.latestEvent.severity === "success" ? Theme.primaryContainer : Theme.surfaceContainerHigh
+                Column {
+                    id: eventCard
+                    anchors.fill: parent
+                    anchors.margins: Theme.spacingS
+                    spacing: Theme.spacingXS
+                    Row {
+                        width: parent.width
+                        spacing: Theme.spacingS
+                        DIcon {
+                            name: root.latestEvent && root.latestEvent.severity === "warning" ? "warning" : "notifications_active"
+                            size: 19
+                            color: root.latestEvent && root.latestEvent.severity === "warning" ? Theme.error : Theme.primary
+                        }
+                        StyledText {
+                            width: parent.width - 56
+                            text: root.latestEvent ? root.latestEvent.title : "Status changed"
+                            color: Theme.surfaceText
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.weight: Font.Bold
+                            elide: Text.ElideRight
+                        }
+                        DButton {
+                            iconName: "close"
+                            text: ""
+                            buttonHeight: 28
+                            onClicked: {
+                                root.dismissedEventId = root.latestEvent ? root.latestEvent.id : 0;
+                                eventDismissTimer.stop();
+                            }
+                            Accessible.name: "Dismiss status change card"
+                        }
+                    }
+                    Repeater {
+                        model: root.latestEvent ? root.latestEvent.changes : []
+                        delegate: StyledText {
+                            required property var modelData
+                            width: parent.width
+                            text: root.eventValue(modelData)
+                            color: Theme.surfaceVariantText
+                            font.pixelSize: Theme.fontSizeSmall
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
+            }
+
+            Timer {
+                id: eventDismissTimer
+                interval: Math.max(1500, Number(root.config.dismissTimeout || 6) * 1000)
+                repeat: false
+                onTriggered: if (root.latestEvent) root.dismissedEventId = root.latestEvent.id
             }
 
             Column {
@@ -398,13 +476,172 @@ Item {
                     }
                 }
 
-                StyledText {
+                Rectangle {
                     width: parent.width
-                    visible: root.snapshot.event !== ""
-                    text: root.snapshot.event || ""
-                    color: Theme.surfaceVariantText
-                    font.pixelSize: Theme.fontSizeSmall
-                    elide: Text.ElideRight
+                    visible: root.connected
+                    height: visible ? activityList.implicitHeight + Theme.spacingM : 0
+                    radius: Theme.cornerRadius
+                    color: Theme.surfaceContainerHigh
+                    Column {
+                        id: activityList
+                        anchors.fill: parent
+                        anchors.margins: Theme.spacingS
+                        spacing: Theme.spacingXS
+                        Row {
+                            width: parent.width
+                            DIcon { name: "timeline"; size: 17; color: Theme.primary }
+                            StyledText {
+                                width: parent.width - 24
+                                text: "Recent activity"
+                                color: Theme.surfaceText
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Font.DemiBold
+                            }
+                        }
+                        Repeater {
+                            model: (root.snapshot.history || []).slice(0, 3)
+                            delegate: Row {
+                                required property var modelData
+                                width: parent.width
+                                spacing: Theme.spacingXS
+                                Rectangle {
+                                    width: 6; height: 6; radius: 3
+                                    color: modelData.severity === "warning" ? Theme.error : Theme.primary
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                StyledText {
+                                    width: parent.width - 12
+                                    text: modelData.title + (modelData.changes && modelData.changes.length ? " · " + modelData.changes.map(change => change.to).join(", ") : "")
+                                    color: Theme.surfaceVariantText
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
+                        StyledText {
+                            visible: (root.snapshot.history || []).length === 0
+                            text: "Waiting for the first device update…"
+                            color: Theme.surfaceVariantText
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+                    }
+                }
+
+                Rectangle {
+                    width: parent.width
+                    visible: root.liveTestOpen
+                    height: visible ? testInspector.implicitHeight + Theme.spacingM : 0
+                    radius: Theme.cornerRadius
+                    color: Theme.surfaceContainerHigh
+                    Column {
+                        id: testInspector
+                        anchors.fill: parent
+                        anchors.margins: Theme.spacingS
+                        spacing: Theme.spacingS
+                        Row {
+                            width: parent.width
+                            Column {
+                                width: parent.width - testClose.width - Theme.spacingS
+                                StyledText { text: "Live test panel"; color: Theme.surfaceText; font.pixelSize: Theme.fontSizeMedium; font.weight: Font.Bold }
+                                StyledText { text: "Real frames from gbuds watch --json"; color: Theme.surfaceVariantText; font.pixelSize: Theme.fontSizeSmall }
+                            }
+                            DButton { id: testClose; iconName: "close"; text: ""; buttonHeight: 30; onClicked: root.liveTestOpen = false; Accessible.name: "Close live test panel" }
+                        }
+                        Row {
+                            width: parent.width
+                            spacing: Theme.spacingXS
+                            Repeater {
+                                model: [
+                                    { label: "STREAM", value: root.connected ? "LIVE" : "WAITING" },
+                                    { label: "FRAMES", value: String(root.snapshot.frameCount || 0) },
+                                    { label: "CHANGES", value: String(root.snapshot.changeCount || 0) }
+                                ]
+                                delegate: Rectangle {
+                                    required property var modelData
+                                    width: (parent.width - 2 * Theme.spacingXS) / 3
+                                    height: 56
+                                    radius: Theme.cornerRadius
+                                    color: Theme.surface
+                                    Column {
+                                        anchors.centerIn: parent
+                                        StyledText { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.label; color: Theme.surfaceVariantText; font.pixelSize: Theme.fontSizeSmall }
+                                        StyledText { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.value; color: modelData.label === "STREAM" ? (root.connected ? Theme.primary : Theme.tertiary) : Theme.surfaceText; font.weight: Font.Bold; font.pixelSize: Theme.fontSizeMedium }
+                                    }
+                                }
+                            }
+                        }
+                        StyledText { text: "Try a real change"; color: Theme.surfaceText; font.pixelSize: Theme.fontSizeSmall; font.weight: Font.DemiBold }
+                        Flow {
+                            width: parent.width
+                            spacing: Theme.spacingXS
+                            Repeater {
+                                model: root.modeOptions
+                                delegate: DButton {
+                                    required property var modelData
+                                    text: "Set " + modelData.label
+                                    buttonHeight: 34
+                                    enabled: root.connected && !root.busyState.busy
+                                    onClicked: root.setMode(modelData.mode)
+                                }
+                            }
+                            DButton {
+                                text: root.status.touchpad_locked ? "Unlock touch" : "Lock touch"
+                                buttonHeight: 34
+                                enabled: root.connected && !root.busyState.busy
+                                onClicked: root.sendCommand("touchpad", [root.status.touchpad_locked ? "unlock" : "lock"], "Touch controls")
+                            }
+                            DButton {
+                                text: "Refresh battery"
+                                buttonHeight: 34
+                                enabled: root.connected && !root.busyState.busy
+                                onClicked: root.sendCommand("battery", [], "Battery refresh")
+                            }
+                        }
+                        StyledText { text: "Recent changes"; color: Theme.surfaceText; font.pixelSize: Theme.fontSizeSmall; font.weight: Font.DemiBold }
+                        Repeater {
+                            model: (root.snapshot.history || []).slice(0, 5)
+                            delegate: Rectangle {
+                                required property var modelData
+                                width: parent.width
+                                height: historyRow.implicitHeight + Theme.spacingS
+                                radius: Theme.cornerRadius
+                                color: Theme.surface
+                                Column {
+                                    id: historyRow
+                                    anchors.fill: parent
+                                    anchors.margins: Theme.spacingXS
+                                    StyledText { width: parent.width; text: modelData.title; color: Theme.surfaceText; font.pixelSize: Theme.fontSizeSmall; font.weight: Font.DemiBold }
+                                    Repeater {
+                                        model: modelData.changes || []
+                                        delegate: StyledText {
+                                            required property var modelData
+                                            width: parent.width
+                                            text: root.eventValue(modelData)
+                                            color: Theme.surfaceVariantText
+                                            font.pixelSize: Theme.fontSizeSmall
+                                            elide: Text.ElideRight
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Rectangle {
+                            width: parent.width
+                            radius: Theme.cornerRadius
+                            color: "#101820"
+                            implicitHeight: rawJson.implicitHeight + Theme.spacingM
+                            StyledText {
+                                id: rawJson
+                                anchors.fill: parent
+                                anchors.margins: Theme.spacingS
+                                text: JSON.stringify(root.status, null, 2)
+                                color: "#d8e5df"
+                                font.family: "monospace"
+                                font.pixelSize: Theme.fontSizeSmall
+                                wrapMode: Text.WrapAnywhere
+                            }
+                        }
+                    }
                 }
 
                 Rectangle {
@@ -510,6 +747,24 @@ Item {
                             DButton {
                                 text: root.config.notifyLowBattery === false ? "Off" : "On"
                                 onClicked: root.saveSetting("notifyLowBattery", root.config.notifyLowBattery === false)
+                            }
+                        }
+                        Row {
+                            width: parent.width
+                            StyledText {
+                                width: parent.width * 0.58
+                                text: "Status card duration"
+                                color: Theme.surfaceText
+                                font.pixelSize: Theme.fontSizeSmall
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                            DButton {
+                                text: (root.config.dismissTimeout || 6) + " sec"
+                                onClicked: {
+                                    var values = [3, 6, 10];
+                                    var index = values.indexOf(Number(root.config.dismissTimeout || 6));
+                                    root.saveSetting("dismissTimeout", values[(index + 1) % values.length]);
+                                }
                             }
                         }
                         Row {

@@ -69,6 +69,18 @@ PluginSettings {
             defaultValue: true
         }
 
+        SelectionSetting {
+            settingKey: "dismissTimeout"
+            label: "Status card duration"
+            description: "How long a new live status card stays visible in the popout and desktop widget."
+            options: [
+                { value: "3", label: "3 seconds" },
+                { value: "6", label: "6 seconds" },
+                { value: "10", label: "10 seconds" }
+            ]
+            defaultValue: "6"
+        }
+
         SliderSetting {
             settingKey: "lowBatteryThreshold"
             label: "Low battery threshold"
