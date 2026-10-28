@@ -24,6 +24,25 @@ PluginSettings {
         wrapMode: Text.WordWrap
     }
 
+    StyledText {
+        width: parent.width
+        text: "Desktop widget"
+        font.pixelSize: Theme.fontSizeMedium
+        font.weight: Font.SemiBold
+        color: Theme.primary
+    }
+
+    SelectionSetting {
+        settingKey: "desktopLayout"
+        label: "Desktop layout"
+        description: "Choose Full or Compact for this widget instance. Resize the instance in the desktop editor after changing layouts."
+        options: [
+            { value: "full", label: "Full · controls and device settings" },
+            { value: "compact", label: "Compact · live status and battery" }
+        ]
+        defaultValue: "full"
+    }
+
     // --- Section: Bar Widget & Battery Style ---
     StyledText {
         width: parent.width
