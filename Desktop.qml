@@ -1,8 +1,7 @@
 import QtQuick
+import Quickshell
 import qs.Common
-import qs.Services
 import qs.Widgets
-import qs.Widgets as DuxWidgets
 import qs.Modules.Plugins
 import "."
 
@@ -11,29 +10,27 @@ DesktopPluginComponent {
 
     readonly property bool compact: pluginData.desktopLayout === "compact"
     property real defaultWidth: compact ? 330 : 380
-    property real defaultHeight: compact ? 190 : 570
+    property real defaultHeight: compact ? 150 : 570
     minWidth: compact ? 260 : 330
-    minHeight: compact ? 160 : 570
+    minHeight: compact ? 140 : 570
     widgetWidth: 380
     widgetHeight: 570
+    readonly property var snapshot: telemetry.value || ({})
+    readonly property var status: snapshot.status || ({})
+    readonly property bool connected: (snapshot.phase === "connected" || snapshot.phase === "controlling") &&
+                                      !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
+    opacity: connected ? 1 : 0
+    enabled: connected
+    Behavior on opacity { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
 
-    DuxWidgets.WindowBlur {
-        targetWindow: root.Window.window
-        blurEnabled: BlurService.enabled
-        surfaceColor: Theme.withAlpha(Theme.surfaceContainer, 0.78)
-        blurX: 1
-        blurY: 1
-        blurWidth: Math.max(0, root.width - 2)
-        blurHeight: Math.max(0, root.height - 2)
-        blurRadius: 24
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        radius: Theme.cornerRadius
-        color: "transparent"
-        border.color: Theme.outline
-        border.width: 1
+    PluginGlobalVar { id: telemetry; varName: "telemetry"; defaultValue: ({ phase: "checking-cli", status: null }) }
+    Region { id: emptyInputMask; width: 0; height: 0 }
+    Binding {
+        target: root.QsWindow.window
+        property: "mask"
+        value: emptyInputMask
+        when: !root.connected && root.QsWindow.window !== null
+        restoreMode: Binding.RestoreBinding
     }
 
     Loader {

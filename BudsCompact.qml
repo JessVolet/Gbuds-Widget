@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import qs.Common
 import qs.Services
 import qs.Widgets
@@ -11,71 +12,75 @@ Item {
 
     PluginGlobalVar { id: telemetry; varName: "telemetry"; defaultValue: ({ phase: "checking-cli", status: null }) }
     PluginGlobalVar { id: deviceInfo; varName: "device"; defaultValue: ({}) }
+    PluginGlobalVar { id: commandState; varName: "commandState"; defaultValue: ({ busy: false }) }
 
     readonly property var snapshot: telemetry.value || ({})
     readonly property var status: snapshot.status || ({})
     readonly property var device: deviceInfo.value || ({})
+    readonly property bool busy: (commandState.value || ({})).busy === true
     readonly property bool connected: (snapshot.phase === "connected" || snapshot.phase === "controlling") &&
                                       !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
+    readonly property var modeOptions: [
+        { mode: "NOISE_REDUCTION", action: "on", label: "ANC", icon: "noise_control_on" },
+        { mode: "AMBIENT_SOUND", action: "ambient", label: "Ambient", icon: "hearing" },
+        { mode: "ADAPTIVE", action: "adaptive", label: "Adaptive", icon: "auto_mode" },
+        { mode: "OFF", action: "off", label: "Normal", icon: "noise_control_off" }
+    ].filter(item => Array.isArray(device.supported_noise_modes) && device.supported_noise_modes.indexOf(item.action) >= 0)
 
-    function battery(value) {
-        return connected && typeof value === "number" && value >= 0 ? value + "%" : "—";
+    function partAvailable(part) {
+        return connected && (part === "case" || status["placement_" + part] !== "DISCONNECTED");
     }
 
-    function batteryColor(value) {
-        if (!connected || typeof value !== "number" || value < 0) return Theme.surfaceVariantText;
+    function battery(part) {
+        var value = status[part];
+        return partAvailable(part) && typeof value === "number" && value >= 0 ? value + "%" : "—";
+    }
+
+    function batteryColor(part) {
+        var value = status[part];
+        if (!partAvailable(part) || typeof value !== "number" || value < 0) return "#a8bdc7";
         if (value <= 10) return Theme.error;
         if (value <= 30) return Theme.warning;
-        return Theme.primary;
+        return "#b8efd0";
     }
 
-    function modeLabel(mode) {
-        if (mode === "NOISE_REDUCTION") return "Noise cancellation";
-        if (mode === "AMBIENT_SOUND") return "Ambient sound";
-        if (mode === "ADAPTIVE") return "Adaptive sound";
-        return mode === "OFF" ? "Normal mode" : "Waiting for Buds";
+    function icon(part) {
+        if (part === "case") return Qt.resolvedUrl("assets/icons/case.svg");
+        var code = (device.model_code || "").toUpperCase();
+        var small = /SM-R400|SM-R177|SM-R170|SM-R175|SM-R180|SM-R190|SM-R510/.test(code);
+        return Qt.resolvedUrl("assets/icons/" + (small ? "s_" : "L_") + part + ".svg");
     }
 
-    Rectangle {
-        anchors.fill: parent
-        radius: 22
-        gradient: Gradient {
-            GradientStop { position: 0; color: Theme.withAlpha("#122d40", BlurService.enabled ? 0.84 : 1) }
-            GradientStop { position: 0.52; color: Theme.withAlpha("#1a4052", BlurService.enabled ? 0.78 : 1) }
-            GradientStop { position: 1; color: Theme.withAlpha("#254e5e", BlurService.enabled ? 0.74 : 1) }
-        }
-    }
-
-    Rectangle {
-        width: Math.min(root.width * 0.82, 320)
-        height: width
-        radius: width / 2
-        anchors.centerIn: parent
-        color: "#0c83bad0"
-        opacity: root.connected ? 0.28 : 0.14
-        Behavior on opacity { NumberAnimation { duration: 300 } }
+    function requestMode(action) {
+        if (!connected || busy) return;
+        PluginService.setGlobalVar(pluginId, "commandRequest", {
+            id: Date.now() + "-" + Math.random(),
+            command: "anc",
+            args: [action],
+            label: "Noise mode " + action
+        });
     }
 
     Column {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 12
+        anchors.margins: 7
+        spacing: 6
 
         Row {
             width: parent.width
-            height: 28
-            spacing: 8
+            height: 20
+            spacing: 6
             DIcon {
-                name: root.connected ? "bluetooth_connected" : "bluetooth_disabled"
-                size: 18
-                color: root.connected ? "#a9e5dc" : "#b0bfcc"
+                name: "bluetooth_connected"
+                size: 16
+                color: "#a9e5dc"
                 anchors.verticalCenter: parent.verticalCenter
             }
             StyledText {
-                width: parent.width - 26
-                text: root.connected ? (root.device.name || root.device.model || "Galaxy Buds") : "Galaxy Buds · Disconnected"
+                width: parent.width - 22
+                text: root.device.name || root.device.model || "Galaxy Buds"
                 color: "#f5f9fb"
-                font.pixelSize: Theme.fontSizeMedium
+                font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
                 anchors.verticalCenter: parent.verticalCenter
@@ -84,71 +89,90 @@ Item {
 
         Row {
             width: parent.width
-            height: 66
-            spacing: 8
-
+            height: 53
+            spacing: 5
             Repeater {
                 model: [
-                    { key: "left", label: "LEFT", icon: "earbuds" },
-                    { key: "case", label: "CASE", icon: "inventory_2" },
-                    { key: "right", label: "RIGHT", icon: "earbuds" }
+                    { key: "left", label: "LEFT" },
+                    { key: "case", label: "CASE" },
+                    { key: "right", label: "RIGHT" }
                 ]
-                delegate: Rectangle {
+                delegate: Item {
                     required property var modelData
-                    width: (parent.width - 16) / 3
+                    width: (parent.width - 10) / 3
                     height: parent.height
-                    radius: 15
-                    color: "#385c6e80"
-                    border.color: "#416d8291"
-                    border.width: 1
-
-                    Row {
+                    Column {
                         anchors.centerIn: parent
-                        spacing: 6
-                        DIcon {
-                            name: modelData.icon
-                            size: 20
-                            color: root.batteryColor(root.status[modelData.key])
-                            anchors.verticalCenter: parent.verticalCenter
+                        spacing: 1
+                        Item {
+                            width: 28; height: 29
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            Image {
+                                id: partIcon
+                                anchors.fill: parent
+                                source: root.icon(modelData.key)
+                                fillMode: Image.PreserveAspectFit
+                                visible: false
+                            }
+                            MultiEffect {
+                                anchors.fill: partIcon
+                                source: partIcon
+                                colorization: 1
+                                colorizationColor: root.batteryColor(modelData.key)
+                                opacity: root.partAvailable(modelData.key) ? 1 : 0.4
+                                Behavior on colorizationColor { ColorAnimation { duration: 220 } }
+                            }
                         }
-                        Column {
-                            spacing: 1
-                            StyledText {
-                                text: modelData.label
-                                font.pixelSize: 9
-                                font.weight: Font.DemiBold
-                                color: "#b3c7cf"
-                            }
-                            StyledText {
-                                text: root.battery(root.status[modelData.key])
-                                font.pixelSize: Theme.fontSizeMedium
-                                font.weight: Font.Bold
-                                color: "#f5f9fb"
-                                Behavior on color { ColorAnimation { duration: 220 } }
-                            }
+                        StyledText {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: modelData.label + "  " + root.battery(modelData.key)
+                            color: "#f5f9fb"
+                            font.pixelSize: 10
+                            font.weight: Font.DemiBold
                         }
                     }
                 }
             }
         }
 
-        Row {
+        Rectangle {
             width: parent.width
-            height: 20
-            spacing: 6
-            DIcon {
-                name: root.connected ? "noise_control_on" : "info"
-                size: 16
-                color: "#a9cbd2"
-                anchors.verticalCenter: parent.verticalCenter
-            }
-            StyledText {
-                width: parent.width - 22
-                text: root.connected ? root.modeLabel(root.status.noise_control) : "Connect your Buds to see live status"
-                font.pixelSize: Theme.fontSizeSmall
-                color: "#c8d8dc"
-                elide: Text.ElideRight
-                anchors.verticalCenter: parent.verticalCenter
+            height: 34
+            radius: 12
+            visible: root.modeOptions.length > 0
+            color: "#46577782"
+            border.color: "#598aa7ad"
+            border.width: 1
+            Row {
+                anchors.fill: parent
+                anchors.margins: 3
+                spacing: 3
+                Repeater {
+                    model: root.modeOptions
+                    delegate: Rectangle {
+                        required property var modelData
+                        readonly property bool selected: root.status.noise_control === modelData.mode
+                        width: (parent.width - (root.modeOptions.length - 1) * 3) / root.modeOptions.length
+                        height: parent.height
+                        radius: 9
+                        color: selected ? "#b6b9e5dc" : "transparent"
+                        enabled: root.connected && !root.busy
+                        activeFocusOnTab: enabled
+                        Accessible.role: Accessible.Button
+                        Accessible.name: modelData.label
+                        Accessible.checked: selected
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                        DIcon {
+                            anchors.centerIn: parent
+                            name: modelData.icon
+                            size: 18
+                            color: selected ? "#143b48" : "#e3eff0"
+                        }
+                        MouseArea { anchors.fill: parent; onClicked: root.requestMode(modelData.action) }
+                        Keys.onReturnPressed: root.requestMode(modelData.action)
+                        Keys.onSpacePressed: root.requestMode(modelData.action)
+                    }
+                }
             }
         }
     }
