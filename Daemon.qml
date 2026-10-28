@@ -17,6 +17,7 @@ PluginComponent {
     property int retryDelay: 500
     property bool shuttingDown: false
     property bool actionInFlight: false
+    property bool checkingCli: false
     property var actionProcess: null
     property var actionQueue: []
     property string lastRequestId: ""
@@ -26,6 +27,22 @@ PluginComponent {
     property bool restartAfterTargetSwitch: false
     property string targetMac: ""
     readonly property var pairedBuds: BluetoothService.pairedDevices.filter(device => /buds/i.test(device.name || ""))
+    readonly property var connectedBuds: pairedBuds.filter(device => device.connected && device.address)
+
+    onConnectedBudsChanged: {
+        if (root.shuttingDown || root.actionInFlight)
+            return;
+        if (connectedBuds.length > 0) {
+            if (root.watchProcess)
+                root.refreshTargetFromBluetooth();
+            else if (!reconnectTimer.running)
+                root.checkCli();
+        } else {
+            reconnectTimer.stop();
+            if (root.watchProcess)
+                root.watchProcess.running = false;
+        }
+    }
 
     function publish(phase, detail, status, eventText, latestEvent) {
         var old = root.pluginService.getGlobalVar(root.pluginId, "telemetry", ({}));
@@ -139,10 +156,16 @@ PluginComponent {
     }
 
     function checkCli() {
-        if (root.shuttingDown || root.actionInFlight)
+        if (root.shuttingDown || root.actionInFlight || root.checkingCli || root.watchProcess)
             return;
+        if (root.connectedBuds.length === 0) {
+            root.publish("waiting", "Connect Galaxy Buds to start monitoring.", root.lastStatus, "");
+            return;
+        }
+        root.checkingCli = true;
         Proc.runCommand(null, ["/bin/sh", "-c", "command -v -- \"$1\" >/dev/null 2>&1", "gbuds-watch-check", root.cliCommand], (stdout, exitCode) => {
-            if (root.shuttingDown)
+            root.checkingCli = false;
+            if (root.shuttingDown || root.connectedBuds.length === 0)
                 return;
             if (exitCode === 0) {
                 root.refreshTargetFromBluetooth();
@@ -159,7 +182,7 @@ PluginComponent {
     }
 
     function refreshTargetFromBluetooth() {
-        var connected = root.pairedBuds.filter(device => device.connected && device.address);
+        var connected = root.connectedBuds;
         if (connected.length === 1)
             root.setTarget(connected[0].address, false, false);
         else if (!root.targetMac && pluginData.targetMac)
@@ -214,6 +237,10 @@ PluginComponent {
     function startWatcher() {
         if (root.shuttingDown || root.watchProcess || root.actionInFlight)
             return;
+        if (root.connectedBuds.length === 0) {
+            root.publish("waiting", "Connect Galaxy Buds to start monitoring.", root.lastStatus, "");
+            return;
+        }
         root.watchBuffer = "";
         if (!root.lastStatus || root.disconnectedSinceLastStatus)
             root.publish("connecting", root.lastError || "Looking for a connected Galaxy Buds device.", root.lastStatus, "");
@@ -248,9 +275,11 @@ PluginComponent {
         if (disconnectedEvent)
             root.disconnectedSinceLastStatus = true;
         root.publish("waiting", detail, root.lastStatus, disconnectedEvent ? disconnectedEvent.title : "", disconnectedEvent);
-        reconnectTimer.interval = root.retryDelay;
-        reconnectTimer.start();
-        root.retryDelay = Math.min(root.retryDelay * 2, 3000);
+        if (root.connectedBuds.length > 0) {
+            reconnectTimer.interval = root.retryDelay;
+            reconnectTimer.start();
+            root.retryDelay = Math.min(root.retryDelay * 2, 30000);
+        }
     }
 
     function enqueueAction(command, args, label) {

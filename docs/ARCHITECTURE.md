@@ -24,7 +24,7 @@ The daemon follows a uniquely connected Galaxy Buds device detected by Dux Shell
 
 ## Watch lifecycle and actions
 
-The daemon starts one `gbuds watch --json` process. Each newline-delimited JSON object updates shared telemetry. When the process exits, Gbuds Widget keeps the last sample in memory and retries with exponential backoff up to 3 seconds.
+The daemon starts one `gbuds watch --json` process only while BlueZ reports a connected Buds device. Each newline-delimited JSON object updates shared telemetry. If the process exits while the device remains connected, Gbuds Widget keeps the last sample and retries with exponential backoff up to 30 seconds. It stops retrying when the Buds disconnect and resumes on the next BlueZ connection change.
 
 Control requests enter a FIFO queue. The daemon stops the watch process first, then runs exactly one `gbuds --json <command>` process. It publishes the command and response, applies returned state immediately, and resumes the watch without another metadata lookup. This avoids running two CLI RFCOMM sessions at once.
 
