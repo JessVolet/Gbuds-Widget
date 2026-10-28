@@ -119,10 +119,21 @@ Item {
         anchors.fill: parent
         radius: 24
         gradient: Gradient {
-            GradientStop { position: 0; color: "#102a3d" }
-            GradientStop { position: 0.55; color: "#1b4057" }
-            GradientStop { position: 1; color: "#315b6b" }
+            GradientStop { position: 0; color: Theme.withAlpha("#102a3d", root.desktopMode && BlurService.enabled ? 0.82 : 1) }
+            GradientStop { position: 0.55; color: Theme.withAlpha("#1b4057", root.desktopMode && BlurService.enabled ? 0.76 : 1) }
+            GradientStop { position: 1; color: Theme.withAlpha("#315b6b", root.desktopMode && BlurService.enabled ? 0.72 : 1) }
         }
+    }
+
+    Rectangle {
+        width: Math.min(root.width * 0.9, 370)
+        height: width
+        radius: width / 2
+        x: root.width - width * 0.6
+        y: -height * 0.5
+        color: Theme.withAlpha(root.accentColor, 0.09)
+        opacity: root.connected ? 1 : 0.35
+        Behavior on opacity { NumberAnimation { duration: 360; easing.type: Easing.OutCubic } }
     }
 
     Column {

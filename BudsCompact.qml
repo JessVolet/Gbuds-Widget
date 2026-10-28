@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Common
+import qs.Services
 import qs.Widgets
 import qs.DCommon.Widgets
 
@@ -39,9 +40,9 @@ Item {
         anchors.fill: parent
         radius: 22
         gradient: Gradient {
-            GradientStop { position: 0; color: "#122d40" }
-            GradientStop { position: 0.52; color: "#1a4052" }
-            GradientStop { position: 1; color: "#254e5e" }
+            GradientStop { position: 0; color: Theme.withAlpha("#122d40", BlurService.enabled ? 0.84 : 1) }
+            GradientStop { position: 0.52; color: Theme.withAlpha("#1a4052", BlurService.enabled ? 0.78 : 1) }
+            GradientStop { position: 1; color: Theme.withAlpha("#254e5e", BlurService.enabled ? 0.74 : 1) }
         }
     }
 

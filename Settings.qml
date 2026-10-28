@@ -28,7 +28,7 @@ PluginSettings {
         width: parent.width
         text: "Desktop widget"
         font.pixelSize: Theme.fontSizeMedium
-        font.weight: Font.SemiBold
+        font.weight: Font.DemiBold
         color: Theme.primary
     }
 
@@ -48,7 +48,7 @@ PluginSettings {
         width: parent.width
         text: "Bar Widget & Battery Style"
         font.pixelSize: Theme.fontSizeMedium
-        font.weight: Font.SemiBold
+        font.weight: Font.DemiBold
         color: Theme.primary
     }
 
@@ -153,7 +153,7 @@ PluginSettings {
         width: parent.width
         text: "Charging Case"
         font.pixelSize: Theme.fontSizeMedium
-        font.weight: Font.SemiBold
+        font.weight: Font.DemiBold
         color: Theme.primary
     }
 
@@ -184,7 +184,7 @@ PluginSettings {
         width: parent.width
         text: "Status Cards & Alerts"
         font.pixelSize: Theme.fontSizeMedium
-        font.weight: Font.SemiBold
+        font.weight: Font.DemiBold
         color: Theme.primary
     }
 
@@ -232,7 +232,7 @@ PluginSettings {
         width: parent.width
         text: "Device Connection"
         font.pixelSize: Theme.fontSizeMedium
-        font.weight: Font.SemiBold
+        font.weight: Font.DemiBold
         color: Theme.primary
     }
 

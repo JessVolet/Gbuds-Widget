@@ -1,6 +1,8 @@
 import QtQuick
 import qs.Common
+import qs.Services
 import qs.Widgets
+import qs.Widgets as DuxWidgets
 import qs.Modules.Plugins
 import "."
 
@@ -15,10 +17,21 @@ DesktopPluginComponent {
     widgetWidth: 380
     widgetHeight: 570
 
+    DuxWidgets.WindowBlur {
+        targetWindow: root.Window.window
+        blurEnabled: BlurService.enabled
+        surfaceColor: Theme.withAlpha(Theme.surfaceContainer, 0.78)
+        blurX: 1
+        blurY: 1
+        blurWidth: Math.max(0, root.width - 2)
+        blurHeight: Math.max(0, root.height - 2)
+        blurRadius: 24
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: Theme.cornerRadius
-        color: Theme.withAlpha(Theme.surfaceContainer, 0.96)
+        color: "transparent"
         border.color: Theme.outline
         border.width: 1
     }

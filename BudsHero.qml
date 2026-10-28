@@ -197,6 +197,7 @@ Rectangle {
                             sourceSize.height: 256
                             fillMode: Image.PreserveAspectFit
                             opacity: root.connected ? 1 : 0.45
+                            Behavior on opacity { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
                             SequentialAnimation on y {
                                 running: root.connected && budImage.visible
                                 loops: Animation.Infinite
@@ -213,6 +214,7 @@ Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
                             y: 5
                             opacity: root.connected ? 1 : 0.45
+                            Behavior on opacity { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
 
                             SequentialAnimation on y {
                                 running: root.connected && caseVisual.visible

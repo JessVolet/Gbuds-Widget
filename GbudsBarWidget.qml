@@ -175,11 +175,20 @@ PluginComponent {
             return "#34d399";
         }
 
-        width: pairContentRow.implicitWidth
+        width: root.activeConnection ? pairContentRow.implicitWidth : root.iconSize + 4
         height: pairItem.budHeight
+
+        DIcon {
+            anchors.centerIn: parent
+            visible: !root.activeConnection
+            name: "bluetooth_disabled"
+            size: root.iconSize
+            color: Theme.widgetInactiveIconColor
+        }
 
         Row {
             id: pairContentRow
+            visible: root.activeConnection
             spacing: 5
             anchors.verticalCenter: parent.verticalCenter
 
@@ -378,6 +387,15 @@ PluginComponent {
             spacing: Theme.spacingXS
 
             EarbudsPairItem {
+                visible: root.pillMode !== "icon-only"
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            DIcon {
+                visible: root.pillMode === "icon-only"
+                name: root.activeConnection ? "earbuds" : "bluetooth_disabled"
+                size: root.iconSize
+                color: root.activeConnection ? root.pillIconColor : Theme.widgetInactiveIconColor
                 anchors.verticalCenter: parent.verticalCenter
             }
 
@@ -482,7 +500,7 @@ PluginComponent {
             }
 
             DIcon {
-                visible: root.activeConnection && root.showModeIcon && !!root.status.noise_control
+                visible: root.activeConnection && root.pillMode !== "icon-only" && root.showModeIcon && !!root.status.noise_control
                 name: root.modeIcon(root.status.noise_control)
                 size: Math.round(root.iconSize - 1)
                 color: root.pillIconColor
@@ -496,11 +514,20 @@ PluginComponent {
             spacing: 3
 
             EarbudsPairItem {
+                visible: root.pillMode !== "icon-only"
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
             DIcon {
-                visible: root.activeConnection && root.showModeIcon && !!root.status.noise_control
+                visible: root.pillMode === "icon-only"
+                name: root.activeConnection ? "earbuds" : "bluetooth_disabled"
+                size: root.iconSize
+                color: root.activeConnection ? root.pillIconColor : Theme.widgetInactiveIconColor
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+
+            DIcon {
+                visible: root.activeConnection && root.pillMode !== "icon-only" && root.showModeIcon && !!root.status.noise_control
                 name: root.modeIcon(root.status.noise_control)
                 size: Math.round(root.iconSize - 2)
                 color: root.pillIconColor

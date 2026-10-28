@@ -2,7 +2,7 @@
 
 Gbuds Watch is a Dux Shell 2.0 composite plugin for Galaxy Buds. A single background watcher reads `gbuds watch --json` and shares live telemetry with the bar pill, a control popout, and a resizable desktop widget.
 
-The interface takes the supplied Galaxy Buds Dux Shell prototype as its starting point. A full-panel gradient frames live battery levels, noise controls, quick actions, and a collapsible sound list. Noise modes and the ambient-volume, voice-detection, and Blade Lights controls follow the detected model metadata. The bar pill shows an out-of-ear warning in red, switches to a disconnected icon when needed, and uses icons for noise mode. A small configurable status card covers connection, placement, noise-mode, and 30% / 10% battery transitions inside the widget; the plugin does not send desktop notifications.
+The full desktop layout takes the supplied Galaxy Buds Dux Shell prototype as its starting point. A translucent gradient frames live battery levels, noise controls, quick actions, and a collapsible sound list. A compact desktop layout shows connection, batteries, and noise mode without controls. Add two Gbuds Watch instances and choose a different **Desktop layout** in each instance's settings; resize the compact one in the desktop editor. Noise modes and the ambient-volume, voice-detection, and Blade Lights controls follow the detected model metadata. The bar pill switches to a disconnected icon when needed and uses icons for noise mode. A floating popup outside the widget covers connection, placement, noise-mode, and 30% / 10% battery transitions; the plugin does not send desktop notifications. Desktop blur follows Dux Shell's blur setting and compositor support.
 
 ## Requirements
 
