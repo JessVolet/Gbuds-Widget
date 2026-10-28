@@ -88,6 +88,10 @@ Item {
     }
 
     function selectDevice(address) {
+        var requestedAddress = (address || "").toUpperCase();
+        var target = root.budsDevices.find(device => (device.address || "").toUpperCase() === requestedAddress);
+        if (target && !target.connected)
+            target.connect();
         root.pluginService.setGlobalVar(root.pluginId, "deviceSelection", address);
         root.devicesOpen = false;
     }

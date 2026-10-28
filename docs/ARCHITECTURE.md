@@ -19,7 +19,7 @@ flowchart LR
 
 ## Device selection
 
-The daemon follows a uniquely connected Galaxy Buds device detected by Dux Shell. If more than one is paired and none is uniquely connected, the popout lists the paired Buds and lets the user select the target. The selected address is persisted and passed to Gbuds using `--mac`. A subsequent uniquely connected device takes precedence so switching from one paired Buds model to another can follow the active device.
+The daemon follows a uniquely connected Galaxy Buds device detected by Dux Shell. If more than one is paired, the popout lists the paired Buds; selecting one asks BlueZ to connect it, persists its address, and passes that target to Gbuds using `--mac`. A uniquely connected device is followed automatically so switching between paired models updates the active stream.
 
 `gbuds info --json` supplies model code, color, supported noise modes, and device name. These fields choose an available GalaxyBudsClient render and filter noise controls. Models without a copied render use Material icons.
 
