@@ -1,0 +1,28 @@
+{
+  "$schema": "https://github.com/duxlabs-dev/dux-shell/raw/refs/heads/master/quickshell/PLUGINS/plugin-schema.json",
+  "id": "gbudsWatch",
+  "name": "Gbuds Watch",
+  "description": "Live Galaxy Buds battery and state for the Dux Shell bar and desktop.",
+  "version": "0.1.0",
+  "author": "JessVolet",
+  "license": "MIT",
+  "icon": "headphones",
+  "type": "composite",
+  "capabilities": [
+    "daemon",
+    "dankbar-widget",
+    "desktop-widget"
+  ],
+  "components": {
+    "daemon": "./Daemon.qml",
+    "widget": "./Widget.qml",
+    "desktop": "./Desktop.qml"
+  },
+  "settings": "./Settings.qml",
+  "requires_dms": ">=2.0.0",
+  "permissions": [
+    "process",
+    "settings_read",
+    "settings_write"
+  ]
+}
