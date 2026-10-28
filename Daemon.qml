@@ -20,9 +20,9 @@ PluginComponent {
     property int lastRequestId: 0
     property int lastEventAt: 0
     property int eventSequence: 0
-    property int frameCount: 0
-    property var eventHistory: []
     property int lastLowBatteryAt: 0
+    property bool targetSwitching: false
+    property bool restartAfterTargetSwitch: false
     property string targetMac: ""
     readonly property var pairedBuds: BluetoothService.pairedDevices.filter(device => /buds/i.test(device.name || ""))
 
@@ -34,9 +34,6 @@ PluginComponent {
             status: status || null,
             event: eventText || "",
             latestEvent: latestEvent || old.latestEvent || null,
-            history: root.eventHistory,
-            frameCount: root.frameCount,
-            changeCount: root.eventSequence,
             updatedAt: Date.now()
         });
     }
@@ -67,9 +64,7 @@ PluginComponent {
 
     function recordEvent(title, changes, severity) {
         root.eventSequence++;
-        var event = { id: root.eventSequence, title: title, changes: changes || [], at: Date.now(), severity: severity || "normal" };
-        root.eventHistory = [event].concat(root.eventHistory).slice(0, 12);
-        return event;
+        return { id: root.eventSequence, title: title, changes: changes || [], at: Date.now(), severity: severity || "normal" };
     }
 
     function publishCommand(command, result, success) {
@@ -101,22 +96,36 @@ PluginComponent {
         var changes = root.buildChanges(previous, parsed);
         var event = null;
         var eventText = "";
+        var threshold = Number(pluginData.lowBatteryThreshold || 20);
+        var lowBatteryChanges = changes.filter(change => ["left", "right", "case"].indexOf(change.key) >= 0 &&
+            typeof parsed[change.key] === "number" && parsed[change.key] <= threshold &&
+            (!previous || typeof previous[change.key] !== "number" || previous[change.key] > threshold));
         if (!previous) {
-            eventText = "Live telemetry received";
-            event = root.recordEvent("Live telemetry connected", [], "success");
-        } else if (currentSnapshot.phase !== "connected") {
+            var initiallyLow = ["left", "right", "case"].filter(key => typeof parsed[key] === "number" && parsed[key] <= threshold)
+                .map(key => ({ key: key, label: key === "left" ? "Left battery" : key === "right" ? "Right battery" : "Case battery", from: "Not available", to: root.valueLabel(parsed[key]) }));
+            eventText = initiallyLow.length ? "Battery low" : "Galaxy Buds connected";
+            event = root.recordEvent(eventText, initiallyLow, initiallyLow.length ? "warning" : "success");
+        } else if (currentSnapshot.phase !== "connected" && changes.length === 0) {
             eventText = "Connected to " + (root.device && (root.device.name || root.device.model) || "Galaxy Buds");
+            event = root.recordEvent("Galaxy Buds connected", changes, "success");
+        } else if (changes.some(change => change.key === "is_coupled" && change.to === "Off")) {
+            eventText = "Earbuds disconnected";
+            event = root.recordEvent(eventText, changes, "warning");
+        } else if (lowBatteryChanges.length > 0) {
+            eventText = "Battery low";
+            event = root.recordEvent(eventText, lowBatteryChanges, "warning");
+        } else if (changes.some(change => change.key.startsWith("placement_") && change.to === "Disconnected")) {
+            eventText = "Earbud disconnected";
+            event = root.recordEvent(eventText, changes, "warning");
+        } else if (changes.some(change => change.key.startsWith("placement_") && change.to === "Wearing")) {
+            eventText = "Earbud in use";
             event = root.recordEvent(eventText, changes, "success");
         } else if (changes.length > 0) {
             eventText = changes.map(change => change.label + ": " + change.to).join(" · ");
-            var thresholdForEvent = Number(pluginData.lowBatteryThreshold || 20);
-            var lowBatteryChange = changes.some(change => ["left", "right", "case"].indexOf(change.key) >= 0 &&
-                typeof parsed[change.key] === "number" && parsed[change.key] <= thresholdForEvent);
             event = root.recordEvent(changes.length === 1 ? changes[0].label + " changed" : changes.length + " status changes", changes,
-                lowBatteryChange ? "warning" : "normal");
+                "normal");
         }
         root.lastStatus = parsed;
-        root.frameCount++;
         root.lastError = "";
         root.retryDelay = 1000;
         root.publish("connected", "", parsed, eventText, event);
@@ -124,7 +133,6 @@ PluginComponent {
             root.lastEventAt = Date.now();
             ToastService.showInfo("Galaxy Buds updated", eventText);
         }
-        var threshold = Number(pluginData.lowBatteryThreshold || 20);
         var crossedThreshold = previous && ((parsed.left <= threshold && previous.left > threshold) ||
                 (parsed.right <= threshold && previous.right > threshold) ||
                 (parsed.case !== null && parsed.case <= threshold && (previous.case === null || previous.case > threshold)));
@@ -180,9 +188,11 @@ PluginComponent {
         if (persist)
             root.pluginService.savePluginData(root.pluginId, "targetMac", normalized);
         root.pluginService.setGlobalVar(root.pluginId, "selectedDevice", normalized);
-        if (root.watchProcess)
+        if (root.watchProcess) {
+            root.targetSwitching = true;
+            root.restartAfterTargetSwitch = restartIfIdle !== false;
             root.watchProcess.running = false;
-        else if (!root.actionInFlight && restartIfIdle !== false)
+        } else if (!root.actionInFlight && restartIfIdle !== false)
             root.checkCli();
     }
 
@@ -217,15 +227,24 @@ PluginComponent {
         process.destroy();
         if (root.shuttingDown)
             return;
+        if (root.targetSwitching) {
+            root.targetSwitching = false;
+            if (root.restartAfterTargetSwitch) {
+                reconnectTimer.interval = 250;
+                reconnectTimer.start();
+            }
+            root.restartAfterTargetSwitch = false;
+            return;
+        }
         if (root.actionInFlight) {
             root.runNextAction();
             return;
         }
         var detail = root.lastError || ("gbuds watch exited with code " + exitCode + ". Reconnecting…");
-        var disconnectedEvent = root.recordEvent("Live stream interrupted", [
+        var disconnectedEvent = root.recordEvent("Galaxy Buds disconnected", [
             { key: "connection", label: "Connection", from: "Connected", to: "Reconnecting" }
         ], "warning");
-        root.publish("waiting", detail, root.lastStatus, "Connection interrupted", disconnectedEvent);
+        root.publish("waiting", detail, root.lastStatus, "Galaxy Buds disconnected", disconnectedEvent);
         reconnectTimer.interval = root.retryDelay;
         reconnectTimer.start();
         root.retryDelay = Math.min(root.retryDelay * 2, 15000);

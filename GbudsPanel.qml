@@ -15,7 +15,6 @@ Item {
     property bool terminalOpen: false
     property bool settingsOpen: false
     property bool devicesOpen: false
-    property bool liveTestOpen: false
     property int requestId: 0
     property int dismissedEventId: 0
 
@@ -117,6 +116,15 @@ Item {
         return change.label + "  " + change.from + "  →  " + change.to;
     }
 
+    function eventIcon(event) {
+        if (!event) return "notifications_active";
+        if (event.title.indexOf("Battery low") >= 0) return "battery_alert";
+        if (event.title.indexOf("disconnected") >= 0) return "bluetooth_disabled";
+        if (event.title.indexOf("connected") >= 0) return "bluetooth_connected";
+        if (event.title.indexOf("Earbud in use") >= 0) return "hearing";
+        return "notifications_active";
+    }
+
     onLatestEventChanged: {
         if (root.latestEvent && root.latestEvent.id > root.dismissedEventId) {
             eventDismissTimer.restart();
@@ -204,12 +212,6 @@ Item {
                                 Accessible.name: "Choose Galaxy Buds device"
                             }
                             DButton {
-                                iconName: "monitoring"
-                                text: ""
-                                onClicked: root.liveTestOpen = !root.liveTestOpen
-                                Accessible.name: "Open live telemetry test panel"
-                            }
-                            DButton {
                                 iconName: "terminal"
                                 text: ""
                                 onClicked: root.terminalOpen = !root.terminalOpen
@@ -254,12 +256,48 @@ Item {
                                         visible: modelData.side >= 0 && source.toString() !== ""
                                         opacity: !root.connected ? 0.45 : modelData.side === 0 && root.status.placement_left === "DISCONNECTED" || modelData.side === 1 && root.status.placement_right === "DISCONNECTED" ? 0.55 : 1
                                     }
-                                    DIcon {
+                                    Item {
                                         anchors.centerIn: parent
-                                        name: modelData.side < 0 ? "inventory_2" : "headphones"
-                                        size: root.desktopMode ? 32 : 38
-                                        color: Theme.primary
+                                        width: modelData.side < 0 ? 54 : 38
+                                        height: modelData.side < 0 ? 42 : 38
                                         visible: modelData.side < 0 || !root.render(modelData.side)
+                                        Rectangle {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            anchors.bottom: parent.bottom
+                                            width: 43
+                                            height: 27
+                                            radius: 6
+                                            color: Theme.surfaceContainerHigh
+                                            border.color: Theme.primary
+                                            border.width: 1.5
+                                        }
+                                        Rectangle {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            anchors.top: parent.top
+                                            width: 43
+                                            height: 11
+                                            radius: 5
+                                            color: Theme.surface
+                                            border.color: Theme.primary
+                                            border.width: 1.5
+                                        }
+                                        Rectangle {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            y: 14
+                                            width: 43
+                                            height: 1
+                                            color: Theme.primary
+                                            opacity: 0.72
+                                        }
+                                        Rectangle {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            anchors.bottom: parent.bottom
+                                            anchors.bottomMargin: 5
+                                            width: 4
+                                            height: 4
+                                            radius: 2
+                                            color: root.status.case_charging ? Theme.tertiary : Theme.primary
+                                        }
                                     }
                                 }
 
@@ -267,10 +305,16 @@ Item {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     radius: Theme.cornerRadius
                                     color: Theme.surfaceContainerHigh
-                                    border.color: Theme.withAlpha(Theme.outline, 0.45)
+                                    border.color: typeof root.status[modelData.key] === "number" && root.status[modelData.key] <= root.lowThreshold ? Theme.error : Theme.withAlpha(Theme.outline, 0.45)
                                     border.width: 1
                                     width: Math.min(parent.width, 82)
                                     height: 24
+                                    StatusWaves {
+                                        anchors.fill: parent
+                                        anchors.margins: -3
+                                        active: typeof root.status[modelData.key] === "number" && root.status[modelData.key] <= root.lowThreshold
+                                        waveColor: Theme.error
+                                    }
                                     Row {
                                         anchors.centerIn: parent
                                         spacing: 3
@@ -295,10 +339,13 @@ Item {
 
             Rectangle {
                 width: parent.width
-                visible: root.latestEvent && root.latestEvent.id > root.dismissedEventId
-                height: visible ? eventCard.implicitHeight + Theme.spacingM : 0
-                radius: Theme.cornerRadius
+                readonly property bool showing: root.latestEvent && root.latestEvent.id > root.dismissedEventId
+                visible: opacity > 0.01
+                opacity: showing ? 1 : 0
+                height: showing ? eventCard.implicitHeight + Theme.spacingM : 0
+                radius: Theme.cornerRadius * 1.5
                 color: !root.latestEvent ? Theme.surfaceContainerHigh : root.latestEvent.severity === "warning" ? Theme.errorContainer : root.latestEvent.severity === "success" ? Theme.primaryContainer : Theme.surfaceContainerHigh
+                Behavior on opacity { NumberAnimation { duration: 180 } }
                 Column {
                     id: eventCard
                     anchors.fill: parent
@@ -308,22 +355,25 @@ Item {
                         width: parent.width
                         spacing: Theme.spacingS
                         DIcon {
-                            name: root.latestEvent && root.latestEvent.severity === "warning" ? "warning" : "notifications_active"
-                            size: 19
+                            name: root.eventIcon(root.latestEvent)
+                            size: 20
                             color: root.latestEvent && root.latestEvent.severity === "warning" ? Theme.error : Theme.primary
                         }
                         StyledText {
-                            width: parent.width - 56
+                            width: parent.width - 54
                             text: root.latestEvent ? root.latestEvent.title : "Status changed"
                             color: Theme.surfaceText
                             font.pixelSize: Theme.fontSizeSmall
                             font.weight: Font.Bold
                             elide: Text.ElideRight
+                            anchors.verticalCenter: parent.verticalCenter
                         }
                         DButton {
                             iconName: "close"
                             text: ""
-                            buttonHeight: 28
+                            buttonHeight: 26
+                            backgroundColor: "transparent"
+                            textColor: Theme.surfaceVariantText
                             onClicked: {
                                 root.dismissedEventId = root.latestEvent ? root.latestEvent.id : 0;
                                 eventDismissTimer.stop();
@@ -445,19 +495,24 @@ Item {
                     width: parent.width
                     spacing: Theme.spacingXS
                     visible: root.connected
-                    StyledText {
-                        text: "Sound profile"
-                        color: Theme.surfaceVariantText
-                        font.pixelSize: Theme.fontSizeSmall
+                    Row {
+                        spacing: Theme.spacingXS
+                        DIcon { name: "tune"; size: 16; color: Theme.primary }
+                        StyledText {
+                            text: "Sound profile"
+                            color: Theme.surfaceVariantText
+                            font.pixelSize: Theme.fontSizeSmall
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
                     Flow {
                         width: parent.width
                         spacing: Theme.spacingXS
                         Repeater {
                             model: [
-                                { key: "normal", value: "OFF" }, { key: "bass", value: "BASS_BOOST" },
-                                { key: "soft", value: "SOFT" }, { key: "dynamic", value: "DYNAMIC" },
-                                { key: "clear", value: "CLEAR" }, { key: "treble", value: "TREBLE_BOOST" }
+                                { key: "normal", value: "OFF", icon: "music_note" }, { key: "bass", value: "BASS_BOOST", icon: "graphic_eq" },
+                                { key: "soft", value: "SOFT", icon: "volume_down" }, { key: "dynamic", value: "DYNAMIC", icon: "equalizer" },
+                                { key: "clear", value: "CLEAR", icon: "high_quality" }, { key: "treble", value: "TREBLE_BOOST", icon: "volume_up" }
                             ]
                             delegate: DButton {
                                 required property var modelData
@@ -465,180 +520,13 @@ Item {
                                 buttonHeight: 32
                                 minimumWidth: 0
                                 text: modelData.key.charAt(0).toUpperCase() + modelData.key.slice(1)
+                                iconName: modelData.icon
                                 enabled: root.connected && !root.busyState.busy
                                 checkable: true
                                 checked: root.status.equalizer === modelData.value
                                 backgroundColor: checked ? Theme.primaryContainer : Theme.surfaceContainerHigh
                                 textColor: checked ? Theme.primary : Theme.surfaceText
                                 onClicked: root.sendCommand("eq", [modelData.key], modelData.key + " equalizer")
-                            }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width: parent.width
-                    visible: root.connected
-                    height: visible ? activityList.implicitHeight + Theme.spacingM : 0
-                    radius: Theme.cornerRadius
-                    color: Theme.surfaceContainerHigh
-                    Column {
-                        id: activityList
-                        anchors.fill: parent
-                        anchors.margins: Theme.spacingS
-                        spacing: Theme.spacingXS
-                        Row {
-                            width: parent.width
-                            DIcon { name: "timeline"; size: 17; color: Theme.primary }
-                            StyledText {
-                                width: parent.width - 24
-                                text: "Recent activity"
-                                color: Theme.surfaceText
-                                font.pixelSize: Theme.fontSizeSmall
-                                font.weight: Font.DemiBold
-                            }
-                        }
-                        Repeater {
-                            model: (root.snapshot.history || []).slice(0, 3)
-                            delegate: Row {
-                                required property var modelData
-                                width: parent.width
-                                spacing: Theme.spacingXS
-                                Rectangle {
-                                    width: 6; height: 6; radius: 3
-                                    color: modelData.severity === "warning" ? Theme.error : Theme.primary
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                                StyledText {
-                                    width: parent.width - 12
-                                    text: modelData.title + (modelData.changes && modelData.changes.length ? " · " + modelData.changes.map(change => change.to).join(", ") : "")
-                                    color: Theme.surfaceVariantText
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    elide: Text.ElideRight
-                                }
-                            }
-                        }
-                        StyledText {
-                            visible: (root.snapshot.history || []).length === 0
-                            text: "Waiting for the first device update…"
-                            color: Theme.surfaceVariantText
-                            font.pixelSize: Theme.fontSizeSmall
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width: parent.width
-                    visible: root.liveTestOpen
-                    height: visible ? testInspector.implicitHeight + Theme.spacingM : 0
-                    radius: Theme.cornerRadius
-                    color: Theme.surfaceContainerHigh
-                    Column {
-                        id: testInspector
-                        anchors.fill: parent
-                        anchors.margins: Theme.spacingS
-                        spacing: Theme.spacingS
-                        Row {
-                            width: parent.width
-                            Column {
-                                width: parent.width - testClose.width - Theme.spacingS
-                                StyledText { text: "Live test panel"; color: Theme.surfaceText; font.pixelSize: Theme.fontSizeMedium; font.weight: Font.Bold }
-                                StyledText { text: "Real frames from gbuds watch --json"; color: Theme.surfaceVariantText; font.pixelSize: Theme.fontSizeSmall }
-                            }
-                            DButton { id: testClose; iconName: "close"; text: ""; buttonHeight: 30; onClicked: root.liveTestOpen = false; Accessible.name: "Close live test panel" }
-                        }
-                        Row {
-                            width: parent.width
-                            spacing: Theme.spacingXS
-                            Repeater {
-                                model: [
-                                    { label: "STREAM", value: root.connected ? "LIVE" : "WAITING" },
-                                    { label: "FRAMES", value: String(root.snapshot.frameCount || 0) },
-                                    { label: "CHANGES", value: String(root.snapshot.changeCount || 0) }
-                                ]
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    width: (parent.width - 2 * Theme.spacingXS) / 3
-                                    height: 56
-                                    radius: Theme.cornerRadius
-                                    color: Theme.surface
-                                    Column {
-                                        anchors.centerIn: parent
-                                        StyledText { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.label; color: Theme.surfaceVariantText; font.pixelSize: Theme.fontSizeSmall }
-                                        StyledText { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.value; color: modelData.label === "STREAM" ? (root.connected ? Theme.primary : Theme.tertiary) : Theme.surfaceText; font.weight: Font.Bold; font.pixelSize: Theme.fontSizeMedium }
-                                    }
-                                }
-                            }
-                        }
-                        StyledText { text: "Try a real change"; color: Theme.surfaceText; font.pixelSize: Theme.fontSizeSmall; font.weight: Font.DemiBold }
-                        Flow {
-                            width: parent.width
-                            spacing: Theme.spacingXS
-                            Repeater {
-                                model: root.modeOptions
-                                delegate: DButton {
-                                    required property var modelData
-                                    text: "Set " + modelData.label
-                                    buttonHeight: 34
-                                    enabled: root.connected && !root.busyState.busy
-                                    onClicked: root.setMode(modelData.mode)
-                                }
-                            }
-                            DButton {
-                                text: root.status.touchpad_locked ? "Unlock touch" : "Lock touch"
-                                buttonHeight: 34
-                                enabled: root.connected && !root.busyState.busy
-                                onClicked: root.sendCommand("touchpad", [root.status.touchpad_locked ? "unlock" : "lock"], "Touch controls")
-                            }
-                            DButton {
-                                text: "Refresh battery"
-                                buttonHeight: 34
-                                enabled: root.connected && !root.busyState.busy
-                                onClicked: root.sendCommand("battery", [], "Battery refresh")
-                            }
-                        }
-                        StyledText { text: "Recent changes"; color: Theme.surfaceText; font.pixelSize: Theme.fontSizeSmall; font.weight: Font.DemiBold }
-                        Repeater {
-                            model: (root.snapshot.history || []).slice(0, 5)
-                            delegate: Rectangle {
-                                required property var modelData
-                                width: parent.width
-                                height: historyRow.implicitHeight + Theme.spacingS
-                                radius: Theme.cornerRadius
-                                color: Theme.surface
-                                Column {
-                                    id: historyRow
-                                    anchors.fill: parent
-                                    anchors.margins: Theme.spacingXS
-                                    StyledText { width: parent.width; text: modelData.title; color: Theme.surfaceText; font.pixelSize: Theme.fontSizeSmall; font.weight: Font.DemiBold }
-                                    Repeater {
-                                        model: modelData.changes || []
-                                        delegate: StyledText {
-                                            required property var modelData
-                                            width: parent.width
-                                            text: root.eventValue(modelData)
-                                            color: Theme.surfaceVariantText
-                                            font.pixelSize: Theme.fontSizeSmall
-                                            elide: Text.ElideRight
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Rectangle {
-                            width: parent.width
-                            radius: Theme.cornerRadius
-                            color: "#101820"
-                            implicitHeight: rawJson.implicitHeight + Theme.spacingM
-                            StyledText {
-                                id: rawJson
-                                anchors.fill: parent
-                                anchors.margins: Theme.spacingS
-                                text: JSON.stringify(root.status, null, 2)
-                                color: "#d8e5df"
-                                font.family: "monospace"
-                                font.pixelSize: Theme.fontSizeSmall
-                                wrapMode: Text.WrapAnywhere
                             }
                         }
                     }

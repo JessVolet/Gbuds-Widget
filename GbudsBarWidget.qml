@@ -80,7 +80,7 @@ PluginComponent {
         PopoutComponent {
             id: popout
             headerText: "Gbuds Watch"
-            detailsText: root.connected ? "Live Galaxy Buds controls and telemetry" : root.snapshot.detail || "Waiting for a connected Galaxy Buds device"
+            detailsText: root.connected ? "Live controls for your Galaxy Buds" : root.snapshot.detail || "Waiting for a connected Galaxy Buds device"
 
             Item {
                 width: parent.width
@@ -96,5 +96,5 @@ PluginComponent {
     }
 
     popoutWidth: 460
-    popoutHeight: 650
+    popoutHeight: 570
 }

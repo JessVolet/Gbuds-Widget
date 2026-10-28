@@ -31,12 +31,12 @@ Control requests enter a FIFO queue. The daemon stops the watch process first, t
 
 ## State and notifications
 
-The `telemetry` global variable contains the latest status, `frameCount`, `changeCount`, a bounded event `history`, and `latestEvent` with per-field before/after values. Every field from `gbuds watch --json` is compared, including charging flags, ambient volume, voice detect, blade lights, coupling, and touch controls. The popout and desktop show a dismissible state-change card; the live test panel exposes stream counters, real control actions, recent events, and the current JSON sample. Low-battery alerts fire when a battery crosses the configured threshold and are rate-limited. The state card dismisses after the configured 3, 6, or 10 second interval.
+The `telemetry` global variable contains the latest status and a transient `latestEvent` with per-field before/after values. Every field from `gbuds watch --json` is compared, including charging flags, ambient volume, voice detect, blade lights, coupling, and touch controls. The popout and desktop show a dismissible card for connection changes, earbud placement changes, and low battery. The battery indicator also uses a reusable animated wave when it reaches the configured threshold. Low-battery alerts fire when a battery crosses the configured threshold and are rate-limited. The state card dismisses after the configured 3, 6, or 10 second interval.
 
 ## UI surfaces
 
 - **Bar pill:** compact, minimal, or detailed battery and noise-mode summary.
-- **Control popout:** large model renders, per-part battery, supported ANC modes, touchpad, EQ, device selection, quick settings, a live telemetry test panel, and a hidden-by-default CLI output drawer.
+- **Control popout:** large model renders, per-part battery, supported ANC modes, touchpad, EQ, device selection, quick settings, and a hidden-by-default CLI output drawer.
 - **Desktop widget:** the same controls and live state in a resizable card.
 
 Every control is capability-filtered or disabled when disconnected. Status remains read-only telemetry; user actions invoke the installed Gbuds CLI.
