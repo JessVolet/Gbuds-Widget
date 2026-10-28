@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="2.5 1.5 19 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tapa superior (translúcida estilo Buds3) -->
+  <path d="M4 7C4 4.79086 5.79086 3 8 3H16C18.2091 3 20 4.79086 20 7V8.5H4V7Z" fill="#38bdf8" fill-opacity="0.25" stroke="#34d399" stroke-width="1.8" stroke-linejoin="round" />
+
+  <!-- Cuerpo inferior del estuche -->
+  <path d="M4 10H20V17C20 19.2091 18.2091 21 16 21H8C5.79086 21 4 19.2091 4 17V10Z" fill="#38bdf8" fill-opacity="0.45" stroke="#34d399" stroke-width="1.8" stroke-linejoin="round" />
+
+  <!-- Muesca de apertura -->
+  <path d="M10 9.5H14" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" />
+
+  <!-- LED indicador de batería -->
+  <circle cx="12" cy="15.5" r="1.4" fill="#34d399" />
+</svg>

@@ -5,38 +5,37 @@ Gbuds Watch is a composite Dux Shell plugin. One daemon owns Gbuds CLI processes
 ```mermaid
 flowchart LR
     BlueZ[BlueZ paired and connected devices] -->|target selection| Daemon
-    Daemon -->|gbuds info --json| Metadata[Model and capabilities]
+    Daemon -->|gbuds capabilities --json| Metadata[Cached model capabilities]
     Daemon -->|one persistent gbuds watch --json| Watch[Live status stream]
     Watch -->|telemetry and events| State[PluginGlobalVar]
     State --> Pill[Bar pill]
     State --> Panel[Control popout]
     State --> Desktop[Desktop widget]
     Panel -->|ANC / touchpad / EQ / sync request| Queue[Serialized action queue]
-    Queue -->|stop watch, run command, restart| Daemon
-    Settings[Plugin settings] -->|CLI path, target, alerts, pill| Daemon
-    Watch -->|state and low-battery changes| Notify[DMS notifications]
+    Queue -->|stop watch, run command, apply result, restart| Daemon
+    Settings[Plugin settings] -->|CLI path, target, card and pill options| Daemon
 ```
 
 ## Device selection
 
 The daemon follows a uniquely connected Galaxy Buds device detected by Dux Shell. If more than one is paired, the popout lists the paired Buds; selecting one asks BlueZ to connect it, persists its address, and passes that target to Gbuds using `--mac`. A uniquely connected device is followed automatically so switching between paired models updates the active stream.
 
-`gbuds info --json` supplies model code, color, supported noise modes, and device name. These fields choose an available GalaxyBudsClient render and filter noise controls. Models without a copied render use Material icons.
+`gbuds capabilities --json` supplies model code, color, supported noise modes, and device name from cached BlueZ metadata. It runs alongside the watcher so telemetry does not wait for a second RFCOMM connection. These fields choose an available GalaxyBudsClient render and filter controls. Models without a copied render use Material icons.
 
 ## Watch lifecycle and actions
 
-The daemon starts one `gbuds watch --json` process. Each newline-delimited JSON object updates shared telemetry. When the process exits, Gbuds Watch keeps the last sample visible and retries with exponential backoff up to 15 seconds.
+The daemon starts one `gbuds watch --json` process. Each newline-delimited JSON object updates shared telemetry. When the process exits, Gbuds Watch keeps the last sample in memory and retries with exponential backoff up to 3 seconds.
 
-Control requests enter a FIFO queue. The daemon stops the watch process first, then runs exactly one `gbuds --json <command>` process. It publishes the command and response for the collapsible output drawer, displays success/error feedback, and resumes device metadata lookup and watch. This avoids running two CLI RFCOMM sessions at once.
+Control requests enter a FIFO queue. The daemon stops the watch process first, then runs exactly one `gbuds --json <command>` process. It publishes the command and response, applies returned state immediately, and resumes the watch without another metadata lookup. This avoids running two CLI RFCOMM sessions at once.
 
-## State and notifications
+## State cards
 
-The `telemetry` global variable contains the latest status and a transient `latestEvent` with per-field before/after values. Every field from `gbuds watch --json` is compared, including charging flags, ambient volume, voice detect, blade lights, coupling, and touch controls. The popout and desktop show a dismissible card for connection changes, earbud placement changes, and low battery. The battery indicator also uses a reusable animated wave when it reaches the configured threshold. Low-battery alerts fire when a battery crosses the configured threshold and are rate-limited. The state card dismisses after the configured 3, 6, or 10 second interval.
+The `telemetry` global variable contains the latest status and a transient `latestEvent`. The daemon creates events only for connection, earbud placement, noise-mode, and 30% / 10% battery transitions. The popout and desktop show a dismissible card in the chosen corner for the selected duration. No DMS notification toast is emitted.
 
 ## UI surfaces
 
-- **Bar pill:** compact, minimal, or detailed battery and noise-mode summary.
-- **Control popout:** large model renders, per-part battery, supported ANC modes, touchpad, EQ, device selection, quick settings, and a hidden-by-default CLI output drawer.
+- **Bar pill:** configurable battery layout, out-of-ear warning, and noise-mode icon; disconnected devices show only a disconnected icon.
+- **Control popout:** full-panel gradient, model renders, per-part battery, supported noise modes, touch controls, a collapsible sound list, and separate device/settings/console views without scrolling.
 - **Desktop widget:** the same controls and live state in a resizable card.
 
 Every control is capability-filtered or disabled when disconnected. Status remains read-only telemetry; user actions invoke the installed Gbuds CLI.

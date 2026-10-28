@@ -12,15 +12,15 @@ PluginComponent {
     property var lastStatus: null
     property var device: null
     property string lastError: ""
-    property int retryDelay: 1000
+    property string watchBuffer: ""
+    property int retryDelay: 500
     property bool shuttingDown: false
     property bool actionInFlight: false
     property var actionProcess: null
     property var actionQueue: []
     property int lastRequestId: 0
-    property int lastEventAt: 0
     property int eventSequence: 0
-    property int lastLowBatteryAt: 0
+    property bool disconnectedSinceLastStatus: false
     property bool targetSwitching: false
     property bool restartAfterTargetSwitch: false
     property string targetMac: ""
@@ -38,33 +38,53 @@ PluginComponent {
         });
     }
 
-    function valueLabel(value) {
-        if (value === null || value === undefined) return "Not available";
-        if (typeof value === "boolean") return value ? "On" : "Off";
-        if (typeof value === "string") return value.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, letter => letter.toUpperCase());
-        return String(value) + (typeof value === "number" && value <= 100 ? "%" : "");
-    }
-
-    function buildChanges(previous, next) {
-        if (!previous) return [];
-        var fields = [
-            ["left", "Left battery"], ["right", "Right battery"], ["case", "Case battery"],
-            ["left_charging", "Left charging"], ["right_charging", "Right charging"], ["case_charging", "Case charging"],
-            ["is_coupled", "Earbuds connected"], ["placement_left", "Left placement"], ["placement_right", "Right placement"],
-            ["noise_control", "Noise control"], ["equalizer", "Sound profile"], ["ambient_volume", "Ambient volume"],
-            ["voice_detect", "Voice detect"], ["blade_lights", "Blade lights"], ["touchpad_locked", "Touch controls"]
-        ];
-        var changes = [];
-        fields.forEach(field => {
-            if (previous[field[0]] !== next[field[0]])
-                changes.push({ key: field[0], label: field[1], from: root.valueLabel(previous[field[0]]), to: root.valueLabel(next[field[0]]) });
-        });
-        return changes;
-    }
-
-    function recordEvent(title, changes, severity) {
+    function recordEvent(kind, title, detail, severity, icon) {
         root.eventSequence++;
-        return { id: root.eventSequence, title: title, changes: changes || [], at: Date.now(), severity: severity || "normal" };
+        return { id: root.eventSequence, kind: kind, title: title, detail: detail || "", at: Date.now(), severity: severity || "normal", icon: icon || "headphones" };
+    }
+
+    function modeName(mode) {
+        if (mode === "NOISE_REDUCTION") return "Noise cancellation";
+        if (mode === "AMBIENT_SOUND") return "Ambient sound";
+        if (mode === "ADAPTIVE") return "Adaptive sound";
+        return "Normal mode";
+    }
+
+    function statusEvent(previous, next) {
+        if (!previous || root.disconnectedSinceLastStatus)
+            return root.recordEvent("connected", "Galaxy Buds connected", root.device && root.device.model || "Ready to listen", "success", "bluetooth_connected");
+
+        var parts = [{ key: "left", label: "Left earbud" }, { key: "right", label: "Right earbud" }, { key: "case", label: "Case" }];
+        for (var level of [10, 30]) {
+            for (var part of parts) {
+                var value = next[part.key];
+                var oldValue = previous ? previous[part.key] : null;
+                if (typeof value === "number" && value <= level && (!previous || typeof oldValue === "number" && oldValue > level))
+                    return root.recordEvent(level === 10 ? "critical-battery" : "low-battery", level === 10 ? "Critical battery" : "Battery at 30%", part.label + " · " + value + "%", "warning", "battery_alert");
+            }
+        }
+
+        if (previous.is_coupled === true && next.is_coupled === false)
+            return root.recordEvent("disconnected", "Galaxy Buds disconnected", "Earbuds are no longer coupled", "warning", "bluetooth_disabled");
+        if (previous.is_coupled === false && next.is_coupled === true)
+            return root.recordEvent("connected", "Galaxy Buds connected", "Earbuds are coupled", "success", "bluetooth_connected");
+
+        for (var side of [{ key: "placement_left", label: "Left earbud" }, { key: "placement_right", label: "Right earbud" }]) {
+            if (previous[side.key] !== next[side.key]) {
+                if (next[side.key] === "IN_CASE")
+                    return root.recordEvent("stored", "Earbud stored", side.label + " is in the case", "normal", "inventory_2");
+                if (next[side.key] === "IDLE")
+                    return root.recordEvent("out-of-ear", "Earbud removed", side.label + " is out of ear", "normal", "earbuds");
+                if (next[side.key] === "WEARING")
+                    return root.recordEvent("in-ear", "Earbud in ear", side.label + " is ready", "success", "earbuds");
+                if (next[side.key] === "DISCONNECTED")
+                    return root.recordEvent("disconnected", "Earbud disconnected", side.label + " is unavailable", "warning", "bluetooth_disabled");
+            }
+        }
+
+        if (previous.noise_control !== next.noise_control && next.noise_control)
+            return root.recordEvent("noise-mode", root.modeName(next.noise_control), "Noise control changed", "normal", next.noise_control === "AMBIENT_SOUND" ? "hearing" : next.noise_control === "ADAPTIVE" ? "auto_mode" : next.noise_control === "OFF" ? "noise_control_off" : "noise_control_on");
+        return null;
     }
 
     function publishCommand(command, result, success) {
@@ -77,14 +97,21 @@ PluginComponent {
     }
 
     function acceptTelemetry(line) {
-        var parsed;
-        try {
-            parsed = JSON.parse(line);
-        } catch (error) {
-            root.lastError = "Gbuds returned an invalid JSON status line.";
-            console.warn("[gbudsWatch] " + root.lastError);
+        root.watchBuffer += line + "\n";
+        if (root.watchBuffer.length > 65536) {
+            root.watchBuffer = "";
+            root.lastError = "Gbuds returned an oversized JSON response.";
+            root.publish("waiting", root.lastError, root.lastStatus, "");
             return;
         }
+        var parsed;
+        try {
+            parsed = JSON.parse(root.watchBuffer);
+        } catch (error) {
+            // watch emits one JSON object per line; CLI errors use indented JSON.
+            return;
+        }
+        root.watchBuffer = "";
         if (!parsed || typeof parsed.left !== "number" || typeof parsed.right !== "number") {
             root.lastError = parsed && parsed.error ? parsed.error : "Gbuds returned incomplete battery telemetry.";
             root.publish("waiting", root.lastError, root.lastStatus, "");
@@ -92,54 +119,12 @@ PluginComponent {
         }
 
         var previous = root.lastStatus;
-        var currentSnapshot = root.pluginService.getGlobalVar(root.pluginId, "telemetry", ({ phase: "" }));
-        var changes = root.buildChanges(previous, parsed);
-        var event = null;
-        var eventText = "";
-        var threshold = Number(pluginData.lowBatteryThreshold || 20);
-        var lowBatteryChanges = changes.filter(change => ["left", "right", "case"].indexOf(change.key) >= 0 &&
-            typeof parsed[change.key] === "number" && parsed[change.key] <= threshold &&
-            (!previous || typeof previous[change.key] !== "number" || previous[change.key] > threshold));
-        if (!previous) {
-            var initiallyLow = ["left", "right", "case"].filter(key => typeof parsed[key] === "number" && parsed[key] <= threshold)
-                .map(key => ({ key: key, label: key === "left" ? "Left battery" : key === "right" ? "Right battery" : "Case battery", from: "Not available", to: root.valueLabel(parsed[key]) }));
-            eventText = initiallyLow.length ? "Battery low" : "Galaxy Buds connected";
-            event = root.recordEvent(eventText, initiallyLow, initiallyLow.length ? "warning" : "success");
-        } else if (currentSnapshot.phase !== "connected" && changes.length === 0) {
-            eventText = "Connected to " + (root.device && (root.device.name || root.device.model) || "Galaxy Buds");
-            event = root.recordEvent("Galaxy Buds connected", changes, "success");
-        } else if (changes.some(change => change.key === "is_coupled" && change.to === "Off")) {
-            eventText = "Earbuds disconnected";
-            event = root.recordEvent(eventText, changes, "warning");
-        } else if (lowBatteryChanges.length > 0) {
-            eventText = "Battery low";
-            event = root.recordEvent(eventText, lowBatteryChanges, "warning");
-        } else if (changes.some(change => change.key.startsWith("placement_") && change.to === "Disconnected")) {
-            eventText = "Earbud disconnected";
-            event = root.recordEvent(eventText, changes, "warning");
-        } else if (changes.some(change => change.key.startsWith("placement_") && change.to === "Wearing")) {
-            eventText = "Earbud in use";
-            event = root.recordEvent(eventText, changes, "success");
-        } else if (changes.length > 0) {
-            eventText = changes.map(change => change.label + ": " + change.to).join(" · ");
-            event = root.recordEvent(changes.length === 1 ? changes[0].label + " changed" : changes.length + " status changes", changes,
-                "normal");
-        }
+        var event = root.statusEvent(previous, parsed);
+        root.disconnectedSinceLastStatus = false;
         root.lastStatus = parsed;
         root.lastError = "";
-        root.retryDelay = 1000;
-        root.publish("connected", "", parsed, eventText, event);
-        if (changes.length > 0 && pluginData.notifyStateChanges !== false && Date.now() - root.lastEventAt > 1200) {
-            root.lastEventAt = Date.now();
-            ToastService.showInfo("Galaxy Buds updated", eventText);
-        }
-        var crossedThreshold = previous && ((parsed.left <= threshold && previous.left > threshold) ||
-                (parsed.right <= threshold && previous.right > threshold) ||
-                (parsed.case !== null && parsed.case <= threshold && (previous.case === null || previous.case > threshold)));
-        if (crossedThreshold && pluginData.notifyLowBattery !== false && Date.now() - root.lastLowBatteryAt > 60000) {
-            root.lastLowBatteryAt = Date.now();
-            ToastService.showWarning("Galaxy Buds battery low", "An earbud or case reached " + threshold + "%.");
-        }
+        root.retryDelay = 500;
+        root.publish("connected", "", parsed, event ? event.title : "", event);
     }
 
     function recordError(line) {
@@ -158,11 +143,12 @@ PluginComponent {
                 return;
             if (exitCode === 0) {
                 root.refreshTargetFromBluetooth();
-                var info = infoComponent.createObject(root, { targetAddress: root.targetMac });
-                if (info)
-                    info.running = true;
-                else
-                    root.startWatcher();
+                root.startWatcher();
+                if (!root.device) {
+                    var info = infoComponent.createObject(root, { targetAddress: root.targetMac });
+                    if (info)
+                        info.running = true;
+                }
             } else {
                 root.publish("missing-cli", "Install Gbuds CLI to enable live telemetry.", null, "");
             }
@@ -184,7 +170,10 @@ PluginComponent {
         root.targetMac = normalized;
         // Do not compare one device's first frame against the previous device.
         root.lastStatus = null;
+        root.disconnectedSinceLastStatus = false;
         root.device = null;
+        root.pluginService.setGlobalVar(root.pluginId, "device", ({}));
+        root.publish("connecting", "Reading the selected Galaxy Buds model.", null, "");
         if (persist)
             root.pluginService.savePluginData(root.pluginId, "targetMac", normalized);
         root.pluginService.setGlobalVar(root.pluginId, "selectedDevice", normalized);
@@ -200,8 +189,16 @@ PluginComponent {
         try {
             var result = JSON.parse(text);
             if (result && result.success && result.device) {
-                root.device = result.device;
-                root.pluginService.setGlobalVar(root.pluginId, "device", result.device);
+                var capabilities = result.capabilities || ({});
+                var features = capabilities.features || ({});
+                root.device = Object.assign({}, result.device, {
+                    supported_noise_modes: capabilities.noise_control_modes || [],
+                    has_ambient: features.ambient_sound && features.ambient_sound.device_support === "supported",
+                    has_voice_detect: features.voice_detect && features.voice_detect.device_support === "supported",
+                    has_blade_lights: features.blade_lights && features.blade_lights.device_support === "supported",
+                    max_ambient_volume: features.ambient_volume && features.ambient_volume.max_level || 0
+                });
+                root.pluginService.setGlobalVar(root.pluginId, "device", root.device);
             } else if (result && result.error) {
                 root.lastError = result.error;
             }
@@ -214,7 +211,9 @@ PluginComponent {
     function startWatcher() {
         if (root.shuttingDown || root.watchProcess || root.actionInFlight)
             return;
-        root.publish("connecting", root.lastError || "Looking for a connected Galaxy Buds device.", root.lastStatus, "");
+        root.watchBuffer = "";
+        if (!root.lastStatus || root.disconnectedSinceLastStatus)
+            root.publish("connecting", root.lastError || "Looking for a connected Galaxy Buds device.", root.lastStatus, "");
         root.watchProcess = watcherComponent.createObject(root);
         if (root.watchProcess)
             root.watchProcess.running = true;
@@ -241,13 +240,14 @@ PluginComponent {
             return;
         }
         var detail = root.lastError || ("gbuds watch exited with code " + exitCode + ". Reconnecting…");
-        var disconnectedEvent = root.recordEvent("Galaxy Buds disconnected", [
-            { key: "connection", label: "Connection", from: "Connected", to: "Reconnecting" }
-        ], "warning");
-        root.publish("waiting", detail, root.lastStatus, "Galaxy Buds disconnected", disconnectedEvent);
+        var oldSnapshot = root.pluginService.getGlobalVar(root.pluginId, "telemetry", ({}));
+        var disconnectedEvent = oldSnapshot.phase === "connected" ? root.recordEvent("disconnected", "Galaxy Buds disconnected", "Connection lost", "warning", "bluetooth_disabled") : null;
+        if (disconnectedEvent)
+            root.disconnectedSinceLastStatus = true;
+        root.publish("waiting", detail, root.lastStatus, disconnectedEvent ? disconnectedEvent.title : "", disconnectedEvent);
         reconnectTimer.interval = root.retryDelay;
         reconnectTimer.start();
-        root.retryDelay = Math.min(root.retryDelay * 2, 15000);
+        root.retryDelay = Math.min(root.retryDelay * 2, 3000);
     }
 
     function enqueueAction(command, args, label) {
@@ -266,7 +266,6 @@ PluginComponent {
     function runNextAction() {
         if (root.shuttingDown || root.actionQueue.length === 0) {
             root.actionInFlight = false;
-            root.pluginService.setGlobalVar(root.pluginId, "commandState", { busy: false, label: "" });
             if (!root.shuttingDown)
                 root.checkCli();
             return;
@@ -284,17 +283,29 @@ PluginComponent {
         root.publishCommand("gbuds --json " + action.command + " " + action.args.join(" "), result, succeeded);
         if (succeeded) {
             root.lastError = "";
-            ToastService.showInfo("Galaxy Buds", action.label + " applied");
+            if (root.lastStatus) {
+                var updated = Object.assign({}, root.lastStatus);
+                var changed = false;
+                for (var field of ["noise_control", "equalizer", "touchpad_locked", "ambient_volume", "voice_detect", "blade_lights"]) {
+                    if (result[field] !== undefined && result[field] !== null) {
+                        updated[field] = result[field];
+                        changed = true;
+                    }
+                }
+                if (changed)
+                    root.acceptTelemetry(JSON.stringify(updated));
+            }
+            if (root.lastStatus)
+                root.publish("connected", "", root.lastStatus, "");
         } else {
             root.lastError = result.error || "Gbuds command failed.";
-            ToastService.showError("Galaxy Buds command failed", root.lastError);
         }
         if (root.actionQueue.length > 0)
             root.runNextAction();
         else {
             root.actionInFlight = false;
             root.pluginService.setGlobalVar(root.pluginId, "commandState", { busy: false, label: "" });
-            root.checkCli();
+            root.startWatcher();
         }
     }
 
@@ -321,7 +332,7 @@ PluginComponent {
         Process {
             id: infoRunner
             property string targetAddress: ""
-            command: [root.cliCommand].concat(targetAddress ? ["--mac", targetAddress] : []).concat(["info", "--json"])
+            command: [root.cliCommand].concat(targetAddress ? ["--mac", targetAddress] : []).concat(["capabilities", "--json"])
             running: false
             property string output: ""
             stdout: SplitParser {
@@ -332,7 +343,6 @@ PluginComponent {
                     root.acceptDeviceInfo(infoRunner.output);
                 infoRunner.output = "";
                 infoRunner.destroy();
-                root.startWatcher();
             }
         }
     }

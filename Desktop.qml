@@ -8,9 +8,9 @@ DesktopPluginComponent {
     id: root
 
     minWidth: 330
-    minHeight: 400
+    minHeight: 570
     widgetWidth: 380
-    widgetHeight: 470
+    widgetHeight: 570
 
     Rectangle {
         anchors.fill: parent

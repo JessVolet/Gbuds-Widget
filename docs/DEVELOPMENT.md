@@ -35,16 +35,16 @@ Enable the composite plugin in **DMS Settings → Plugins**, then add the widget
 2. Confirm the CLI works: `gbuds watch --json`.
 3. Enable Gbuds Watch, add the bar pill, and place the desktop widget. Confirm all surfaces show the same current device and battery state.
 4. Open the popout. Use the device picker if multiple Buds are paired, then verify the model art and available noise modes match `gbuds info --json`.
-5. Change ANC mode, touchpad lock, and EQ from the popout. Confirm the collapsible CLI drawer shows each real command response and that the live watch resumes afterward.
-6. Change placement, ANC, or battery state in Samsung's app. Use the real ANC, sound profile, or touch-control buttons and confirm each actual `gbuds watch --json` change appears in the dismissible status card. Also check that low battery and connection changes produce their specific cards and the battery wave effect.
+5. Change ANC mode, touchpad lock, and EQ from the popout. Confirm the console view shows each real command response and that the live watch resumes afterward.
+6. Change placement, ANC, or battery state in Samsung's app. Confirm the bar icon turns red when either earbud leaves the ear and that connection, placement, noise-mode, 30%, and 10% transitions produce their specific cards without desktop notifications.
 7. Switch between the paired FE and Buds3. The selected model, renders, supported controls, and stream should follow the active device; manually select it from the popout if BlueZ does not expose a unique connected device.
-8. Disconnect and reconnect the Buds. The card should enter its waiting state, retain the last sample, and retry without restarting the shell.
+8. Disconnect and reconnect the Buds. The bar pill should switch to its disconnected icon; the widget should clear displayed battery values and retry without restarting the shell.
 
-If DMS cannot find the CLI, set **Gbuds executable** in plugin settings to its absolute path. If `gbuds` is not installed, the desktop widget links to the [Gbuds installation guide](https://github.com/JessVolet/gbuds-cli/blob/main/docs/INSTALLATION.md).
+If DMS cannot find the CLI, set **Gbuds executable** in plugin settings to its absolute path. See the [Gbuds installation guide](https://github.com/JessVolet/gbuds-cli/blob/main/docs/INSTALLATION.md) if it is not installed.
 
 ## Current environment notes
 
 - Dux Shell installed in the development machine: `dms (git) v2.0.0-5380`.
-- `gbuds info --json` is queried before watch starts and after commands or reconnects; the persistent status stream is `gbuds watch --json`.
+- `gbuds capabilities --json` supplies cached model metadata in parallel with the persistent `gbuds watch --json` stream; control commands resume the stream directly.
 - The developer has Galaxy Buds FE and Galaxy Buds3 available for hardware testing. Other models need user validation; missing artwork falls back to Material icons.
 - Copied GalaxyBudsClient renders are documented separately in `assets/README.md`; check individual redistribution rights before publishing a binary bundle.
