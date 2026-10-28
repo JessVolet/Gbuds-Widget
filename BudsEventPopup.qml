@@ -99,7 +99,7 @@ PanelWindow {
         id: card
         anchors.fill: parent
         anchors.margins: 5
-        radius: 25
+        radius: Theme.cornerRadiusL
         color: Theme.withAlpha(Theme.surfaceContainerHigh, BlurService.enabled ? 0.8 : 0.97)
         border.width: 1
         border.color: root.warning ? Theme.withAlpha(Theme.error, 0.6) : Theme.withAlpha(Theme.primary, 0.4)
@@ -116,18 +116,18 @@ PanelWindow {
             id: body
             anchors.fill: parent
             anchors.margins: 14
-            spacing: 6
+            spacing: Theme.spacingXS
 
             Row {
                 width: parent.width
                 height: 20
-                spacing: 6
+                spacing: Theme.spacingXS
                 DIcon { name: "bluetooth"; size: 14; color: root.warning ? Theme.error : Theme.primary }
                 StyledText {
                     width: parent.width - 46
                     text: root.device.name || root.device.model || "Galaxy Buds"
                     color: Theme.surfaceVariantText
-                    font.pixelSize: 10
+                    font.pixelSize: Theme.fontSizeSmall
                     elide: Text.ElideRight
                 }
                 DButton {
@@ -151,7 +151,7 @@ PanelWindow {
                 }
                 Row {
                     anchors.centerIn: parent
-                    spacing: 12
+                    spacing: Theme.spacingM
                     visible: root.subject !== "mode"
                     Repeater {
                         model: root.parts
@@ -193,7 +193,7 @@ PanelWindow {
                 width: parent.width
                 visible: root.subject !== "mode" && root.eventData && root.eventData.kind !== "disconnected"
                 text: root.parts.map(part => part.toUpperCase() + "  " + root.batteryLabel(part)).join("    ·    ")
-                font.pixelSize: 10
+                font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.DemiBold
                 color: Theme.primary
                 horizontalAlignment: Text.AlignHCenter

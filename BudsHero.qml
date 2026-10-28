@@ -31,7 +31,7 @@ Rectangle {
 
     width: parent.width
     height: 210
-    radius: 26
+    radius: Theme.cornerRadiusL
     clip: true
     color: "transparent"
 

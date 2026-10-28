@@ -115,7 +115,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 24
+        radius: Theme.cornerRadiusL
         visible: !root.desktopMode
         gradient: Gradient {
             GradientStop { position: 0; color: Theme.surfaceContainerLowest }

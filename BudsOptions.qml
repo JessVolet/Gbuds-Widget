@@ -23,19 +23,19 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 20
+        radius: Theme.cornerRadiusL
         color: Theme.withAlpha(Theme.surfaceContainerHighest, 0.96)
         border.color: Theme.withAlpha(Theme.outline, 0.25)
 
         Column {
             anchors.fill: parent
             anchors.margins: 14
-            spacing: 10
+            spacing: Theme.spacingS
 
             Row {
                 width: parent.width
                 height: 30
-                spacing: 8
+                spacing: Theme.spacingS
                 DButton {
                     width: 30; buttonHeight: 30; minimumWidth: 0
                     iconName: "arrow_back"; text: ""
@@ -53,7 +53,7 @@ Item {
 
             Column {
                 width: parent.width
-                spacing: 7
+                spacing: Theme.spacingS
                 visible: root.page === "devices"
                 Repeater {
                     model: root.devices
@@ -78,7 +78,7 @@ Item {
 
             Column {
                 width: parent.width
-                spacing: 8
+                spacing: Theme.spacingS
                 visible: root.page === "terminal"
                 StyledText {
                     width: parent.width
@@ -94,7 +94,7 @@ Item {
                     clip: true
                     text: root.command.result ? JSON.stringify(root.command.result, null, 2) : root.detail || JSON.stringify(root.status, null, 2)
                     font.family: "monospace"
-                    font.pixelSize: 10
+                    font.pixelSize: Theme.fontSizeSmall
                     color: Theme.surfaceText
                     wrapMode: Text.WrapAnywhere
                 }

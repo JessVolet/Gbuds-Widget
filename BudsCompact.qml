@@ -64,12 +64,12 @@ Item {
     Column {
         anchors.fill: parent
         anchors.margins: 7
-        spacing: 6
+        spacing: Theme.spacingXS
 
         Row {
             width: parent.width
             height: 20
-            spacing: 6
+            spacing: Theme.spacingXS
             DIcon {
                 name: "bluetooth_connected"
                 size: 16
@@ -127,7 +127,7 @@ Item {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: modelData.label + "  " + root.battery(modelData.key)
                             color: Theme.surfaceText
-                            font.pixelSize: 10
+                            font.pixelSize: Theme.fontSizeSmall
                             font.weight: Font.DemiBold
                         }
                     }
@@ -138,7 +138,7 @@ Item {
         Rectangle {
             width: parent.width
             height: 34
-            radius: 12
+            radius: Theme.cornerRadiusS
             visible: root.modeOptions.length > 0
             color: Theme.withAlpha(Theme.surfaceContainer, 0.28)
             border.color: Theme.withAlpha(Theme.outline, 0.35)
@@ -154,7 +154,7 @@ Item {
                         readonly property bool selected: root.status.noise_control === modelData.mode
                         width: (parent.width - (root.modeOptions.length - 1) * 3) / root.modeOptions.length
                         height: parent.height
-                        radius: 9
+                        radius: Theme.cornerRadiusS
                         color: selected ? Theme.primaryContainer : "transparent"
                         enabled: root.connected && !root.busy
                         activeFocusOnTab: enabled

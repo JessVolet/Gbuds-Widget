@@ -23,7 +23,7 @@ Column {
     signal commandRequested(string commandName, var commandArgs, string label)
 
     width: parent.width
-    spacing: 10
+    spacing: Theme.spacingS
 
     function modeLabel(value) {
         if (value === "NOISE_REDUCTION") return "Noise cancellation";
@@ -44,7 +44,7 @@ Column {
         width: parent.width
         height: root.modeOptions.length > 0 && !root.soundOpen ? 112 : 0
         visible: height > 1
-        radius: 20
+        radius: Theme.cornerRadiusL
         color: Theme.surface
         border.color: Theme.withAlpha(Theme.outline, 0.2)
         border.width: 1
@@ -54,11 +54,11 @@ Column {
         Column {
             anchors.fill: parent
             anchors.margins: 12
-            spacing: 8
+            spacing: Theme.spacingS
             Row {
                 width: parent.width
                 height: 20
-                spacing: 7
+                spacing: Theme.spacingS
                 DIcon { name: "noise_control_on"; size: 18; color: Theme.primary; anchors.verticalCenter: parent.verticalCenter }
                 StyledText {
                     width: parent.width * 0.44
@@ -83,7 +83,7 @@ Column {
             Rectangle {
                 width: parent.width
                 height: 56
-                radius: 17
+                radius: Theme.cornerRadiusM
                 color: Theme.surfaceContainerHigh
                 Row {
                     anchors.fill: parent
@@ -96,7 +96,7 @@ Column {
                             readonly property bool selected: root.status.noise_control === modelData.mode
                             width: (parent.width - (root.modeOptions.length - 1) * 4) / Math.max(1, root.modeOptions.length)
                             height: parent.height
-                            radius: 14
+                            radius: Theme.cornerRadiusM
                             color: selected ? Theme.primaryContainer : "transparent"
                             scale: selected ? 1 : 0.97
                             enabled: root.connected && !root.busy
@@ -119,7 +119,7 @@ Column {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: modelData.label
                                     color: selected ? Theme.primary : Theme.surfaceVariantText
-                                    font.pixelSize: 10
+                                    font.pixelSize: Theme.fontSizeSmall
                                     font.weight: selected ? Font.Bold : Font.Medium
                                 }
                             }
@@ -137,7 +137,7 @@ Column {
         width: parent.width
         height: root.soundOpen ? 0 : 64
         visible: height > 1
-        spacing: 10
+        spacing: Theme.spacingS
 
         Repeater {
             model: [
@@ -149,7 +149,7 @@ Column {
                 readonly property bool actionable: root.connected && !root.busy && (modelData.key === "sync" || typeof root.status.touchpad_locked === "boolean")
                 width: (parent.width - 10) / 2
                 height: parent.height
-                radius: 18
+                radius: Theme.cornerRadiusM
                 color: actionMouse.containsMouse && actionable ? Theme.primaryContainer : Theme.surface
                 scale: actionMouse.containsMouse && actionable ? 1.025 : 1
                 border.color: Theme.withAlpha(Theme.outline, 0.2)
@@ -166,7 +166,7 @@ Column {
                     anchors.margins: 12
                     spacing: 9
                     Rectangle {
-                        width: 38; height: 38; radius: 12
+                        width: 38; height: 38; radius: Theme.cornerRadiusS
                         color: Theme.primaryContainer
                         anchors.verticalCenter: parent.verticalCenter
                         DIcon { anchors.centerIn: parent; name: modelData.icon; size: 20; color: Theme.primary }
@@ -187,7 +187,7 @@ Column {
                             width: parent.width
                             text: modelData.detail
                             color: Theme.surfaceVariantText
-                            font.pixelSize: 10
+                            font.pixelSize: Theme.fontSizeSmall
                             elide: Text.ElideRight
                         }
                     }
@@ -208,7 +208,7 @@ Column {
         width: parent.width
         height: root.hasSoundOptions ? (root.soundOpen ? soundContent.implicitHeight + 28 : 52) : 0
         visible: height > 1
-        radius: 20
+        radius: Theme.cornerRadiusL
         color: Theme.surface
         border.color: Theme.withAlpha(Theme.outline, 0.2)
         border.width: 1
@@ -219,7 +219,7 @@ Column {
             id: soundContent
             width: parent.width - 28
             x: 14; y: 14
-            spacing: 12
+            spacing: Theme.spacingM
 
             Item {
                 width: parent.width
@@ -246,22 +246,22 @@ Column {
 
             Column {
                 width: parent.width
-                spacing: 12
+                spacing: Theme.spacingM
                 visible: root.soundOpen
             Column {
                 width: parent.width
-                spacing: 7
+                spacing: Theme.spacingS
                 visible: root.hasEqualizer
                 StyledText {
                     text: "SOUND PROFILE"
                     color: Theme.surfaceVariantText
-                    font.pixelSize: 10
+                    font.pixelSize: Theme.fontSizeSmall
                     font.weight: Font.DemiBold
                     font.letterSpacing: 1
                 }
                 Flow {
                     width: parent.width
-                    spacing: 6
+                    spacing: Theme.spacingXS
                     Repeater {
                         model: [
                             { key: "normal", value: "OFF", label: "Normal" },
@@ -288,18 +288,18 @@ Column {
 
             Column {
                 width: parent.width
-                spacing: 7
+                spacing: Theme.spacingS
                 visible: root.hasAmbientVolume
                 StyledText {
                     text: "AMBIENT VOLUME  ·  " + (typeof root.status.ambient_volume === "number" ? root.status.ambient_volume : "—")
                     color: Theme.surfaceVariantText
-                    font.pixelSize: 10
+                    font.pixelSize: Theme.fontSizeSmall
                     font.weight: Font.DemiBold
                     font.letterSpacing: 1
                 }
                 Row {
                     width: parent.width
-                    spacing: 6
+                    spacing: Theme.spacingXS
                     Repeater {
                         model: root.hasAmbientVolume ? Number(root.device.max_ambient_volume) + 1 : 0
                         delegate: DButton {
@@ -320,7 +320,7 @@ Column {
 
             Row {
                 width: parent.width
-                spacing: 8
+                spacing: Theme.spacingS
                 visible: root.hasVoiceDetect || root.hasBladeLights
                 DButton {
                     width: root.hasBladeLights ? (parent.width - 8) / 2 : parent.width
@@ -344,7 +344,7 @@ Column {
 
             Flow {
                 width: parent.width
-                spacing: 6
+                spacing: Theme.spacingXS
                 visible: root.hasBladeLights && root.lightsOpen
                 Repeater {
                     model: ["off", "steady", "fade", "blink"]
