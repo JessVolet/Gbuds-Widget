@@ -39,8 +39,9 @@ Enable the composite plugin in **DMS Settings → Plugins**, then add the widget
 6. Change placement, ANC, or battery state in Samsung's app. Confirm the bar icon turns red when either earbud leaves the ear and that connection, placement, noise-mode, 30%, and 10% transitions produce their specific cards without desktop notifications.
 7. Switch between the paired FE and Buds3. The selected model, renders, supported controls, and stream should follow the active device; manually select it from the popout if BlueZ does not expose a unique connected device.
 8. Disconnect and reconnect the Buds. The bar pill should switch to its disconnected icon; the widget should clear displayed battery values and retry without restarting the shell.
-9. Add two desktop instances. Select **Full** for one and **Compact** for the other in their instance settings, then resize the compact instance. Confirm both update together and the compact view has no control buttons.
-10. Trigger a connection, placement, or noise-mode event. Confirm the floating card appears outside the widget at the configured screen corner, can be dismissed, and does not appear as a DMS notification.
+9. Add two desktop instances. Select **Full** for one and **Compact** for the other in their instance settings, then resize the compact instance. Confirm both update together and the compact noise-mode switcher lists only supported modes.
+10. Disconnect the Buds. Confirm both desktop instances become visually and interactively transparent, then reconnect and confirm they return.
+11. Trigger a connection while both Buds are in the case, remove only one earbud, then change the noise mode. Confirm the square floating card shows the case, that earbud, and the mode icon respectively; it must remain outside the widget and not appear as a DMS notification.
 
 If DMS cannot find the CLI, set **Gbuds executable** in plugin settings to its absolute path. See the [Gbuds installation guide](https://github.com/JessVolet/gbuds-cli/blob/main/docs/INSTALLATION.md) if it is not installed.
 

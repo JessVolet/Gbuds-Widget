@@ -30,12 +30,12 @@ Control requests enter a FIFO queue. The daemon stops the watch process first, t
 
 ## State cards
 
-The `telemetry` global variable contains the latest status and a transient `latestEvent`. The daemon creates events only for connection, earbud placement, noise-mode, and 30% / 10% battery transitions. The daemon owns a floating layer surface that shows a dismissible card in the chosen screen corner for the selected duration. It is independent of the popout and desktop widget boundaries. No DMS notification toast is emitted.
+The `telemetry` global variable contains the latest status and a transient `latestEvent`. The daemon creates events only for connection, earbud placement, noise-mode, and 30% / 10% battery transitions. Each event carries a subject (`left`, `right`, `case`, `pair`, or `mode`) so the square floating surface shows only the relevant artwork. The surface appears in the chosen screen corner for the selected duration, independently of the popout and desktop widget boundaries. No DMS notification toast is emitted.
 
 ## UI surfaces
 
 - **Bar pill:** configurable battery layout, out-of-ear warning, and noise-mode icon; disconnected devices show only a disconnected icon.
 - **Control popout:** full-panel gradient, model renders, per-part battery, supported noise modes, touch controls, a collapsible sound list, and separate device/settings/console views without scrolling.
-- **Desktop widget:** each instance selects a full controls layout or a compact read-only status layout. Both share daemon telemetry; their layout setting is stored per instance.
+- **Desktop widget:** each instance selects a full controls layout or a compact status layout with a capability-filtered noise-mode switcher. Both share daemon telemetry; their layout setting is stored per instance. Their outer surface fades away and stops accepting input while disconnected.
 
 Every control is capability-filtered or disabled when disconnected. Status remains read-only telemetry; user actions invoke the installed Gbuds CLI.
