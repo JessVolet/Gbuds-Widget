@@ -78,7 +78,10 @@ PluginComponent {
         }
 
         var previous = root.lastStatus;
+        var currentSnapshot = root.pluginService.getGlobalVar(root.pluginId, "telemetry", ({ phase: "" }));
         var eventText = root.describeChange(previous, parsed);
+        if (currentSnapshot.phase !== "connected" && previous !== null)
+            eventText = "Connected to " + (root.device && (root.device.name || root.device.model) || "Galaxy Buds");
         var hasChange = root.lastStatus !== null && eventText !== "Buds status updated";
         root.lastStatus = parsed;
         root.lastError = "";
@@ -128,12 +131,12 @@ PluginComponent {
     function refreshTargetFromBluetooth() {
         var connected = root.pairedBuds.filter(device => device.connected && device.address);
         if (connected.length === 1)
-            root.setTarget(connected[0].address, false);
+            root.setTarget(connected[0].address, false, false);
         else if (!root.targetMac && pluginData.targetMac)
             root.setTarget(pluginData.targetMac, false);
     }
 
-    function setTarget(address, persist) {
+    function setTarget(address, persist, restartIfIdle) {
         var normalized = (address || "").trim().toUpperCase();
         if (!normalized || normalized === root.targetMac)
             return;
@@ -143,7 +146,7 @@ PluginComponent {
         root.pluginService.setGlobalVar(root.pluginId, "selectedDevice", normalized);
         if (root.watchProcess)
             root.watchProcess.running = false;
-        else if (!root.actionInFlight)
+        else if (!root.actionInFlight && restartIfIdle !== false)
             root.checkCli();
     }
 

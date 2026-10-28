@@ -15,7 +15,7 @@
   ],
   "components": {
     "daemon": "./Daemon.qml",
-    "widget": "./Widget.qml",
+    "widget": "./GbudsBarWidget.qml",
     "desktop": "./Desktop.qml"
   },
   "settings": "./Settings.qml",
