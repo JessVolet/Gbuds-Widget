@@ -19,8 +19,7 @@ PluginComponent {
     property bool actionInFlight: false
     property var actionProcess: null
     property var actionQueue: []
-    property var eventPopup: null
-    property int lastRequestId: 0
+    property string lastRequestId: ""
     property int eventSequence: 0
     property bool disconnectedSinceLastStatus: false
     property bool targetSwitching: false
@@ -38,13 +37,13 @@ PluginComponent {
             latestEvent: latestEvent || old.latestEvent || null,
             updatedAt: Date.now()
         });
-        if (latestEvent && root.eventPopup)
+        if (latestEvent)
             eventPopup.present(latestEvent, status || root.lastStatus, root.device);
     }
 
-    function recordEvent(kind, title, detail, severity, icon) {
+    function recordEvent(kind, title, detail, severity, icon, subject) {
         root.eventSequence++;
-        return { id: root.eventSequence, kind: kind, title: title, detail: detail || "", at: Date.now(), severity: severity || "normal", icon: icon || "headphones" };
+        return { id: root.eventSequence, kind: kind, title: title, detail: detail || "", at: Date.now(), severity: severity || "normal", icon: icon || "headphones", subject: subject || "pair" };
     }
 
     function modeName(mode) {
@@ -56,7 +55,7 @@ PluginComponent {
 
     function statusEvent(previous, next) {
         if (!previous || root.disconnectedSinceLastStatus)
-            return root.recordEvent("connected", "Galaxy Buds connected", root.device && root.device.model || "Ready to listen", "success", "bluetooth_connected");
+            return root.recordEvent("connected", "Galaxy Buds connected", root.device && root.device.model || "Ready to listen", "success", "bluetooth_connected", next.placement_left === "IN_CASE" && next.placement_right === "IN_CASE" ? "case" : "pair");
 
         var parts = [{ key: "left", label: "Left earbud" }, { key: "right", label: "Right earbud" }, { key: "case", label: "Case" }];
         for (var level of [10, 30]) {
@@ -64,30 +63,30 @@ PluginComponent {
                 var value = next[part.key];
                 var oldValue = previous ? previous[part.key] : null;
                 if (typeof value === "number" && value <= level && (!previous || typeof oldValue === "number" && oldValue > level))
-                    return root.recordEvent(level === 10 ? "critical-battery" : "low-battery", level === 10 ? "Critical battery" : "Battery at 30%", part.label + " · " + value + "%", "warning", "battery_alert");
+                    return root.recordEvent(level === 10 ? "critical-battery" : "low-battery", level === 10 ? "Critical battery" : "Battery at 30%", part.label + " · " + value + "%", "warning", "battery_alert", part.key);
             }
         }
 
         if (previous.is_coupled === true && next.is_coupled === false)
             return root.recordEvent("disconnected", "Galaxy Buds disconnected", "Earbuds are no longer coupled", "warning", "bluetooth_disabled");
         if (previous.is_coupled === false && next.is_coupled === true)
-            return root.recordEvent("connected", "Galaxy Buds connected", "Earbuds are coupled", "success", "bluetooth_connected");
+            return root.recordEvent("connected", "Galaxy Buds connected", "Earbuds are coupled", "success", "bluetooth_connected", next.placement_left === "IN_CASE" && next.placement_right === "IN_CASE" ? "case" : "pair");
 
         for (var side of [{ key: "placement_left", label: "Left earbud" }, { key: "placement_right", label: "Right earbud" }]) {
             if (previous[side.key] !== next[side.key]) {
                 if (next[side.key] === "IN_CASE")
-                    return root.recordEvent("stored", "Earbud stored", side.label + " is in the case", "normal", "inventory_2");
+                    return root.recordEvent("stored", "Earbud stored", side.label + " is in the case", "normal", "inventory_2", "case");
                 if (next[side.key] === "IDLE")
-                    return root.recordEvent("out-of-ear", "Earbud removed", side.label + " is out of ear", "normal", "earbuds");
+                    return root.recordEvent("out-of-ear", "Earbud removed", side.label + " is out of ear", "normal", "earbuds", side.key === "placement_left" ? "left" : "right");
                 if (next[side.key] === "WEARING")
-                    return root.recordEvent("in-ear", "Earbud in ear", side.label + " is ready", "success", "earbuds");
+                    return root.recordEvent("in-ear", "Earbud in ear", side.label + " is ready", "success", "earbuds", side.key === "placement_left" ? "left" : "right");
                 if (next[side.key] === "DISCONNECTED")
-                    return root.recordEvent("disconnected", "Earbud disconnected", side.label + " is unavailable", "warning", "bluetooth_disabled");
+                    return root.recordEvent("disconnected", "Earbud disconnected", side.label + " is unavailable", "warning", "bluetooth_disabled", side.key === "placement_left" ? "left" : "right");
             }
         }
 
         if (previous.noise_control !== next.noise_control && next.noise_control)
-            return root.recordEvent("noise-mode", root.modeName(next.noise_control), "Noise control changed", "normal", next.noise_control === "AMBIENT_SOUND" ? "hearing" : next.noise_control === "ADAPTIVE" ? "auto_mode" : next.noise_control === "OFF" ? "noise_control_off" : "noise_control_on");
+            return root.recordEvent("noise-mode", root.modeName(next.noise_control), "Noise control changed", "normal", next.noise_control === "AMBIENT_SOUND" ? "hearing" : next.noise_control === "ADAPTIVE" ? "auto_mode" : next.noise_control === "OFF" ? "noise_control_off" : "noise_control_on", "mode");
         return null;
     }
 
@@ -320,7 +319,7 @@ PluginComponent {
                 return;
             if (varName === "commandRequest") {
                 var request = root.pluginService.getGlobalVar(root.pluginId, "commandRequest", null);
-                if (!request || request.id <= root.lastRequestId)
+                if (!request || !request.id || request.id === root.lastRequestId)
                     return;
                 root.lastRequestId = request.id;
                 root.enqueueAction(request.command, request.args, request.label);
@@ -395,14 +394,6 @@ PluginComponent {
     }
 
     Component.onCompleted: {
-        var popupComponent = Qt.createComponent(Qt.resolvedUrl("BudsEventPopup.qml?revision=" + Date.now()));
-        if (popupComponent.status === Component.Ready) {
-            root.eventPopup = popupComponent.createObject(root, { config: Qt.binding(() => root.pluginData) });
-            if (!root.eventPopup)
-                console.warn("[gbudsWatch] Could not create event popup.");
-        } else {
-            console.warn("[gbudsWatch] Popup component: " + popupComponent.errorString());
-        }
         root.targetMac = pluginData.targetMac || "";
         root.publish("checking-cli", "Checking for the gbuds executable.", null, "");
         root.checkCli();
@@ -419,4 +410,8 @@ PluginComponent {
         }
     }
 
+    BudsEventPopup {
+        id: eventPopup
+        config: root.pluginData
+    }
 }

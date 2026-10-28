@@ -16,7 +16,6 @@ Item {
     property var config: ({})
     property bool desktopMode: false
     property string activePage: "main"
-    property int requestId: 0
 
     PluginGlobalVar { id: telemetry; varName: "telemetry"; defaultValue: ({ phase: "checking-cli", detail: "", status: null, event: "" }) }
     PluginGlobalVar { id: deviceInfo; varName: "device"; defaultValue: ({}) }
@@ -90,9 +89,8 @@ Item {
     }
 
     function sendCommand(commandName, args, label) {
-        root.requestId++;
-        root.pluginService.setGlobalVar(root.pluginId, "commandRequest", {
-            id: Date.now() + root.requestId,
+        PluginService.setGlobalVar(root.pluginId, "commandRequest", {
+            id: Date.now() + "-" + Math.random(),
             command: commandName,
             args: args || [],
             label: label || commandName
@@ -104,7 +102,7 @@ Item {
         var target = root.budsDevices.find(device => (device.address || "").toUpperCase() === requestedAddress);
         if (target && !target.connected)
             target.connect();
-        root.pluginService.setGlobalVar(root.pluginId, "deviceSelection", address);
+        PluginService.setGlobalVar(root.pluginId, "deviceSelection", address);
         root.activePage = "main";
     }
 
@@ -118,6 +116,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 24
+        visible: !root.desktopMode
         gradient: Gradient {
             GradientStop { position: 0; color: Theme.withAlpha("#102a3d", root.desktopMode && BlurService.enabled ? 0.82 : 1) }
             GradientStop { position: 0.55; color: Theme.withAlpha("#1b4057", root.desktopMode && BlurService.enabled ? 0.76 : 1) }
@@ -126,6 +125,7 @@ Item {
     }
 
     Rectangle {
+        visible: !root.desktopMode
         width: Math.min(root.width * 0.9, 370)
         height: width
         radius: width / 2
