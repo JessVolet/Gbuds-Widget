@@ -1,6 +1,6 @@
 # Architecture
 
-Gbuds Watch is a composite Dux Shell plugin. One daemon owns Gbuds CLI processes and publishes shared state to the bar, popout, and desktop surfaces.
+Gbuds Widget is a composite Dux Shell plugin. One daemon owns Gbuds CLI processes and publishes shared state to the bar, popout, and desktop surfaces.
 
 ```mermaid
 flowchart LR
@@ -24,7 +24,7 @@ The daemon follows a uniquely connected Galaxy Buds device detected by Dux Shell
 
 ## Watch lifecycle and actions
 
-The daemon starts one `gbuds watch --json` process. Each newline-delimited JSON object updates shared telemetry. When the process exits, Gbuds Watch keeps the last sample in memory and retries with exponential backoff up to 3 seconds.
+The daemon starts one `gbuds watch --json` process. Each newline-delimited JSON object updates shared telemetry. When the process exits, Gbuds Widget keeps the last sample in memory and retries with exponential backoff up to 3 seconds.
 
 Control requests enter a FIFO queue. The daemon stops the watch process first, then runs exactly one `gbuds --json <command>` process. It publishes the command and response, applies returned state immediately, and resumes the watch without another metadata lookup. This avoids running two CLI RFCOMM sessions at once.
 

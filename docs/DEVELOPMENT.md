@@ -14,16 +14,16 @@ qs -p .
 
 After Quickshell starts, stop it with Ctrl+C. The plugin's source of truth is this repository. For IDE imports, symlink its folder into `~/repos/dux-shell/quickshell/PLUGINS`; for runtime discovery, symlink it into `~/.config/dms/plugins`.
 
+From the Gbuds Widget repository directory:
+
 ```bash
-ln -s /home/vsynlo/Proyectos/Self/Dux-GalaxyBuds/Gbuds-Watch \\
-  ~/repos/dux-shell/quickshell/PLUGINS/gbudsWatch
+ln -s "$PWD" ~/repos/dux-shell/quickshell/PLUGINS/gbudsWatch
 ```
 
 ## Runtime symlink and reload
 
 ```bash
-ln -s /home/vsynlo/Proyectos/Self/Dux-GalaxyBuds/Gbuds-Watch \
-  ~/.config/dms/plugins/gbudsWatch
+ln -s "$PWD" ~/.config/dms/plugins/gbudsWatch
 dms ipc call plugins reload gbudsWatch
 ```
 
@@ -33,7 +33,7 @@ Enable the composite plugin in **DMS Settings → Plugins**, then add the widget
 
 1. Connect one paired, supported Galaxy Buds device.
 2. Confirm the CLI works: `gbuds watch --json`.
-3. Enable Gbuds Watch, add the bar pill, and place the desktop widget. Confirm all surfaces show the same current device and battery state.
+3. Enable Gbuds Widget, add the bar pill, and place the desktop widget. Confirm all surfaces show the same current device and battery state.
 4. Open the popout. Use the device picker if multiple Buds are paired, then verify the model art and available noise modes match `gbuds info --json`.
 5. Change ANC mode, touchpad lock, and EQ from the popout. Confirm the console view shows each real command response and that the live watch resumes afterward.
 6. Change placement, ANC, or battery state in Samsung's app. Confirm the bar icon turns red when either earbud leaves the ear and that connection, placement, noise-mode, 30%, and 10% transitions produce their specific cards without desktop notifications.

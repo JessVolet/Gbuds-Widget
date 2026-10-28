@@ -1,8 +1,8 @@
 {
   "$schema": "https://github.com/duxlabs-dev/dux-shell/raw/refs/heads/master/quickshell/PLUGINS/plugin-schema.json",
   "id": "gbudsWatch",
-  "name": "Gbuds Watch",
-  "description": "Live Galaxy Buds battery and state for the Dux Shell bar and desktop.",
+  "name": "Gbuds Widget",
+  "description": "Galaxy Buds battery, controls, and event popups for the Dux Shell bar and desktop. Requires gbuds-cli.",
   "version": "0.1.0",
   "author": "JessVolet",
   "license": "MIT",

@@ -1,26 +1,67 @@
-# Gbuds Watch
+# Gbuds Widget
 
-Gbuds Watch is a Dux Shell 2.0 composite plugin for Galaxy Buds. A single background watcher reads `gbuds watch --json` and shares live telemetry with the bar pill, a control popout, and a resizable desktop widget.
+![Gbuds Widget presentation](assets/presentation.png)
 
-The full desktop layout takes the supplied Galaxy Buds Dux Shell prototype as its starting point and shows live batteries, noise controls, quick actions, and a collapsible sound list. The compact desktop layout uses the correct earbud and case icons and includes a small noise-mode switcher. Both layouts have a transparent outer surface and disappear when the Buds disconnect. Add two Gbuds Watch instances and choose a different **Desktop layout** in each instance's settings; resize the compact one in the desktop editor. Noise modes and the ambient-volume, voice-detection, and Blade Lights controls follow the detected model metadata. The bar pill switches to a disconnected icon when needed and uses icons for noise mode. A square floating popup outside the widget shows the relevant earbud, case, or noise-mode icon for connection, placement, mode, and 30% / 10% battery events; the plugin does not send desktop notifications.
+A Dux Shell 2.0 plugin for Galaxy Buds. It adds a status item to the bar, a control popout, a contextual event popup, and two desktop widget layouts. **[gbuds-cli](https://github.com/JessVolet/gbuds-cli/tree/main) is required**: this project does not communicate with the earbuds on its own.
 
-## Requirements
+| Control popout | Compact desktop widget |
+| :---: | :---: |
+| ![Control popout showing Galaxy Buds FE](assets/screenshots/control-popout.png) | ![Compact desktop widget showing battery levels and noise modes](assets/screenshots/desktop-compact.png) |
 
-- Dux Shell 2.0 or newer.
-- The `gbuds` CLI installed and discoverable by the Dux Shell process.
-- A paired, connected Galaxy Buds device supported by the installed Gbuds version.
-- Bluetooth permissions and BlueZ configured as described in the [Gbuds installation guide](https://github.com/JessVolet/gbuds-cli/blob/main/docs/INSTALLATION.md).
+## What it does
 
-When no Buds device is available, the widget stays visible and retries with a backoff. If multiple Buds are paired, select the target from the popout; the plugin tracks a uniquely connected Buds automatically.
+- Shows each earbud's and the case's battery and placement, plus the current noise mode.
+- Offers noise control, touch lock, equalizer, ambient volume, voice detection, and Blade Lights **only when the connected model and CLI report support**.
+- Shows a floating square popup for connection, placement, noise-mode, and low-battery changes. It selects the affected earbud, case, or mode icon.
+- Provides full and compact desktop layouts. Add two instances to use both; they share live state and disappear when disconnected. The compact layout includes a noise-mode switcher.
+- Lets you select among paired Buds and configure the CLI path, bar appearance, desktop layout, and popup.
 
-## Development
+## Requirements and installation
 
-See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the Dux Shell checkout, QML language server setup, plugin symlink, live reload, and real-device testing.
+1. Install [Dux Shell 2.0 or newer](https://duxlabs.dev/docs/dms/plugin-development).
+2. Install **[gbuds-cli](https://github.com/JessVolet/gbuds-cli/tree/main)** and complete its [BlueZ/Bluetooth setup](https://github.com/JessVolet/gbuds-cli/blob/main/docs/INSTALLATION.md). Check that `gbuds --help` works in the same environment as Dux Shell. You can set an absolute **Gbuds executable** path in plugin settings if it is not on Dux Shell's `PATH`.
+3. Install Gbuds Widget from the Dux plugin registry when listed, or clone this repository into `~/.config/dms/plugins/gbudsWatch` and enable it in **DMS Settings → Plugins**. Keep the directory/id `gbudsWatch`; the display name is **Gbuds Widget**.
+4. Add the bar widget and/or desktop widget from Dux settings. Open the bar item for controls. A uniquely connected Buds device is selected automatically; choose a device in the popout when several are paired.
 
-## Design notes
+The desktop widget is intentionally invisible while disconnected. The bar item remains available to open the popout and troubleshoot the connection.
 
-The source prototype is `galaxy_buds_dux_shell_prototype.html`. `gbuds capabilities --json` supplies cached model metadata without opening RFCOMM, while one persistent `gbuds watch --json` process supplies status. Before a control command, the daemon stops that watcher, runs the requested Gbuds command, applies returned state immediately, then resumes monitoring. Earbud foreground renders are attributed in [assets/README.md](assets/README.md); the charging case and compact bar/indicator icons use the vector assets in [assets/icons/](assets/icons/).
+## Device support
 
-## License
+The widget gets device capabilities from the installed `gbuds-cli` version. This table describes the CLI's current model declarations, **not a promise that every widget control, firmware version, or Bluetooth transport has been verified**. See the [CLI's detailed support matrix](https://github.com/JessVolet/gbuds-cli/blob/main/docs/DEVICE_SUPPORT.md).
 
-Gbuds Watch QML and documentation are licensed under MIT; copied upstream renders have separate attribution and provenance in [assets/README.md](assets/README.md). See [LICENSE](LICENSE) and [LICENSE-GPL-3.0](LICENSE-GPL-3.0).
+| Model | Code | Status here |
+| --- | --- | --- |
+| Galaxy Buds FE | SM-R400N | Physically tested for battery/status and live watch |
+| Galaxy Buds3 | SM-R530 | Physically tested for battery/status and live watch |
+| Galaxy Buds+ | SM-R175 | Declared by CLI; not physically tested with this widget |
+| Galaxy Buds Live | SM-R180 | Declared by CLI; not physically tested with this widget |
+| Galaxy Buds Pro | SM-R190 | Declared by CLI; not physically tested with this widget |
+| Galaxy Buds2 | SM-R177 | Declared by CLI; not physically tested with this widget |
+| Galaxy Buds2 Pro | SM-R510 | Declared by CLI; not physically tested with this widget |
+| Galaxy Buds3 Pro | SM-R630 | Declared by CLI; not physically tested with this widget |
+| Galaxy Buds3 FE | SM-R420 | Declared by CLI; not physically tested with this widget |
+| Galaxy Buds4 | SM-R540 | Declared by CLI; not physically tested with this widget |
+| Galaxy Buds4 Pro | SM-R640 | Declared by CLI; not physically tested with this widget |
+
+The original Galaxy Buds (SM-R170) are recognized by the CLI but **cannot be used yet** because their legacy packet framing is not implemented. Physical tests on FE and Buds3 covered status/watch, not every control command. Other models need community hardware validation; missing artwork falls back to an icon.
+
+## How it works
+
+```mermaid
+flowchart LR
+    B[BlueZ device selection] --> D[Gbuds Widget daemon]
+    D --> C[gbuds capabilities --json]
+    D --> W[gbuds watch --json]
+    W --> S[Shared telemetry]
+    S --> U[Bar, popout, desktop widgets, event popup]
+    U -->|Control request| D
+    D -->|Pause watch, run command, resume watch| G[gbuds-cli]
+```
+
+One daemon owns the CLI connection and shares its telemetry with every UI surface. When you press a control, the daemon pauses the watcher, runs one CLI command, updates the UI from its response, and resumes watching. This avoids competing Bluetooth RFCOMM sessions. [Architecture details](docs/ARCHITECTURE.md) and [development/testing instructions](docs/DEVELOPMENT.md) are available for contributors.
+
+## Contributions and AI disclosure
+
+This project was developed with AI assistance for QML implementation, documentation, and presentation layout. The UI screenshots show the actual running plugin; the presentation graphic is a simple layout built from those screenshots. AI output still needs human review and hardware testing. **Modifications and improvements are welcome**, especially model-specific testing, accessibility, translations, and visual refinements. Please include the Buds model code, firmware version, and what you tested when reporting compatibility; remove Bluetooth addresses or serial numbers from shared logs.
+
+`gbuds-cli` is a separate required project, based on protocol research and specifications from [GalaxyBudsClient](https://github.com/timschneeb/GalaxyBudsClient). Earbud renders copied from GalaxyBudsClient are credited in [assets/README.md](assets/README.md); they have separate GPL-3.0 provenance. The widget's QML and documentation are MIT-licensed; see [LICENSE](LICENSE) and [LICENSE-GPL-3.0](LICENSE-GPL-3.0).
