@@ -4,6 +4,7 @@ import Quickshell.Wayland
 import qs.Common
 import qs.Services
 import qs.Widgets
+import qs.Widgets as DuxWidgets
 import qs.DCommon.Widgets
 
 PanelWindow {
@@ -22,7 +23,7 @@ PanelWindow {
             ((nextEvent.kind === "low-battery" || nextEvent.kind === "critical-battery") && config.showBatteryCards === false))
             return;
         eventData = nextEvent;
-        status = nextStatus || ({});
+        status = nextEvent.kind === "disconnected" ? ({}) : (nextStatus || ({}));
         device = nextDevice || ({});
         visible = true;
         shown = true;
@@ -35,6 +36,8 @@ PanelWindow {
         dismissTimer.stop();
         unmapTimer.restart();
     }
+
+    onConfigChanged: if (config.showStatusCards === false && shown) dismiss()
 
     function render(side) {
         var code = device.model_code || "";
@@ -67,7 +70,7 @@ PanelWindow {
         bottom: 18
     }
 
-    WindowBlur {
+    DuxWidgets.WindowBlur {
         targetWindow: root
         surfaceColor: card.color
         blurX: card.x

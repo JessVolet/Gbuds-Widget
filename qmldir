@@ -1,2 +1,7 @@
 GbudsPanel 1.0 GbudsPanel.qml
 StatusWaves 1.0 StatusWaves.qml
+BudsHero 1.0 BudsHero.qml
+BudsControls 1.0 BudsControls.qml
+BudsOptions 1.0 BudsOptions.qml
+BudsCompact 1.0 BudsCompact.qml
+BudsEventPopup 1.0 BudsEventPopup.qml

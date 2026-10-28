@@ -3,6 +3,7 @@ import Quickshell.Io
 import qs.Common
 import qs.Services
 import qs.Modules.Plugins
+import "."
 
 PluginComponent {
     id: root
@@ -18,6 +19,7 @@ PluginComponent {
     property bool actionInFlight: false
     property var actionProcess: null
     property var actionQueue: []
+    property var eventPopup: null
     property int lastRequestId: 0
     property int eventSequence: 0
     property bool disconnectedSinceLastStatus: false
@@ -36,7 +38,7 @@ PluginComponent {
             latestEvent: latestEvent || old.latestEvent || null,
             updatedAt: Date.now()
         });
-        if (latestEvent)
+        if (latestEvent && root.eventPopup)
             eventPopup.present(latestEvent, status || root.lastStatus, root.device);
     }
 
@@ -393,6 +395,14 @@ PluginComponent {
     }
 
     Component.onCompleted: {
+        var popupComponent = Qt.createComponent(Qt.resolvedUrl("BudsEventPopup.qml?revision=" + Date.now()));
+        if (popupComponent.status === Component.Ready) {
+            root.eventPopup = popupComponent.createObject(root, { config: Qt.binding(() => root.pluginData) });
+            if (!root.eventPopup)
+                console.warn("[gbudsWatch] Could not create event popup.");
+        } else {
+            console.warn("[gbudsWatch] Popup component: " + popupComponent.errorString());
+        }
         root.targetMac = pluginData.targetMac || "";
         root.publish("checking-cli", "Checking for the gbuds executable.", null, "");
         root.checkCli();
@@ -409,8 +419,4 @@ PluginComponent {
         }
     }
 
-    BudsEventPopup {
-        id: eventPopup
-        config: root.pluginData
-    }
 }
