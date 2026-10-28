@@ -35,7 +35,6 @@ PluginComponent {
     readonly property bool leftOut: activeConnection && status.placement_left && status.placement_left !== "WEARING"
     readonly property bool rightOut: activeConnection && status.placement_right && status.placement_right !== "WEARING"
 
-    // Dynamic icon color (usa por defecto y en automático los colores de la barra)
     readonly property color pillIconColor: {
         var mode = root.iconColorMode;
         if (mode === "auto") return Theme.widgetIconColor;
@@ -74,7 +73,6 @@ PluginComponent {
         return pillIconColor;
     }
 
-    // Color de relleno para los audífonos (usa los colores de la barra en automático y de default)
     readonly property color pillBudFillColor: {
         var mode = root.iconColorMode;
         if (mode === "auto") return Theme.withAlpha(Theme.widgetIconColor, 0.3);
@@ -89,11 +87,10 @@ PluginComponent {
         return Theme.withAlpha(Theme.widgetIconColor, 0.3);
     }
 
-    // Color para el icono del tiempo / fuera del oído (soporte completo de colores, default de la barra)
     readonly property color idleIndicatorColor: {
         var mode = pluginData.idleColorMode || "auto";
         if (mode === "auto") return Theme.widgetIconColor;
-        if (mode === "amber") return "#f59e0b";
+        if (mode === "amber") return Theme.warning;
         if (mode === "primary") return Theme.primary;
         if (mode === "secondary") return Theme.secondary;
         if (mode === "tertiary") return Theme.tertiary;
@@ -154,8 +151,8 @@ PluginComponent {
         function getBudTint(bat, connected) {
             if (!connected || typeof bat !== "number" || bat < 0) return Theme.withAlpha(Theme.surfaceVariantText, 0.45);
             if (bat <= 20) return Theme.error;
-            if (bat <= 40) return "#f59e0b";
-            return "#34d399";
+            if (bat <= 40) return Theme.warning;
+            return Theme.success;
         }
 
         readonly property color leftTintColor: getBudTint(leftBat, leftConnected)
@@ -171,8 +168,8 @@ PluginComponent {
         readonly property color pairTintColor: {
             if (!anyConnected || effectiveBattery < 0) return Theme.withAlpha(Theme.surfaceVariantText, 0.45);
             if (effectiveBattery <= 20) return Theme.error;
-            if (effectiveBattery <= 40) return "#f59e0b";
-            return "#34d399";
+            if (effectiveBattery <= 40) return Theme.warning;
+            return Theme.success;
         }
 
         width: root.activeConnection ? pairContentRow.implicitWidth : root.iconSize + 4
@@ -192,14 +189,12 @@ PluginComponent {
             spacing: 5
             anchors.verticalCenter: parent.verticalCenter
 
-            // 1. Contenedor unificado de los dos audífonos (x1.5 ampliado y nítido)
             Item {
                 id: pairIconBox
                 width: budsPairRow.implicitWidth
                 height: pairItem.budHeight
                 anchors.verticalCenter: parent.verticalCenter
 
-                // Difuminación de fondo unificada (Luz ambiental suave del color de batería detrás del par)
                 Rectangle {
                     id: pairGlow
                     anchors.centerIn: parent
@@ -217,13 +212,11 @@ PluginComponent {
                     }
                 }
 
-                // Fila con los dos audífonos ampliados x1.5
                 Row {
                     id: budsPairRow
                     spacing: 2
                     anchors.centerIn: parent
 
-                    // Audífono Izquierdo (1.5x)
                     Item {
                         width: pairItem.budWidth
                         height: pairItem.budHeight
@@ -270,7 +263,6 @@ PluginComponent {
                             Behavior on colorizationColor { ColorAnimation { duration: 150 } }
                         }
 
-                        // Reloj cuando está fuera del oído (nítido, centrado y con tamaño entero válido)
                         Rectangle {
                             visible: root.warnOutOfEar && pairItem.leftIdle
                             width: 12; height: 12; radius: 6
@@ -291,7 +283,6 @@ PluginComponent {
                         }
                     }
 
-                    // Audífono Derecho (1.5x)
                     Item {
                         width: pairItem.budWidth
                         height: pairItem.budHeight
@@ -338,7 +329,6 @@ PluginComponent {
                             Behavior on colorizationColor { ColorAnimation { duration: 150 } }
                         }
 
-                        // Reloj cuando está fuera del oído (nítido, centrado y con tamaño entero válido)
                         Rectangle {
                             visible: root.warnOutOfEar && pairItem.rightIdle
                             width: 12; height: 12; radius: 6
@@ -361,7 +351,6 @@ PluginComponent {
                 }
             }
 
-            // Texto de porcentaje opcional
             StyledText {
                 visible: root.showBatteryPercentages && root.activeConnection && pairItem.anyConnected
                 text: {
@@ -410,8 +399,8 @@ PluginComponent {
                 readonly property int caseBattery: typeof root.status.case === "number" ? root.status.case : 0
                 readonly property color caseTint: {
                     if (caseBattery <= 20) return Theme.error;
-                    if (caseBattery <= 40) return "#f59e0b";
-                    return "#34d399";
+                    if (caseBattery <= 40) return Theme.warning;
+                    return Theme.success;
                 }
 
                 Row {
@@ -424,7 +413,6 @@ PluginComponent {
                         height: root.iconSize + 2
                         anchors.verticalCenter: parent.verticalCenter
 
-                        // 1. Glow Halo para el estuche (luz ambiental suave)
                         Rectangle {
                             id: caseGlow
                             anchors.centerIn: parent
@@ -442,7 +430,6 @@ PluginComponent {
                             }
                         }
 
-                        // 2. Capa de relleno (Estuche relleno de color)
                         Image {
                             id: pillCaseFillSvg
                             anchors.centerIn: parent
@@ -463,7 +450,6 @@ PluginComponent {
                             opacity: root.activeConnection ? 0.95 : 0.25
                         }
 
-                        // 3. Icono del estuche (adaptado al tema)
                         Image {
                             id: pillCaseStrokeSvg
                             anchors.centerIn: parent

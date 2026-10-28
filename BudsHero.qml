@@ -14,7 +14,8 @@ Rectangle {
     property bool desktopMode: false
     property int lowThreshold: 20
     property color accentColor: Theme.primary
-    property color caseColor: "#8ea6b4"
+    property color caseColor: Theme.surfaceVariantText
+    readonly property bool animateHero: root.connected && !root.desktopMode && root.visible
     property string caseColorMode: "auto"
     property url leftImageSource: ""
     property url rightImageSource: ""
@@ -39,10 +40,10 @@ Rectangle {
     }
 
     function batteryTint(value) {
-        if (typeof value !== "number") return "#93a7b4";
-        if (value <= lowThreshold) return "#ffb8ad";
-        if (value <= 40) return "#f5d397";
-        return "#b8efd0";
+        if (typeof value !== "number") return Theme.surfaceVariantText;
+        if (value <= lowThreshold) return Theme.error;
+        if (value <= 40) return Theme.warning;
+        return Theme.success;
     }
 
     function modeIcon(mode) {
@@ -57,11 +58,11 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         y: 9
         color: "transparent"
-        border.color: "#2a8494a4"
+        border.color: Theme.withAlpha(Theme.primary, 0.16)
         border.width: 1
         opacity: root.connected ? 0.65 : 0.3
         SequentialAnimation on scale {
-            running: root.connected
+            running: root.animateHero
             loops: Animation.Infinite
             NumberAnimation { to: 1.09; duration: 2700; easing.type: Easing.InOutSine }
             NumberAnimation { to: 1; duration: 2700; easing.type: Easing.InOutSine }
@@ -72,8 +73,8 @@ Rectangle {
         width: 200; height: 200; radius: 100
         anchors.horizontalCenter: parent.horizontalCenter
         y: 42
-        color: "#103f5963"
-        border.color: "#31789a9f"
+        color: Theme.withAlpha(Theme.primary, 0.06)
+        border.color: Theme.withAlpha(Theme.primary, 0.19)
         border.width: 1
     }
 
@@ -81,17 +82,17 @@ Rectangle {
         width: 120; height: 120; radius: 60
         anchors.horizontalCenter: parent.horizontalCenter
         y: 80
-        color: "#184f6870"
+        color: Theme.withAlpha(Theme.primary, 0.09)
     }
 
     Rectangle {
         width: 48; height: parent.height * 1.8
         x: -90; y: -parent.height * 0.35
         rotation: 24
-        color: "#d4fff4"
+        color: Theme.primary
         opacity: root.connected ? 0.09 : 0
         SequentialAnimation on x {
-            running: root.connected
+            running: root.animateHero
             loops: Animation.Infinite
             PauseAnimation { duration: 2400 }
             NumberAnimation { from: -90; to: root.width + 60; duration: 1800; easing.type: Easing.InOutSine }
@@ -116,9 +117,9 @@ Rectangle {
                     Rectangle {
                         width: 6; height: 6; radius: 3
                         anchors.verticalCenter: parent.verticalCenter
-                        color: root.connected ? "#8de0ad" : "#8e9dab"
+                        color: root.connected ? Theme.success : Theme.surfaceVariantText
                         SequentialAnimation on opacity {
-                            running: root.connected
+                            running: root.animateHero
                             loops: Animation.Infinite
                             NumberAnimation { to: 0.35; duration: 950 }
                             NumberAnimation { to: 1; duration: 950 }
@@ -127,8 +128,8 @@ Rectangle {
                     StyledText {
                         text: root.connected ? (root.device.model_code || "Galaxy Buds") + " · Connected" :
                               root.busy ? "Applying…" : "Disconnected"
-                        color: root.connected ? "#a9d9bd" : "#b7c6d0"
-                        font.pixelSize: 11
+                        color: root.connected ? Theme.success : Theme.surfaceVariantText
+                        font.pixelSize: Theme.fontSizeSmall
                     }
             }
 
@@ -138,24 +139,24 @@ Rectangle {
                 DButton {
                     width: 30; buttonHeight: 30; minimumWidth: 0
                     iconName: "devices"; text: ""
-                    backgroundColor: "#34556a"
-                    textColor: "#f4f9f7"
+                    backgroundColor: Theme.surfaceContainerHigh
+                    textColor: Theme.surfaceText
                     Accessible.name: "Choose Galaxy Buds device"
                     onClicked: root.devicesClicked()
                 }
                 DButton {
                     width: 30; buttonHeight: 30; minimumWidth: 0
                     iconName: "terminal"; text: ""
-                    backgroundColor: "#34556a"
-                    textColor: "#f4f9f7"
+                    backgroundColor: Theme.surfaceContainerHigh
+                    textColor: Theme.surfaceText
                     Accessible.name: "Show Gbuds console"
                     onClicked: root.terminalClicked()
                 }
                 DButton {
                     width: 30; buttonHeight: 30; minimumWidth: 0
                     iconName: "settings"; text: ""
-                    backgroundColor: "#34556a"
-                    textColor: "#f4f9f7"
+                    backgroundColor: Theme.surfaceContainerHigh
+                    textColor: Theme.surfaceText
                     Accessible.name: "Open widget settings"
                     onClicked: root.settingsClicked()
                 }
@@ -184,7 +185,6 @@ Rectangle {
                         width: parent.width
                         height: 66
 
-                        // --- Earbud 3D Render (Left & Right) ---
                         Image {
                             id: budImage
                             visible: modelData.key !== "case" && source.toString() !== ""
@@ -199,14 +199,13 @@ Rectangle {
                             opacity: root.connected ? 1 : 0.45
                             Behavior on opacity { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
                             SequentialAnimation on y {
-                                running: root.connected && budImage.visible
+                                running: root.animateHero && budImage.visible
                                 loops: Animation.Infinite
                                 NumberAnimation { to: 0; duration: 2200; easing.type: Easing.InOutSine }
                                 NumberAnimation { to: 7; duration: 2200; easing.type: Easing.InOutSine }
                             }
                         }
 
-                        // --- Galaxy Buds Charging Case (case.svg with DMS Accent Fill & Battery Border) ---
                         Item {
                             id: caseVisual
                             visible: modelData.key === "case"
@@ -217,13 +216,12 @@ Rectangle {
                             Behavior on opacity { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
 
                             SequentialAnimation on y {
-                                running: root.connected && caseVisual.visible
+                                running: root.animateHero && caseVisual.visible
                                 loops: Animation.Infinite
                                 NumberAnimation { to: 0; duration: 2200; easing.type: Easing.InOutSine }
                                 NumberAnimation { to: 7; duration: 2200; easing.type: Easing.InOutSine }
                             }
 
-                            // Layer 1: Case Fill (DMS Accent / Theme.primary)
                             Image {
                                 id: caseFillImage
                                 anchors.centerIn: parent
@@ -243,7 +241,6 @@ Rectangle {
                                 opacity: root.connected ? 0.45 : 0.2
                             }
 
-                            // Layer 2: Case Border / Stroke (Battery state)
                             Image {
                                 id: caseStrokeImage
                                 anchors.centerIn: parent
@@ -263,15 +260,14 @@ Rectangle {
                                 opacity: root.connected ? 1.0 : 0.45
                             }
 
-                            // Interactive LED indicator on case
                             Rectangle {
                                 id: caseLedIndicator
                                 width: 5.5; height: 5.5; radius: 2.75
                                 anchors.horizontalCenter: caseStrokeImage.horizontalCenter
                                 y: caseStrokeImage.y + caseStrokeImage.height * (14.0 / 21.0) - height / 2
-                                color: modelData.charging ? "#ffe2a3" : root.batteryTint(root.status.case)
+                                color: modelData.charging ? Theme.warning : root.batteryTint(root.status.case)
                                 SequentialAnimation on opacity {
-                                    running: modelData.charging === true
+                                    running: root.animateHero && modelData.charging === true
                                     loops: Animation.Infinite
                                     NumberAnimation { to: 0.35; duration: 900; easing.type: Easing.InOutSine }
                                     NumberAnimation { to: 1.0; duration: 900; easing.type: Easing.InOutSine }
@@ -279,18 +275,17 @@ Rectangle {
                             }
                         }
 
-                        // Fallback DIcon
                         Rectangle {
                             width: 50; height: 50; radius: 25
                             anchors.centerIn: parent
                             visible: modelData.key !== "case" && String(modelData.source || "") === ""
-                            color: "#31576a"
-                            border.color: "#55859a"
+                            color: Theme.surfaceContainerHigh
+                            border.color: Theme.outline
                             DIcon {
                                 anchors.centerIn: parent
                                 name: modelData.icon
                                 size: 29
-                                color: "#d2ece6"
+                                color: Theme.primary
                             }
                         }
                     }
@@ -298,8 +293,8 @@ Rectangle {
                     StyledText {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: modelData.title
-                        color: "#aabfca"
-                        font.pixelSize: 9
+                        color: Theme.surfaceVariantText
+                        font.pixelSize: Theme.fontSizeSmall
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1
                     }
@@ -316,7 +311,7 @@ Rectangle {
                         StyledText {
                             text: root.connected ? root.batteryText(root.status[modelData.key]) : "—"
                             color: root.batteryTint(root.status[modelData.key])
-                            font.pixelSize: 19
+                            font.pixelSize: Theme.fontSizeLarge
                             font.weight: Font.Bold
                             Behavior on color { ColorAnimation { duration: 250 } }
                         }
@@ -327,7 +322,7 @@ Rectangle {
                         height: 3
                         radius: 2
                         anchors.horizontalCenter: parent.horizontalCenter
-                        color: "#496170"
+                        color: Theme.surfaceVariant
                         Rectangle {
                             width: root.connected && typeof root.status[modelData.key] === "number" ? parent.width * Math.max(0, Math.min(1, root.status[modelData.key] / 100)) : 0
                             height: parent.height
@@ -343,7 +338,7 @@ Rectangle {
         Rectangle {
             width: parent.width
             height: 1
-            color: "#355165"
+            color: Theme.surfaceContainerHigh
         }
 
         Row {
@@ -353,14 +348,14 @@ Rectangle {
             DIcon {
                 name: root.connected ? "bluetooth_connected" : "bluetooth_disabled"
                 size: 14
-                color: "#a9d9bd"
+                color: Theme.success
                 anchors.verticalCenter: parent.verticalCenter
             }
             StyledText {
                 width: parent.width - 42
                 text: root.connected ? root.device.model || "Galaxy Buds" : "Connect your Galaxy Buds to begin"
-                color: "#b5c9d2"
-                font.pixelSize: 10
+                color: Theme.surfaceVariantText
+                font.pixelSize: Theme.fontSizeSmall
                 elide: Text.ElideRight
                 anchors.verticalCenter: parent.verticalCenter
             }
@@ -368,7 +363,7 @@ Rectangle {
                 visible: root.connected && !!root.status.noise_control
                 name: root.modeIcon(root.status.noise_control)
                 size: 16
-                color: "#b8efd0"
+                color: Theme.success
                 anchors.verticalCenter: parent.verticalCenter
             }
         }

@@ -7,7 +7,6 @@ PluginSettings {
     id: root
     pluginId: "gbudsWatch"
 
-    // --- Header ---
     StyledText {
         width: parent.width
         text: "Galaxy Buds"
@@ -18,7 +17,7 @@ PluginSettings {
 
     StyledText {
         width: parent.width
-        text: "Personaliza la apariencia en la barra, indicadores de batería, colores y notificaciones."
+        text: "Customize the bar appearance, battery indicators, colors, and event popups."
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.surfaceVariantText
         wrapMode: Text.WordWrap
@@ -43,7 +42,6 @@ PluginSettings {
         defaultValue: "full"
     }
 
-    // --- Section: Bar Widget & Battery Style ---
     StyledText {
         width: parent.width
         text: "Bar Widget & Battery Style"
@@ -57,7 +55,7 @@ PluginSettings {
         label: "Battery indicator style"
         description: "How battery level is visualized on the earbud icons."
         options: [
-            { value: "glow", label: "Glow halo (difuminación) [Default]" },
+            { value: "glow", label: "Glow halo [Default]" },
             { value: "border", label: "Colored border outline" },
             { value: "tint", label: "Colorize entire icon" },
             { value: "clean", label: "Clean theme icon (no battery color)" }
@@ -148,7 +146,6 @@ PluginSettings {
         defaultValue: "#f59e0b"
     }
 
-    // --- Section: Charging Case ---
     StyledText {
         width: parent.width
         text: "Charging Case"
@@ -179,7 +176,6 @@ PluginSettings {
         defaultValue: "#d2dce0"
     }
 
-    // --- Section: Status Cards & Alerts ---
     StyledText {
         width: parent.width
         text: "Status Cards & Alerts"
@@ -227,7 +223,6 @@ PluginSettings {
         defaultValue: "5"
     }
 
-    // --- Section: Device Connection ---
     StyledText {
         width: parent.width
         text: "Device Connection"

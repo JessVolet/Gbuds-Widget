@@ -38,10 +38,10 @@ Item {
 
     function batteryColor(part) {
         var value = status[part];
-        if (!partAvailable(part) || typeof value !== "number" || value < 0) return "#a8bdc7";
+        if (!partAvailable(part) || typeof value !== "number" || value < 0) return Theme.surfaceVariantText;
         if (value <= 10) return Theme.error;
         if (value <= 30) return Theme.warning;
-        return "#b8efd0";
+        return Theme.success;
     }
 
     function icon(part) {
@@ -73,13 +73,13 @@ Item {
             DIcon {
                 name: "bluetooth_connected"
                 size: 16
-                color: "#a9e5dc"
+                color: Theme.primary
                 anchors.verticalCenter: parent.verticalCenter
             }
             StyledText {
                 width: parent.width - 22
                 text: root.device.name || root.device.model || "Galaxy Buds"
-                color: "#f5f9fb"
+                color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
@@ -126,7 +126,7 @@ Item {
                         StyledText {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: modelData.label + "  " + root.battery(modelData.key)
-                            color: "#f5f9fb"
+                            color: Theme.surfaceText
                             font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
@@ -140,8 +140,8 @@ Item {
             height: 34
             radius: 12
             visible: root.modeOptions.length > 0
-            color: "#46577782"
-            border.color: "#598aa7ad"
+            color: Theme.withAlpha(Theme.surfaceContainer, 0.28)
+            border.color: Theme.withAlpha(Theme.outline, 0.35)
             border.width: 1
             Row {
                 anchors.fill: parent
@@ -155,7 +155,7 @@ Item {
                         width: (parent.width - (root.modeOptions.length - 1) * 3) / root.modeOptions.length
                         height: parent.height
                         radius: 9
-                        color: selected ? "#b6b9e5dc" : "transparent"
+                        color: selected ? Theme.primaryContainer : "transparent"
                         enabled: root.connected && !root.busy
                         activeFocusOnTab: enabled
                         Accessible.role: Accessible.Button
@@ -166,7 +166,7 @@ Item {
                             anchors.centerIn: parent
                             name: modelData.icon
                             size: 18
-                            color: selected ? "#143b48" : "#e3eff0"
+                            color: selected ? Theme.onPrimaryContainer : Theme.surfaceText
                         }
                         MouseArea { anchors.fill: parent; onClicked: root.requestMode(modelData.action) }
                         Keys.onReturnPressed: root.requestMode(modelData.action)

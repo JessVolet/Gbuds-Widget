@@ -118,9 +118,9 @@ Item {
         radius: 24
         visible: !root.desktopMode
         gradient: Gradient {
-            GradientStop { position: 0; color: Theme.withAlpha("#102a3d", root.desktopMode && BlurService.enabled ? 0.82 : 1) }
-            GradientStop { position: 0.55; color: Theme.withAlpha("#1b4057", root.desktopMode && BlurService.enabled ? 0.76 : 1) }
-            GradientStop { position: 1; color: Theme.withAlpha("#315b6b", root.desktopMode && BlurService.enabled ? 0.72 : 1) }
+            GradientStop { position: 0; color: Theme.surfaceContainerLowest }
+            GradientStop { position: 0.55; color: Theme.surfaceContainer }
+            GradientStop { position: 1; color: Theme.surfaceContainerHigh }
         }
     }
 
