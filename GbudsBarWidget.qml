@@ -41,10 +41,6 @@ PluginComponent {
         if (mode === "primary") return Theme.primary;
         if (mode === "secondary") return Theme.secondary;
         if (mode === "tertiary") return Theme.tertiary;
-        if (mode === "silver") return "#d2dce0";
-        if (mode === "white") return "#ffffff";
-        if (mode === "violet") return "#b388ff";
-        if (mode === "mint") return "#80cbc4";
         if (mode === "custom") return pluginData.customColor || Theme.widgetIconColor;
         return Theme.widgetIconColor;
     }
@@ -54,10 +50,6 @@ PluginComponent {
         if (mode === "primary") return Theme.primary;
         if (mode === "secondary") return Theme.secondary;
         if (mode === "tertiary") return Theme.tertiary;
-        if (mode === "silver") return "#d2dce0";
-        if (mode === "white") return "#ffffff";
-        if (mode === "violet") return "#b388ff";
-        if (mode === "mint") return "#80cbc4";
         if (mode === "custom") return pluginData.customColor || Theme.primary;
         return Theme.primary;
     }
@@ -66,9 +58,6 @@ PluginComponent {
         var mode = pluginData.caseColorMode || "auto";
         if (mode === "auto") return pillIconColor;
         if (mode === "match") return pillAccentColor;
-        if (mode === "silver") return "#d2dce0";
-        if (mode === "white") return "#ffffff";
-        if (mode === "graphite") return "#50606b";
         if (mode === "custom") return pluginData.customCaseColor || pillIconColor;
         return pillIconColor;
     }
@@ -76,10 +65,6 @@ PluginComponent {
     readonly property color pillBudFillColor: {
         var mode = root.iconColorMode;
         if (mode === "auto") return Theme.withAlpha(Theme.widgetIconColor, 0.3);
-        if (mode === "white") return "#ffffff";
-        if (mode === "silver") return "#d2dce0";
-        if (mode === "violet") return "#b388ff";
-        if (mode === "mint") return "#80cbc4";
         if (mode === "primary") return Theme.primary;
         if (mode === "secondary") return Theme.secondary;
         if (mode === "tertiary") return Theme.tertiary;

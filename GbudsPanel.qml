@@ -39,10 +39,6 @@ Item {
         if (mode === "primary") return Theme.primary;
         if (mode === "secondary") return Theme.secondary;
         if (mode === "tertiary") return Theme.tertiary;
-        if (mode === "silver") return "#d2dce0";
-        if (mode === "white") return "#f5f8fa";
-        if (mode === "violet") return "#b388ff";
-        if (mode === "mint") return "#80cbc4";
         if (mode === "custom") return config.customColor || Theme.primary;
         return Theme.primary;
     }
@@ -51,10 +47,7 @@ Item {
         var mode = config.caseColorMode || "auto";
         if (mode === "auto") return Theme.primary;
         if (mode === "match") return root.accentColor;
-        if (mode === "silver") return "#d2dce0";
-        if (mode === "white") return "#f5f8fa";
-        if (mode === "graphite") return "#50606b";
-        if (mode === "custom") return config.customCaseColor || "#d2dce0";
+        if (mode === "custom") return config.customCaseColor || Theme.surfaceVariantText;
         return Theme.primary;
     }
     readonly property var modeOptions: [
@@ -152,7 +145,7 @@ Item {
             lowThreshold: root.lowThreshold
             accentColor: root.accentColor
             caseColor: root.caseColor
-            caseColorMode: root.config.caseColorMode || "silver"
+            caseColorMode: root.config.caseColorMode || "auto"
             leftImageSource: root.render(0)
             rightImageSource: root.render(1)
             onDevicesClicked: root.activePage = root.activePage === "devices" ? "main" : "devices"

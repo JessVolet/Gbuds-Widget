@@ -72,10 +72,6 @@ PluginSettings {
             { value: "primary", label: "Theme Primary (DMS)" },
             { value: "secondary", label: "Theme Secondary (DMS)" },
             { value: "tertiary", label: "Theme Tertiary (DMS)" },
-            { value: "silver", label: "Silver / Metal" },
-            { value: "white", label: "White / Clean" },
-            { value: "violet", label: "Galaxy Violet" },
-            { value: "mint", label: "Mint Green" },
             { value: "custom", label: "Custom color" }
         ]
         defaultValue: "auto"
@@ -160,9 +156,6 @@ PluginSettings {
         description: "Color scheme for the charging case SVG in the widget."
         options: [
             { value: "auto", label: "Auto / DMS Theme [Recommended]" },
-            { value: "silver", label: "Silver (Buds3 acrylic style)" },
-            { value: "white", label: "White" },
-            { value: "graphite", label: "Graphite" },
             { value: "match", label: "Match accent color" },
             { value: "custom", label: "Custom color" }
         ]
@@ -173,7 +166,7 @@ PluginSettings {
         settingKey: "customCaseColor"
         label: "Custom case color"
         description: "Used when 'Custom color' is selected for the case."
-        defaultValue: "#d2dce0"
+        defaultValue: Theme.surfaceVariantText
     }
 
     StyledText {
