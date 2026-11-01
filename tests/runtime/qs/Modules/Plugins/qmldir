@@ -1,0 +1,8 @@
+module qs.Modules.Plugins
+PluginComponent 1.0 PluginComponent.qml
+DesktopPluginComponent 1.0 DesktopPluginComponent.qml
+PluginSettings 1.0 PluginSettings.qml
+StringSetting 1.0 StringSetting.qml
+SelectionSetting 1.0 SelectionSetting.qml
+ColorSetting 1.0 ColorSetting.qml
+ToggleSetting 1.0 ToggleSetting.qml

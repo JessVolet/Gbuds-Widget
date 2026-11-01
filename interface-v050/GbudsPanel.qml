@@ -9,13 +9,14 @@ import qs.Modules.Plugins
 Item {
     id: root
     clip: true
-    implicitHeight: root.activePage !== "main" || controls.soundOpen ? 570 : 500
+    implicitHeight: !root.connected ? 90 : root.activePage !== "main" || controls.soundOpen ? 600 : 530
 
     required property string pluginId
     property var pluginService: null
     property var config: ({})
     property bool desktopMode: false
     property string activePage: "main"
+    BudsActions { id: actionController; pluginId: root.pluginId }
 
     PluginGlobalVar { id: telemetry; varName: "telemetry"; defaultValue: ({ phase: "checking-cli", detail: "", status: null, event: "" }) }
     PluginGlobalVar { id: deviceInfo; varName: "device"; defaultValue: ({}) }
@@ -29,7 +30,7 @@ Item {
     readonly property var command: commandResult.value || ({})
     readonly property var busyState: commandState.value || ({})
     readonly property string selectedMac: selectedDevice.value || config.targetMac || ""
-    readonly property bool connected: (snapshot.phase === "connected" || snapshot.phase === "controlling") && !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
+    readonly property bool connected: actionController.connected
     readonly property var budsDevices: BluetoothService.pairedDevices.filter(device => /buds/i.test(device.name || ""))
     readonly property string installUrl: "https://github.com/JessVolet/gbuds-cli/blob/main/docs/INSTALLATION.md"
     readonly property int lowThreshold: 30
@@ -109,7 +110,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: Theme.cornerRadiusL
-        visible: !root.desktopMode
+        visible: !root.desktopMode && root.connected
         gradient: Gradient {
             GradientStop { position: 0; color: Theme.surfaceContainerLowest }
             GradientStop { position: 0.55; color: Theme.surfaceContainer }
@@ -118,7 +119,7 @@ Item {
     }
 
     Rectangle {
-        visible: !root.desktopMode
+        visible: !root.desktopMode && root.connected
         width: Math.min(root.width * 0.9, 370)
         height: width
         radius: width / 2
@@ -129,8 +130,11 @@ Item {
         Behavior on opacity { NumberAnimation { duration: 360; easing.type: Easing.OutCubic } }
     }
 
+    ConnectOnly { anchors.fill: parent; pluginId: root.pluginId; visible: !root.connected }
+
     Column {
         id: layout
+        visible: root.connected
         anchors.fill: parent
         anchors.margins: 10
         spacing: 8
@@ -148,6 +152,7 @@ Item {
             caseColorMode: root.config.caseColorMode || "auto"
             leftImageSource: root.render(0)
             rightImageSource: root.render(1)
+            actions: actionController
             onDevicesClicked: root.activePage = root.activePage === "devices" ? "main" : "devices"
             onTerminalClicked: root.activePage = root.activePage === "terminal" ? "main" : "terminal"
             onSettingsClicked: {
@@ -172,7 +177,7 @@ Item {
 
         BudsOptions {
             width: parent.width
-            height: root.height - 238
+            height: Math.max(0, root.height - y - 10)
             visible: root.activePage !== "main"
             page: root.activePage
             config: root.config
@@ -183,6 +188,15 @@ Item {
             detail: root.snapshot.detail || ""
             onCloseRequested: root.activePage = "main"
             onDeviceChosen: address => root.selectDevice(address)
+        }
+        StyledText {
+            width: parent.width
+            visible: !!actionsError.text
+            text: actionController.error
+            color: Theme.error
+            font.pixelSize: Theme.fontSizeSmall
+            wrapMode: Text.Wrap
+            id: actionsError
         }
     }
 

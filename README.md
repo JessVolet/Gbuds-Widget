@@ -66,6 +66,13 @@ flowchart LR
 
 One daemon owns the CLI connection and shares its telemetry with every UI surface. When you press a control, the daemon pauses the watcher, runs one CLI command, updates the UI from its response, and resumes watching. This avoids competing Bluetooth RFCOMM sessions. [Architecture details](docs/ARCHITECTURE.md) and [development/testing instructions](docs/DEVELOPMENT.md) are available for contributors.
 
+Click an out-of-ear L/R icon in the desktop widget or popout to find that earbud;
+click it again to stop. A search requests Stop after 30 seconds. **Desconectar**
+under CASE stops any active search before disconnecting. Offline, the widget
+shows only **Conectar** for the last selected device. Each reconnection refreshes
+`capabilities`, and unsupported noise modes stay hidden. Capability metadata is
+not proof of a physical test; the CLI currently leaves Find support unclassified.
+
 ## Contributions and AI disclosure
 
 This project was developed with AI assistance for QML implementation, documentation, and presentation layout. The UI screenshots show the actual running plugin; the presentation graphic is a simple layout built from those screenshots. AI output still needs human review and hardware testing. **Modifications and improvements are welcome**, especially model-specific testing, accessibility, translations, and visual refinements. Please include the Buds model code, firmware version, and what you tested when reporting compatibility; remove Bluetooth addresses or serial numbers from shared logs.

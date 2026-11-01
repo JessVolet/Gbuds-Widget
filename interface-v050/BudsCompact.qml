@@ -10,6 +10,7 @@ Item {
 
     required property string pluginId
     property var config: ({})
+    BudsActions { id: actionController; pluginId: root.pluginId }
 
     PluginGlobalVar { id: telemetry; varName: "telemetry"; defaultValue: ({ phase: "checking-cli", status: null }) }
     PluginGlobalVar { id: deviceInfo; varName: "device"; defaultValue: ({}) }
@@ -19,8 +20,7 @@ Item {
     readonly property var status: snapshot.status || ({})
     readonly property var device: deviceInfo.value || ({})
     readonly property bool busy: (commandState.value || ({})).busy === true
-    readonly property bool connected: (snapshot.phase === "connected" || snapshot.phase === "controlling") &&
-                                      !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
+    readonly property bool connected: actionController.connected
     readonly property var modeOptions: [
         { mode: "NOISE_REDUCTION", action: "on", label: "ANC", icon: "noise_control_on" },
         { mode: "AMBIENT_SOUND", action: "ambient", label: "AMBIENT", icon: "hearing" },
@@ -61,9 +61,13 @@ Item {
         color: Theme.withAlpha(Theme.surfaceContainer, 0.94)
         border.color: Theme.withAlpha(Theme.outline, 0.2)
         border.width: 1
+        visible: root.connected
     }
 
+    ConnectOnly { anchors.fill: parent; pluginId: root.pluginId; visible: !root.connected }
+
     Column {
+        visible: root.connected
         anchors.fill: parent
         anchors.margins: Theme.spacingS
         spacing: Theme.spacingXS
@@ -91,7 +95,7 @@ Item {
 
         Row {
             width: parent.width
-            height: 80
+            height: 106
             spacing: 5
             Repeater {
                 model: [
@@ -106,22 +110,50 @@ Item {
                     Column {
                         anchors.centerIn: parent
                         spacing: 1
-                        Gbuds.EarbudGlyph {
+                        Loader {
                             width: 48; height: 48
                             anchors.horizontalCenter: parent.horizontalCenter
-                            part: modelData.key
-                            modelCode: root.device.model_code || ""
-                            available: root.partAvailable(modelData.key)
-                            idle: root.config.warnOutOfEar !== false && root.status["placement_" + modelData.key] === "IDLE"
-                            tint: root.batteryColor(modelData.key)
-                            badgeColor: Theme.surfaceContainer
+                            sourceComponent: modelData.key === "case" ? caseGlyph : earbudButton
+                            Component {
+                                id: caseGlyph
+                                Gbuds.EarbudGlyph {
+                                    part: "case"
+                                    available: root.connected
+                                    tint: root.batteryColor("case")
+                                }
+                            }
+                            Component {
+                                id: earbudButton
+                                EarbudButton {
+                                    actions: actionController
+                                    side: modelData.key
+                                    modelCode: root.device.model_code || ""
+                                    available: root.partAvailable(modelData.key)
+                                    idle: root.config.warnOutOfEar !== false && root.status["placement_" + modelData.key] === "IDLE"
+                                    tint: root.batteryColor(modelData.key)
+                                }
+                            }
                         }
                         StyledText {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: modelData.label + "  " + root.battery(modelData.key)
+                            text: (actionController.ringing(modelData.key) ? "STOP" : modelData.label) + "  " + root.battery(modelData.key)
                             color: Theme.surfaceText
                             font.pixelSize: Theme.fontSizeSmall
                             font.weight: Font.DemiBold
+                        }
+                        Item {
+                            width: parent.width
+                            height: 30
+                            ActionButton {
+                                objectName: "disconnectButton"
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                width: Math.min(100, (root.width - 30) / 3)
+                                height: 27
+                                visible: modelData.key === "case"
+                                enabled: !root.busy
+                                text: "Desconectar"
+                                onClicked: actionController.send("disconnect", [], "Disconnect Galaxy Buds")
+                            }
                         }
                     }
                 }
@@ -181,6 +213,15 @@ Item {
                     }
                 }
             }
+        }
+        StyledText {
+            width: parent.width
+            height: visible ? implicitHeight : 0
+            visible: !!actionController.error
+            text: actionController.error
+            color: Theme.error
+            font.pixelSize: Theme.fontSizeSmall
+            wrapMode: Text.Wrap
         }
     }
 }

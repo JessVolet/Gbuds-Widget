@@ -4,6 +4,8 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
 const source = fs.readFileSync(path.join(__dirname, "../Daemon.qml"), "utf8");
+const Policy = vm.createContext({});
+vm.runInContext(fs.readFileSync(path.join(__dirname,"../interface-v050/ControlPolicy.js"),"utf8").replace(/^\.pragma library\s*/,""),Policy);
 function context() {
     const root = {
         actionQueue: [], actionInFlight: true, shuttingDown: false, targetMac: "NEW",
@@ -11,8 +13,12 @@ function context() {
         pluginService: {setGlobalVar(){}}, checkCli(){}, publish(){}, publishCommand(){},
         runNextAction(){}, acceptTelemetry(s){this.lastStatus=JSON.parse(s);}
     };
-    const sandbox = vm.createContext({root, reconnectTimer:{}, console});
-    for (const name of ["enqueueAction","finishAction","handleWatcherExit"]) {
+    Object.assign(root, {pairedBuds:[], connectedBuds:[], targetConnected:true, disconnectedByUser:false,
+        device:{model_code:"SM-R530",features:{find_earbuds:{device_support:"unknown",gbuds_support:"unknown"}}},
+        findState:{active:false}, publishFind(value){this.findState=value;}, resetConnection(){this.lastStatus=null; this.device=null; this.findState={active:false};},
+        resolveTarget(){return this.targetMac;}, rejectAction(){}, validateAction(){return "";}});
+    const sandbox = vm.createContext({root, Policy, reconnectTimer:{stop(){}}, findTimer:{restart(){},stop(){}}, console});
+    for (const name of ["enqueueAction","finishAction","handleWatcherExit","acceptDeviceInfo"]) {
         const re = new RegExp("    function "+name+"\\(([^)]*)\\) \\{([\\s\\S]*?)\\n    \\}");
         const match = source.match(re);
         assert.ok(match, name);
@@ -69,4 +75,54 @@ test("switching devices while stopping the watcher cannot strand queued actions"
     r.handleWatcherExit(process,0);
     assert.equal(ran,true);
     assert.equal(r.targetSwitching,false);
+});
+test("connect can be queued without telemetry and disconnect clears stale batteries",()=>{
+    const r=context(); r.lastStatus=null; r.targetConnected=false;
+    r.enqueueAction("connect",[],"Connect");
+    assert.equal(r.actionQueue[0]?.command,"connect");
+    r.actionQueue=[]; r.lastStatus={left:90,right:91};
+    r.finishAction({command:"disconnect",args:[],targetAddress:"NEW"},{success:true},true);
+    assert.equal(r.lastStatus,null);
+    assert.equal(r.disconnectedByUser,true);
+});
+test("disconnect stops a ringing earbud first and find stop remains queueable",()=>{
+    const r=context(); r.findState={active:true,side:"left",targetAddress:"NEW"};
+    r.enqueueAction("disconnect",[],"Disconnect");
+    assert.deepEqual(Array.from(r.actionQueue,x=>x.command+":"+x.args.join()),["find:stop","disconnect:"]);
+});
+test("stop has priority over queued controls and cancels pending search starts",()=>{
+    const r=context();
+    r.enqueueAction("find",["left"],"Find left");
+    for(let i=0;i<15;i++) r.enqueueAction("battery",[],"Battery");
+    r.enqueueAction("find",["stop"],"Stop finding");
+    assert.equal(r.actionQueue[0].args[0],"stop");
+    assert.equal(r.actionQueue.filter(x=>x.command==="find").length,1);
+});
+test("a failed stop keeps the stop control available and cancels pending disconnect",()=>{
+    const r=context(); r.findState={active:true,side:"left",targetAddress:"NEW"};
+    r.actionQueue=[{command:"disconnect",args:[],targetAddress:"NEW"}];
+    r.finishAction({command:"find",args:["stop"],targetAddress:"NEW"},{success:false,error:"transport failed"},false);
+    assert.equal(r.findState.active,true);
+    assert.equal(r.actionQueue.length,0);
+    assert.equal(r.disconnectedByUser,false);
+});
+test("only an acknowledged stop clears the active search",()=>{
+    const r=context();
+    r.finishAction({command:"find",args:["right"],targetAddress:"NEW"},{success:true},true);
+    assert.equal(r.findState.side,"right");
+    assert.equal(r.findState.active,true);
+    r.finishAction({command:"find",args:["stop"],targetAddress:"NEW"},{success:true},true);
+    assert.equal(r.findState.active,false);
+});
+test("new capability results replace old mode support rather than merging it",()=>{
+    const r=context();
+    const supported={device_support:"supported",gbuds_support:"implemented"};
+    const result={success:true,device:{model_code:"SM-R400N"},capabilities:{noise_control_modes:["off","on","ambient"],features:{anc:supported,ambient_sound:supported}}};
+    r.acceptDeviceInfo(JSON.stringify(result));
+    assert.equal(r.device.has_ambient,true);
+    result.device.model_code="SM-R530";
+    result.capabilities.features.ambient_sound={device_support:"unsupported",gbuds_support:"rejected"};
+    r.acceptDeviceInfo(JSON.stringify(result));
+    assert.equal(r.device.has_ambient,false);
+    assert.deepEqual(Array.from(r.device.supported_noise_modes),["off","on"]);
 });

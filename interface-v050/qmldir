@@ -6,3 +6,7 @@ BudsHero 1.0 BudsHero.qml
 BudsControls 1.0 BudsControls.qml
 BudsOptions 1.0 BudsOptions.qml
 BudsEventPopup 1.0 BudsEventPopup.qml
+BudsActions 1.0 BudsActions.qml
+ActionButton 1.0 ActionButton.qml
+ConnectOnly 1.0 ConnectOnly.qml
+EarbudButton 1.0 EarbudButton.qml

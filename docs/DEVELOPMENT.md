@@ -4,7 +4,7 @@
 
 The L/R drawings, timer, and noise modes live separately in `assets/approved/`.
 Run `python3 scripts/build-icons.py` after editing. Keep the generated
-`interface-v041/ApprovedIcons.js` in the same commit so installed plugins use the edits.
+`interface-v050/ApprovedIcons.js` in the same commit so installed plugins use the edits.
 Use `node tests/icons.test.cjs` to validate the generated asset set.
 The final template can be rebuilt from the originals saved in
 `assets/source-icons/` using `python3 scripts/import-template.py` followed by
@@ -12,13 +12,18 @@ The final template can be rebuilt from the originals saved in
 After a dependency edit, Qt may cache the old local component or JavaScript;
 verify the result after reload, or restart Dux if that dependency stays cached.
 
-The 0.3.0 compact desktop requires at least 300 × 220. The timer is a separate
+The 0.5.0 compact desktop requires at least 300 × 246. The timer is a separate
 overlay, about 57% of the glyph height, controlled independently for each side.
 
-Run the daemon regression checks with `node tests/daemon.test.cjs`.
+Run `node tests/daemon.test.cjs`, `node tests/policy.test.cjs`, and
+`node tests/icons.test.cjs`.
 They execute the functions extracted from the QML source with simulated state.
 They cover device-bound requests, queue limits, failure recovery, and target-switch
-races; they do not replace hardware checks or the QML process-timeout test.
+races. In a Wayland session, run `sh tests/run-runtime.sh` for the real QML
+process/UI flow with a fake executable and fake BlueZ state. It checks offline
+Connect, the initial capability filter, individual icon clicks, Stop, stopping
+before Disconnect, stale BlueZ state, and capability refresh on reconnection.
+The harness never invokes the real `gbuds` binary. Hardware validation is separate.
 
 For the 0.2.0 visuals, check light/dark themes, horizontal/vertical bars, and
 desktop sizes from 260 × 140 upward. Only placement `IDLE` shows the timer;
@@ -66,8 +71,18 @@ Enable the composite plugin in **DMS Settings → Plugins**, then add the widget
 7. Switch between the paired FE and Buds3. The selected model, renders, supported controls, and stream should follow the active device; manually select it from the popout if BlueZ does not expose a unique connected device.
 8. Disconnect and reconnect the Buds. The bar pill should switch to its disconnected icon; the widget should clear displayed battery values and retry without restarting the shell.
 9. Add two desktop instances. Select **Full** for one and **Compact** for the other in their instance settings, then resize the compact instance. Confirm both update together and the compact noise-mode switcher lists only supported modes.
-10. Disconnect the Buds. Confirm both desktop instances become visually and interactively transparent, then reconnect and confirm they return.
+10. Disconnect the Buds. Both desktop instances should show only **Conectar**.
+    Click it to reconnect to the last selected device. With several paired Buds
+    and no remembered selection, the button reveals a device chooser.
+    Confirm the initial `capabilities` result is fetched again, so Buds3 does not
+    inherit FE's Ambient option. An explicit unsupported/not-implemented feature
+    must stay unavailable.
 11. Trigger a connection while both Buds are in the case, remove only one earbud, then change the noise mode. Confirm the square floating card shows the case, that earbud, and the mode icon respectively; it must remain outside the widget and not appear as a DMS notification.
+12. With an earbud out of the ear and case (`IDLE`), click its icon to ring that
+    side. Click again to stop. Worn/stored/unavailable/unknown placements cannot
+    start a search. Search also requests Stop after 30 seconds or a placement
+    change. **Desconectar** below CASE stops an active search before disconnecting;
+    if Stop fails, it leaves Stop available and cancels that disconnect.
 
 If DMS cannot find the CLI, set **Gbuds executable** in plugin settings to its absolute path. See the [Gbuds installation guide](https://github.com/JessVolet/gbuds-cli/blob/main/docs/INSTALLATION.md) if it is not installed.
 
@@ -75,5 +90,8 @@ If DMS cannot find the CLI, set **Gbuds executable** in plugin settings to its a
 
 - Dux Shell installed in the development machine: `dms (git) v2.0.0-5380`.
 - `gbuds capabilities --json` supplies cached model metadata in parallel with the persistent `gbuds watch --json` stream; control commands resume the stream directly.
+- Capability declarations describe CLI/model metadata, not a successful hardware
+  probe. The current CLI reports Find/Touchpad/EQ as unknown; their controls remain
+  usable where telemetry permits, without presenting them as confirmed support.
 - The developer has Galaxy Buds FE and Galaxy Buds3 available for hardware testing. Other models need user validation; missing artwork falls back to Material icons.
 - Copied GalaxyBudsClient renders are documented separately in `assets/README.md`; check individual redistribution rights before publishing a binary bundle.

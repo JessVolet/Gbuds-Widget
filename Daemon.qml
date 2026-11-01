@@ -1,10 +1,12 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import qs.Common
 import qs.Services
 import qs.Modules.Plugins
 import "."
-import "./interface-v041" as Gbuds
+import "./interface-v050" as Gbuds
+import "./interface-v050/ControlPolicy.js" as Policy
 
 PluginComponent {
     id: root
@@ -29,19 +31,25 @@ PluginComponent {
     property bool targetSwitching: false
     property bool restartAfterTargetSwitch: false
     property string targetMac: ""
+    property bool disconnectedByUser: false
+    property var findState: ({ active: false, side: "", targetAddress: "" })
     readonly property var pairedBuds: BluetoothService.pairedDevices.filter(device => /buds/i.test(device.name || ""))
     readonly property var connectedBuds: pairedBuds.filter(device => device.connected && device.address)
+    readonly property bool targetConnected: connectedBuds.some(device => !root.targetMac || device.address.toUpperCase() === root.targetMac.toUpperCase())
 
     onConnectedBudsChanged: {
         if (root.shuttingDown || root.actionInFlight)
             return;
         if (connectedBuds.length > 0) {
+            root.disconnectedByUser = false;
             if (root.watchProcess)
                 root.refreshTargetFromBluetooth();
             else if (!reconnectTimer.running)
                 root.checkCli();
         } else {
             reconnectTimer.stop();
+            root.resetConnection();
+            root.publish("disconnected", "", null, "");
             if (root.watchProcess)
                 root.watchProcess.running = false;
         }
@@ -51,6 +59,7 @@ PluginComponent {
         var old = root.pluginService.getGlobalVar(root.pluginId, "telemetry", ({}));
         root.pluginService.setGlobalVar(root.pluginId, "telemetry", {
             phase: phase,
+            connected: root.targetConnected && !root.disconnectedByUser,
             detail: detail || "",
             status: status || null,
             event: eventText || "",
@@ -145,6 +154,8 @@ PluginComponent {
         var event = root.statusEvent(previous, parsed);
         root.disconnectedSinceLastStatus = false;
         root.lastStatus = parsed;
+        if (root.findState.active && parsed["placement_" + root.findState.side] !== "IDLE")
+            root.enqueueAction("find", ["stop"], "Stop finding");
         root.lastError = "";
         root.retryDelay = 500;
         root.publish("connected", "", parsed, event ? event.title : "", event);
@@ -161,14 +172,14 @@ PluginComponent {
     function checkCli() {
         if (root.shuttingDown || root.actionInFlight || root.checkingCli || root.watchProcess)
             return;
-        if (root.connectedBuds.length === 0) {
-            root.publish("waiting", "Connect Galaxy Buds to start monitoring.", root.lastStatus, "");
+        if (root.disconnectedByUser || root.connectedBuds.length === 0) {
+            root.publish("disconnected", "", null, "");
             return;
         }
         root.checkingCli = true;
         Proc.runCommand(null, ["/bin/sh", "-c", "command -v -- \"$1\" >/dev/null 2>&1", "gbuds-watch-check", root.cliCommand], (stdout, exitCode) => {
             root.checkingCli = false;
-            if (root.shuttingDown || root.connectedBuds.length === 0)
+            if (root.shuttingDown || root.disconnectedByUser || root.connectedBuds.length === 0 || root.actionInFlight)
                 return;
             if (exitCode === 0) {
                 root.refreshTargetFromBluetooth();
@@ -187,7 +198,7 @@ PluginComponent {
     function refreshTargetFromBluetooth() {
         var connected = root.connectedBuds;
         if (connected.length === 1)
-            root.setTarget(connected[0].address, false, true);
+            root.setTarget(connected[0].address, true, true);
         else if (!root.targetMac && pluginData.targetMac)
             root.setTarget(pluginData.targetMac, false);
     }
@@ -196,6 +207,11 @@ PluginComponent {
         var normalized = (address || "").trim().toUpperCase();
         if (!normalized || normalized === root.targetMac)
             return;
+        if (root.findState.active || root.actionQueue.some(item => item.command === "find" && item.args[0] !== "stop") ||
+            (root.actionProcess && root.actionProcess.actionData.command === "find" && root.actionProcess.actionData.args[0] !== "stop")) {
+            root.rejectAction("device", "Stop finding before switching devices.");
+            return;
+        }
         root.targetMac = normalized;
         // Discard metadata for the previous target, including an in-flight read.
         if (root.infoProcess) {
@@ -227,11 +243,12 @@ PluginComponent {
                 var capabilities = result.capabilities || ({});
                 var features = capabilities.features || ({});
                 root.device = Object.assign({}, result.device, {
-                    supported_noise_modes: capabilities.noise_control_modes || [],
-                    has_ambient: features.ambient_sound && features.ambient_sound.device_support === "supported",
-                    has_voice_detect: features.voice_detect && features.voice_detect.device_support === "supported",
-                    has_blade_lights: features.blade_lights && features.blade_lights.device_support === "supported",
-                    max_ambient_volume: features.ambient_volume && features.ambient_volume.max_level || 0
+                    features: features,
+                    supported_noise_modes: Policy.noiseModes(capabilities),
+                    has_ambient: Policy.supported(features, "ambient_sound"),
+                    has_voice_detect: Policy.supported(features, "voice_detect"),
+                    has_blade_lights: Policy.supported(features, "blade_lights"),
+                    max_ambient_volume: Policy.supported(features, "ambient_volume") ? features.ambient_volume.max_level || 0 : 0
                 });
                 root.pluginService.setGlobalVar(root.pluginId, "device", root.device);
             } else if (result && result.error) {
@@ -244,7 +261,7 @@ PluginComponent {
     }
 
     function startWatcher() {
-        if (root.shuttingDown || root.watchProcess || root.actionInFlight)
+        if (root.shuttingDown || root.disconnectedByUser || root.watchProcess || root.actionInFlight)
             return;
         if (root.connectedBuds.length === 0) {
             root.publish("waiting", "Connect Galaxy Buds to start monitoring.", root.lastStatus, "");
@@ -286,18 +303,78 @@ PluginComponent {
         if (disconnectedEvent)
             root.disconnectedSinceLastStatus = true;
         root.publish("waiting", detail, root.lastStatus, disconnectedEvent ? disconnectedEvent.title : "", disconnectedEvent);
-        if (root.connectedBuds.length > 0) {
+        if (!root.disconnectedByUser && root.connectedBuds.length > 0) {
             reconnectTimer.interval = root.retryDelay;
             reconnectTimer.start();
             root.retryDelay = Math.min(root.retryDelay * 2, 30000);
         }
     }
 
+    function resolveTarget() {
+        return Policy.targetAddress(root.targetMac || root.pluginData.targetMac || "", root.pairedBuds);
+    }
+
+    function publishFind(state) {
+        root.findState = state;
+        root.pluginService.setGlobalVar(root.pluginId, "findState", state);
+    }
+
+    function resetConnection() {
+        if (root.infoProcess) {
+            root.infoProcess.running = false;
+            root.infoProcess.destroy();
+            root.infoProcess = null;
+        }
+        root.lastStatus = null;
+        root.device = null;
+        root.disconnectedSinceLastStatus = true;
+        root.pluginService.setGlobalVar(root.pluginId, "device", ({}));
+        findTimer.stop();
+        root.publishFind({ active: false, side: "", targetAddress: "" });
+    }
+
+    function rejectAction(command, error) {
+        root.publishCommand(command, { success: false, error: error }, false);
+        root.pluginService.setGlobalVar(root.pluginId, "actionError", error);
+    }
+
+    function validateAction(command, args) {
+        if (command === "connect" || command === "disconnect")
+            return args.length ? "This command takes no arguments." : "";
+        if (command === "find")
+            return args.length !== 1 ? "Choose one earbud." : Policy.findError(root.device, root.lastStatus, args[0]);
+        if (!root.targetConnected || root.disconnectedByUser)
+            return "Connect Galaxy Buds first.";
+        if (command === "anc" && (!root.device || root.device.supported_noise_modes.indexOf(args[0]) < 0))
+            return "This noise mode is not available for this model.";
+        var feature = {eq:"equalizer", touchpad:"touchpad", "ambient-volume":"ambient_volume", "voice-detect":"voice_detect", lights:"blade_lights"}[command];
+        if (feature && !Policy.available((root.device || {}).features, feature))
+            return "This control is not available for this model.";
+        return "";
+    }
+
     function enqueueAction(command, args, label) {
-        var allowed = ["battery", "anc", "touchpad", "eq", "ambient-volume", "voice-detect", "lights"];
-        if (allowed.indexOf(command) < 0 || !Array.isArray(args) || args.some(arg => typeof arg !== "string") || root.actionQueue.length >= 16)
+        var allowed = ["battery", "anc", "touchpad", "eq", "ambient-volume", "voice-detect", "lights", "connect", "disconnect", "find"];
+        var stopping = command === "find" && Array.isArray(args) && args.length === 1 && args[0] === "stop";
+        if (allowed.indexOf(command) < 0 || !Array.isArray(args) || args.some(arg => typeof arg !== "string") || (!stopping && root.actionQueue.length >= 16))
             return;
-        root.actionQueue = root.actionQueue.concat([{ command: command, args: args, label: label || command, targetAddress: root.targetMac }]);
+        var error = root.validateAction(command, args);
+        var address = root.resolveTarget();
+        if (error || !address) {
+            root.rejectAction(command, error || "Select a paired Galaxy Buds device in the popout first.");
+            return;
+        }
+        if (!root.targetMac) root.setTarget(address, true, false);
+        if (command === "connect") root.disconnectedByUser = false;
+        root.pluginService.setGlobalVar(root.pluginId, "actionError", "");
+        var action = { command: command, args: args, label: label || command, targetAddress: address };
+        if (stopping && root.actionQueue.some(item => item.command === "find" && item.args[0] === "stop")) return;
+        if (stopping || command === "disconnect")
+            root.actionQueue = root.actionQueue.filter(item => item.command !== "find" || item.args[0] === "stop");
+        if (command === "disconnect" && (root.findState.active || (root.actionProcess && root.actionProcess.actionData.command === "find" && root.actionProcess.actionData.args[0] !== "stop"))) {
+            root.actionQueue = root.actionQueue.concat([{command:"find", args:["stop"], label:"Stop finding", targetAddress:address}]);
+        }
+        root.actionQueue = stopping ? [action].concat(root.actionQueue) : root.actionQueue.concat([action]);
         root.pluginService.setGlobalVar(root.pluginId, "commandState", { busy: true, label: label || command });
         if (root.actionInFlight)
             return;
@@ -312,12 +389,21 @@ PluginComponent {
     function runNextAction() {
         if (root.shuttingDown || root.actionQueue.length === 0) {
             root.actionInFlight = false;
+            root.pluginService.setGlobalVar(root.pluginId, "commandState", {busy:false, label:""});
             if (!root.shuttingDown)
                 root.checkCli();
             return;
         }
         var action = root.actionQueue[0];
         root.actionQueue = root.actionQueue.slice(1);
+        if (action.command === "find" && action.args[0] !== "stop") {
+            var error = Policy.findError(root.device, root.lastStatus, action.args[0]);
+            if (error) {
+                root.rejectAction(action.command, error);
+                root.runNextAction();
+                return;
+            }
+        }
         root.actionProcess = actionComponent.createObject(root, { actionData: action });
         if (root.actionProcess) {
             root.actionProcess.running = true;
@@ -330,8 +416,31 @@ PluginComponent {
         if (root.shuttingDown)
             return;
         root.publishCommand("gbuds --json " + action.command + " " + action.args.join(" "), result, succeeded);
+        if (action.targetAddress === root.targetMac && action.command === "find") {
+            // A timed-out start may have reached the Buds; keep Stop available.
+            if (action.args[0] !== "stop") {
+                root.publishFind({active:true, side:action.args[0], targetAddress:action.targetAddress});
+                findTimer.restart();
+            } else if (succeeded) {
+                findTimer.stop();
+                root.publishFind({active:false, side:"", targetAddress:""});
+            } else {
+                root.actionQueue = root.actionQueue.filter(item => item.command !== "disconnect");
+            }
+        }
         if (action.targetAddress === root.targetMac && succeeded) {
             root.lastError = "";
+            if (action.command === "disconnect") {
+                root.disconnectedByUser = true;
+                root.actionQueue = root.actionQueue.filter(item => item.command === "connect");
+                reconnectTimer.stop();
+                root.resetConnection();
+                root.publish("disconnected", "", null, "");
+            } else if (action.command === "connect") {
+                root.disconnectedByUser = false;
+                root.resetConnection();
+                root.publish("connecting", "Reading device capabilities…", null, "");
+            }
             if (root.lastStatus) {
                 var updated = Object.assign({}, root.lastStatus);
                 var changed = false;
@@ -348,6 +457,7 @@ PluginComponent {
                 root.publish("connected", "", root.lastStatus, "");
         } else if (action.targetAddress === root.targetMac) {
             root.lastError = result.error || "Gbuds command failed.";
+            root.pluginService.setGlobalVar(root.pluginId, "actionError", root.lastError);
             root.publish("waiting", root.lastError, root.lastStatus, "");
         }
         if (root.actionQueue.length > 0)
@@ -394,7 +504,7 @@ PluginComponent {
                 onRead: line => infoRunner.output += line + "\n"
             }
             onExited: (exitCode) => {
-                if (exitCode === 0 && infoRunner.targetAddress === root.targetMac)
+                if (exitCode === 0 && root.targetConnected && !root.disconnectedByUser && infoRunner.targetAddress === root.targetMac)
                     root.acceptDeviceInfo(infoRunner.output);
                 if (root.infoProcess === infoRunner)
                     root.infoProcess = null;
@@ -456,6 +566,12 @@ PluginComponent {
     }
 
     Timer {
+        id: findTimer
+        interval: 30000
+        onTriggered: if (root.findState.active) root.enqueueAction("find", ["stop"], "Stop finding");
+    }
+
+    Timer {
         id: reconnectTimer
         repeat: false
         onTriggered: root.checkCli()
@@ -463,6 +579,11 @@ PluginComponent {
 
     Component.onCompleted: {
         root.targetMac = pluginData.targetMac || "";
+        root.pluginService.setGlobalVar(root.pluginId, "device", ({}));
+        root.pluginService.setGlobalVar(root.pluginId, "selectedDevice", root.targetMac);
+        root.pluginService.setGlobalVar(root.pluginId, "commandState", {busy:false, label:""});
+        root.pluginService.setGlobalVar(root.pluginId, "actionError", "");
+        root.publishFind({active:false, side:"", targetAddress:""});
         root.publish("checking-cli", "Checking for the gbuds executable.", null, "");
         root.checkCli();
     }
@@ -486,6 +607,8 @@ PluginComponent {
             process.running = false;
             process.destroy();
         }
+        if (root.findState.active)
+            Quickshell.execDetached([root.cliCommand, "--mac", root.findState.targetAddress, "--json", "find", "stop"]);
     }
 
     Gbuds.BudsEventPopup {

@@ -4,7 +4,7 @@ import qs.Widgets
 import qs.DCommon.Widgets
 import qs.Modules.Plugins
 import "."
-import "./interface-v041" as Gbuds
+import "./interface-v050" as Gbuds
 
 PluginComponent {
     id: root
@@ -13,7 +13,7 @@ PluginComponent {
     readonly property var snapshot: telemetry.value || ({})
     readonly property var status: snapshot.status || ({})
     readonly property var device: deviceInfo.value || ({})
-    readonly property bool connected: snapshot.phase === "connected" || snapshot.phase === "controlling"
+    readonly property bool connected: snapshot.connected !== undefined ? snapshot.connected : snapshot.phase === "connected" || snapshot.phase === "controlling"
     readonly property bool activeConnection: connected && !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
     readonly property string pillMode: pluginData.pillMode || "compact"
     readonly property string batteryStyle: pluginData.batteryIndicatorStyle || "clean"

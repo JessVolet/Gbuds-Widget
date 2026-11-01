@@ -2,6 +2,7 @@ import QtQuick
 import qs.Common
 import qs.Widgets
 import qs.DCommon.Widgets
+import "ControlPolicy.js" as Policy
 
 Column {
     id: root
@@ -16,7 +17,7 @@ Column {
     readonly property bool hasAmbientVolume: device.has_ambient === true && Number(device.max_ambient_volume) > 0
     readonly property bool hasVoiceDetect: device.has_voice_detect === true
     readonly property bool hasBladeLights: device.has_blade_lights === true
-    readonly property bool hasEqualizer: status.equalizer !== null && status.equalizer !== undefined
+    readonly property bool hasEqualizer: Policy.available(device.features, "equalizer") && status.equalizer !== null && status.equalizer !== undefined
     readonly property bool hasSoundOptions: connected && (hasAmbientVolume || hasVoiceDetect || hasBladeLights || hasEqualizer)
 
     signal modeRequested(string mode)
@@ -144,7 +145,7 @@ Column {
             model: [
                 { key: "touch", title: "Touch controls", icon: root.status.touchpad_locked ? "lock" : "touch_app", detail: root.status.touchpad_locked ? "Locked" : "Active" },
                 { key: "sync", title: "Sync", icon: "sync", detail: root.busy ? "Working…" : "Refresh status" }
-            ]
+            ].filter(item => item.key === "sync" || Policy.available(root.device.features, "touchpad"))
             delegate: Rectangle {
                 required property var modelData
                 readonly property bool actionable: root.connected && !root.busy && (modelData.key === "sync" || typeof root.status.touchpad_locked === "boolean")

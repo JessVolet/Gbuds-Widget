@@ -26,7 +26,14 @@ The daemon follows a uniquely connected Galaxy Buds device detected by Dux Shell
 
 The daemon starts one `gbuds watch --json` process only while BlueZ reports a connected Buds device. Each newline-delimited JSON object updates shared telemetry. If the process exits while the device remains connected, Gbuds Widget keeps the last sample and retries with exponential backoff up to 30 seconds. It stops retrying when the Buds disconnect and resumes on the next BlueZ connection change.
 
-Control requests enter a FIFO queue. The daemon stops the watch process first, then runs exactly one `gbuds --json <command>` process. It publishes the command and response, applies returned state immediately, and resumes the watch without another metadata lookup. This avoids running two CLI RFCOMM sessions at once.
+Control requests enter a serialized queue. The daemon stops the watch process first, then runs exactly one `gbuds --json <command>` process. It publishes the command and response, applies returned state immediately, and resumes the watch without another metadata lookup. This avoids running two CLI RFCOMM sessions at once. Find Stop has priority and cancels pending search starts. Disconnect first stops an active search; if Stop fails, that disconnect is canceled. A successful disconnect clears stale status and pending controls, and suppresses watcher recovery until an explicit or external reconnection.
+
+`capabilities` is refreshed for each new connection, not sent as a control action.
+Explicit unsupported/not-implemented features are excluded. Unclassified
+Find/Touchpad/EQ declarations remain distinct from confirmed model support.
+Find is offered only for `IDLE` ears, has an explicit Stop state, and requests Stop
+after 30 seconds or an incoming placement change. A timed-out start retains Stop
+because its Bluetooth packet may already have reached the earbuds.
 
 ## State cards
 
@@ -36,6 +43,6 @@ The `telemetry` global variable contains the latest status and a transient `late
 
 - **Bar pill:** configurable battery layout, out-of-ear warning, and noise-mode icon; disconnected devices show only a disconnected icon.
 - **Control popout:** full-panel gradient, model renders, per-part battery, supported noise modes, touch controls, a collapsible sound list, and separate device/settings/console views without scrolling.
-- **Desktop widget:** each instance selects a full controls layout or a compact status layout with a capability-filtered noise-mode switcher. Both share daemon telemetry; their layout setting is stored per instance. Their outer surface fades away and stops accepting input while disconnected.
+- **Desktop widget:** each instance selects a full controls layout or a compact status layout with a capability-filtered noise-mode switcher. Both share daemon telemetry; their layout setting is stored per instance. When disconnected, only the Connect action is visible and interactive. L/R artwork starts/stops an individual search; Disconnect is below CASE.
 
 Every control is capability-filtered or disabled when disconnected. Status remains read-only telemetry; user actions invoke the installed Gbuds CLI.

@@ -11,6 +11,7 @@ Rectangle {
     property var status: ({})
     property bool connected: false
     property bool busy: false
+    property var actions: null
     property bool desktopMode: false
     property int lowThreshold: 20
     property color accentColor: Theme.primary
@@ -30,7 +31,7 @@ Rectangle {
     signal settingsClicked()
 
     width: parent.width
-    height: 210
+    height: 240
     radius: Theme.cornerRadiusL
     clip: true
     color: "transparent"
@@ -160,7 +161,7 @@ Rectangle {
 
         Row {
             width: parent.width
-            height: 128
+            height: 158
             spacing: 8
             Repeater {
                 model: [
@@ -175,8 +176,18 @@ Rectangle {
                     spacing: 4
 
                     Item {
+                        id: budAction
                         width: parent.width
                         height: 66
+                        readonly property bool ringing: root.actions && root.actions.ringing(modelData.key)
+                        readonly property bool actionable: modelData.key !== "case" && root.actions && (ringing || root.actions.canFind(modelData.key))
+                        activeFocusOnTab: actionable
+                        Accessible.role: Accessible.Button
+                        Accessible.name: (ringing ? "Stop finding " : "Find ") + modelData.key + " earbud"
+                        Accessible.onPressAction: if (actionable) root.actions.find(modelData.key)
+                        Keys.onReturnPressed: if (actionable) root.actions.find(modelData.key)
+                        Keys.onSpacePressed: if (actionable) root.actions.find(modelData.key)
+                        Rectangle { anchors.fill: parent; radius: 12; color: Theme.primaryContainer; visible: budAction.ringing || budAction.activeFocus }
 
                         Image {
                             id: budImage
@@ -281,6 +292,13 @@ Rectangle {
                                 color: Theme.primary
                             }
                         }
+                        MouseArea {
+                            anchors.fill: parent
+                            enabled: budAction.actionable
+                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                            onClicked: root.actions.find(modelData.key)
+                        }
+                        DIcon { anchors.right: parent.right; anchors.bottom: parent.bottom; visible: budAction.ringing; name: "stop_circle"; size: 22; color: Theme.primary }
                     }
 
                     StyledText {
@@ -323,6 +341,15 @@ Rectangle {
                             color: root.batteryTint(root.status[modelData.key])
                             Behavior on width { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
                         }
+                    }
+                    ActionButton {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: Math.min(parent.width, 100)
+                        height: 27
+                        visible: modelData.key === "case" && root.actions !== null
+                        enabled: !root.busy
+                        text: "Desconectar"
+                        onClicked: root.actions.send("disconnect", [], "Disconnect Galaxy Buds")
                     }
                 }
             }
