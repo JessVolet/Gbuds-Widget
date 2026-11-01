@@ -30,14 +30,9 @@ def save(name, svg):
 # L has its head down and stem up/right; R has its head up and stem down/left.
 save("bud-left", load("blade-head-down.svg"))
 save("bud-right", load("blade-head-up.svg"))
-shield = load("shield-alt-1-svgrepo-com.svg")
-ear = load("ear-2-svgrepo-com.svg")
-ear.set("viewBox", "100 -8 312 530")
-ear.set("x", "7.4")
-ear.set("y", "5.1")
-ear.set("width", "9.2")
-ear.set("height", "14.3")
-shield.append(ear)
-save("mode-anc", shield)
+# Preserve black/white luminance-mask values: they are not theme colors.
+anc = ET.parse(sources / "anc-C-centered.svg").getroot()
+anc.attrib.pop("color", None)
+save("mode-anc", anc)
 save("mode-ambient", load("ear-3-svgrepo-com.svg"))
 save("mode-normal", load("power-off-svgrepo-com.svg"))

@@ -4,7 +4,7 @@ import qs.Widgets
 import qs.DCommon.Widgets
 import qs.Modules.Plugins
 import "."
-import "./interface" as Gbuds
+import "./interface-v041" as Gbuds
 
 PluginComponent {
     id: root
@@ -90,11 +90,11 @@ PluginComponent {
         Gbuds.NoiseModeIcon {
             visible: root.activeConnection && root.pillMode !== "icon-only" && root.pluginData.showModeIcon !== false && root.status.noise_control !== "OFF";
             mode: root.status.noise_control || "OFF"
-            size: root.glyphSize -5
+            size: root.glyphSize
             color: root.iconTint
-            transform: Translate {
-                y: 3
-            }
+            //transform: Translate {
+            //    y: 3
+            //}
         }
     }
     horizontalBarPill: Component { Pill {} }

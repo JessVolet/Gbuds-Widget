@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const source = fs.readFileSync(path.join(__dirname,"../interface/ApprovedIcons.js"),"utf8");
+const source = fs.readFileSync(path.join(__dirname,"../interface-v041/ApprovedIcons.js"),"utf8");
 const icons = vm.createContext({});
 vm.runInContext(source.replace(/^\.pragma library\n/,""),icons);
 const pink={r:1,g:0.5,b:0.75,a:1};
@@ -16,15 +16,17 @@ test("approved SVGs are independent vectors and flattened for Qt",()=>{
   }
   assert.notEqual(icons.templates["bud-left"],icons.templates["bud-right"]);
 });
-test("theme coloring preserves timer cutouts and shield outline",()=>{
+test("theme coloring preserves timer and centered ANC cutouts",()=>{
   for(const name of Object.keys(icons.templates)) {
     const svg=decodeURIComponent(icons.url(name,pink,pink,false).split(",").slice(1).join(","));
     assert.doesNotMatch(svg,/currentColor/);
     assert.match(svg,/rgb\(255,128,191\)/);
   }
   assert.match(icons.templates["idle-timer"],/fill-rule="evenodd"/);
-  assert.match(icons.templates["mode-anc"],/stroke="currentColor"/);
-  assert.match(icons.templates["mode-anc"],/fill="none"/);
+  assert.match(icons.templates["mode-anc"],/mask=/);
+  assert.match(icons.templates["mode-anc"],/fill="black"/);
+  assert.match(icons.templates["mode-anc"],/fill="white"/);
+  assert.match(icons.templates["mode-anc"],/scale\(0.85\)/);
 });
 test("Blade geometry uses the opposite poses selected in the template",()=>{
   for(const name of ["bud-left","bud-right"]) {

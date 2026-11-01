@@ -2,6 +2,10 @@
 
 ## Selected 0.4.0 template
 
+Version 0.4.1 uses the approved `source-icons/anc-C-centered.svg` refinement for ANC:
+a filled shield and transparent original ear, 15% smaller and optically centered.
+Keep the cutout mask black/white when recoloring the surrounding shield.
+
 `approved/bud-left.svg` and `bud-right.svg` use the selected original Blade
 proposal with opposite diagonal poses, ordered as in the user's final template.
 `mode-anc.svg` combines the supplied `shield-alt-1-svgrepo-com.svg` and
@@ -13,7 +17,7 @@ The idle timer preserves the previously supplied timer SVG. The neutral case
 is widget artwork.
 
 Edit those SVG files independently, then run `python3 scripts/build-icons.py`.
-That compiles `interface/ApprovedIcons.js`, applies the QML theme color at runtime, and
+That compiles `interface-v041/ApprovedIcons.js`, applies the QML theme color at runtime, and
 flattens nested SVG viewports into equivalent transforms for Qt SVG.
 The source files remain editable SVGs with no embedded raster images.
 

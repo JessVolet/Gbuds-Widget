@@ -4,7 +4,7 @@
 
 The L/R drawings, timer, and noise modes live separately in `assets/approved/`.
 Run `python3 scripts/build-icons.py` after editing. Keep the generated
-`interface/ApprovedIcons.js` in the same commit so installed plugins use the edits.
+`interface-v041/ApprovedIcons.js` in the same commit so installed plugins use the edits.
 Use `node tests/icons.test.cjs` to validate the generated asset set.
 The final template can be rebuilt from the originals saved in
 `assets/source-icons/` using `python3 scripts/import-template.py` followed by

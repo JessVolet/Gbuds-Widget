@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1
+
+- Apply the selected filled ANC shield with a transparent ear cutout, reduced
+  by 15% and optically centered. Preserve all other artwork and local bar tuning.
+- The interface module is versioned so Qt loads the new shared artwork during
+  hot reload without restarting the desktop shell.
+
 ## 0.4.0
 
 - Match the user's final template: diagonal Blade earbuds with opposite poses,
