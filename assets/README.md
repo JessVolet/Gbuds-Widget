@@ -1,5 +1,11 @@
 # Device image credits
 
+The slim SVG earbud silhouettes and `Icons.js` are original widget artwork.
+The idle timer comes from the user-supplied `timer-svgrepo-com.svg`
+(SVG Repo; the supplied file does not include an author or license).
+Its geometry is preserved in `icons/idle-timer.svg` and `Icons.js`, with
+theme-controlled color. Confirm that asset's license before public distribution.
+
 The earbud renders in this directory are copied from the GalaxyBudsClient repository:
 
 - Source: `GalaxyBudsClient/Resources/Device/Realistic/`

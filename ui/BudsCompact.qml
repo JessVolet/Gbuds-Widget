@@ -1,14 +1,15 @@
 import QtQuick
-import QtQuick.Effects
 import qs.Common
 import qs.Services
 import qs.Widgets
 import qs.DCommon.Widgets
+import "." as Gbuds
 
 Item {
     id: root
 
     required property string pluginId
+    property var config: ({})
 
     PluginGlobalVar { id: telemetry; varName: "telemetry"; defaultValue: ({ phase: "checking-cli", status: null }) }
     PluginGlobalVar { id: deviceInfo; varName: "device"; defaultValue: ({}) }
@@ -41,14 +42,7 @@ Item {
         if (!partAvailable(part) || typeof value !== "number" || value < 0) return Theme.surfaceVariantText;
         if (value <= 10) return Theme.error;
         if (value <= 30) return Theme.warning;
-        return Theme.success;
-    }
-
-    function icon(part) {
-        if (part === "case") return Qt.resolvedUrl("assets/icons/case.svg");
-        var code = (device.model_code || "").toUpperCase();
-        var small = /SM-R400|SM-R177|SM-R170|SM-R175|SM-R180|SM-R190|SM-R510/.test(code);
-        return Qt.resolvedUrl("assets/icons/" + (small ? "s_" : "L_") + part + ".svg");
+        return Theme.primary;
     }
 
     function requestMode(action) {
@@ -61,9 +55,17 @@ Item {
         });
     }
 
+    Rectangle {
+        anchors.fill: parent
+        radius: Theme.cornerRadiusL
+        color: Theme.withAlpha(Theme.surfaceContainer, 0.94)
+        border.color: Theme.withAlpha(Theme.outline, 0.2)
+        border.width: 1
+    }
+
     Column {
         anchors.fill: parent
-        anchors.margins: 7
+        anchors.margins: Theme.spacingS
         spacing: Theme.spacingXS
 
         Row {
@@ -89,7 +91,7 @@ Item {
 
         Row {
             width: parent.width
-            height: 53
+            height: 62
             spacing: 5
             Repeater {
                 model: [
@@ -104,24 +106,14 @@ Item {
                     Column {
                         anchors.centerIn: parent
                         spacing: 1
-                        Item {
-                            width: 28; height: 29
+                        Gbuds.EarbudGlyph {
+                            width: 32; height: 36
                             anchors.horizontalCenter: parent.horizontalCenter
-                            Image {
-                                id: partIcon
-                                anchors.fill: parent
-                                source: root.icon(modelData.key)
-                                fillMode: Image.PreserveAspectFit
-                                visible: false
-                            }
-                            MultiEffect {
-                                anchors.fill: partIcon
-                                source: partIcon
-                                colorization: 1
-                                colorizationColor: root.batteryColor(modelData.key)
-                                opacity: root.partAvailable(modelData.key) ? 1 : 0.4
-                                Behavior on colorizationColor { ColorAnimation { duration: 220 } }
-                            }
+                            part: modelData.key
+                            modelCode: root.device.model_code || ""
+                            available: root.partAvailable(modelData.key)
+                            idle: root.config.warnOutOfEar !== false && root.status["placement_" + modelData.key] === "IDLE"
+                            tint: root.batteryColor(modelData.key)
                         }
                         StyledText {
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -140,7 +132,7 @@ Item {
             height: 34
             radius: Theme.cornerRadiusS
             visible: root.modeOptions.length > 0
-            color: Theme.withAlpha(Theme.surfaceContainer, 0.28)
+            color: Theme.surfaceContainerHigh
             border.color: Theme.withAlpha(Theme.outline, 0.35)
             border.width: 1
             Row {
@@ -150,6 +142,7 @@ Item {
                 Repeater {
                     model: root.modeOptions
                     delegate: Rectangle {
+                        id: modeButton
                         required property var modelData
                         readonly property bool selected: root.status.noise_control === modelData.mode
                         width: (parent.width - (root.modeOptions.length - 1) * 3) / root.modeOptions.length
@@ -161,12 +154,14 @@ Item {
                         Accessible.role: Accessible.Button
                         Accessible.name: modelData.label
                         Accessible.checked: selected
+                        border.width: activeFocus ? 2 : 0
+                        border.color: Theme.primary
                         Behavior on color { ColorAnimation { duration: 200 } }
                         DIcon {
                             anchors.centerIn: parent
                             name: modelData.icon
                             size: 18
-                            color: selected ? Theme.onPrimaryContainer : Theme.surfaceText
+                            color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceText
                         }
                         MouseArea { anchors.fill: parent; onClicked: root.requestMode(modelData.action) }
                         Keys.onReturnPressed: root.requestMode(modelData.action)

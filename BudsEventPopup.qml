@@ -31,6 +31,7 @@ PanelWindow {
             ((nextEvent.kind === "low-battery" || nextEvent.kind === "critical-battery") && config.showBatteryCards === false))
             return;
         eventData = nextEvent;
+        screen = CompositorService.getFocusedScreen();
         status = nextEvent.kind === "disconnected" ? ({}) : (nextStatus || ({}));
         device = nextDevice || ({});
         visible = true;

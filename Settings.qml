@@ -55,12 +55,12 @@ PluginSettings {
         label: "Battery indicator style"
         description: "How battery level is visualized on the earbud icons."
         options: [
-            { value: "glow", label: "Glow halo [Default]" },
+            { value: "glow", label: "Soft battery accent" },
             { value: "border", label: "Colored border outline" },
             { value: "tint", label: "Colorize entire icon" },
-            { value: "clean", label: "Clean theme icon (no battery color)" }
+            { value: "clean", label: "Clean theme outline [Default]" }
         ]
-        defaultValue: "glow"
+        defaultValue: "clean"
     }
 
     SelectionSetting {

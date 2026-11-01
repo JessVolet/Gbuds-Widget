@@ -4,6 +4,7 @@ import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
 import "."
+import "./ui" as Gbuds
 
 DesktopPluginComponent {
     id: root
@@ -13,8 +14,6 @@ DesktopPluginComponent {
     property real defaultHeight: compact ? 150 : 570
     minWidth: compact ? 260 : 330
     minHeight: compact ? 140 : 570
-    widgetWidth: 380
-    widgetHeight: 570
     readonly property var snapshot: telemetry.value || ({})
     readonly property var status: snapshot.status || ({})
     readonly property bool connected: (snapshot.phase === "connected" || snapshot.phase === "controlling") &&
@@ -52,9 +51,10 @@ DesktopPluginComponent {
 
     Component {
         id: compactView
-        BudsCompact {
+        Gbuds.BudsCompact {
             anchors.fill: parent
             pluginId: root.pluginId
+            config: root.pluginData
         }
     }
 }

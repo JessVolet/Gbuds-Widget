@@ -1,5 +1,16 @@
 # Development and live testing
 
+Run the daemon regression checks with `node tests/daemon.test.cjs`.
+They execute the functions extracted from the QML source with simulated state.
+They cover device-bound requests, queue limits, failure recovery, and target-switch
+races; they do not replace hardware checks or the QML process-timeout test.
+
+For the 0.2.0 visuals, check light/dark themes, horizontal/vertical bars, and
+desktop sizes from 260 × 140 upward. Only placement `IDLE` shows the timer;
+`WEARING`, `IN_CASE`, and `DISCONNECTED` must not. Verify the toggle and custom
+idle color still work, ANC highlights remain readable, and separate instances
+share telemetry. Existing bar style preferences are kept.
+
 ## Dux Shell QML environment
 
 The project follows the Dux Shell 2.0 plugin guide. Its recommended development checkout is `~/repos/dux-shell` with submodules, so the QML language server can resolve the `qs.DCommon.Widgets` imports:
