@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.6
+
+- Animate each ring's actual width and height from zero, so its geometric radius is zero at the start.
+
 ## 0.6.5
 
 - Start each wave at radius zero and stagger rings by 250 ms.

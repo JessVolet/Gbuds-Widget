@@ -122,21 +122,25 @@ Item {
                 delegate: Rectangle {
                     id: ring
                     required property int index
-                    width: root.surfaceSize * (0.25 + index * 0.16)
-                    height: width
+                    readonly property real finalDiameter: root.surfaceSize * (0.25 + index * 0.16)
+                    width: 0
+                    height: 0
                     radius: width / 2
                     color: "transparent"
                     border.width: root.eventData && root.eventData.kind === "battery-20" ? 3 : 2
                     border.color: root.accent()
                     opacity: 0
-                    scale: 0
                     x: (emitterSide === "left" ? root.cornerInset : parent.width - root.cornerInset) - width / 2
                     y: (root.config.notifyVerticalPosition === "bottom" ? parent.height - root.cornerInset : root.cornerInset) - height / 2
                     SequentialAnimation {
                         id: waveSequence
+                        PropertyAction { target: ring; property: "width"; value: 0 }
+                        PropertyAction { target: ring; property: "height"; value: 0 }
+                        PropertyAction { target: ring; property: "opacity"; value: 0 }
                         PauseAnimation { duration: ring.index * 250 }
                         ParallelAnimation {
-                            NumberAnimation { target: ring; property: "scale"; from: 0; to: 1.28; duration: root.ringDurationMs; easing.type: Easing.OutCubic }
+                            NumberAnimation { target: ring; property: "width"; from: 0; to: ring.finalDiameter; duration: root.ringDurationMs; easing.type: Easing.OutCubic }
+                            NumberAnimation { target: ring; property: "height"; from: 0; to: ring.finalDiameter; duration: root.ringDurationMs; easing.type: Easing.OutCubic }
                             SequentialAnimation {
                                 NumberAnimation { target: ring; property: "opacity"; from: 0; to: 0.8; duration: 100; easing.type: Easing.OutQuad }
                                 PauseAnimation { duration: Math.max(0, root.ringDurationMs - 350) }
@@ -150,14 +154,16 @@ Item {
                         function onPulseRevisionChanged() {
                             if (root.config.notifyReduceMotion === true) {
                                 waveSequence.stop();
-                                ring.scale = 1;
+                                ring.width = ring.finalDiameter;
+                                ring.height = ring.finalDiameter;
                                 ring.opacity = 0.35;
                             } else waveSequence.restart();
                         }
                     }
                     Component.onCompleted: {
                         if (root.config.notifyReduceMotion === true) {
-                            ring.scale = 1;
+                            ring.width = ring.finalDiameter;
+                            ring.height = ring.finalDiameter;
                             ring.opacity = 0.35;
                         } else waveSequence.restart();
                     }
