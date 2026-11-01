@@ -46,13 +46,6 @@ Rectangle {
         return Theme.success;
     }
 
-    function modeIcon(mode) {
-        if (mode === "NOISE_REDUCTION") return "noise_control_on";
-        if (mode === "AMBIENT_SOUND") return "hearing";
-        if (mode === "ADAPTIVE") return "auto_mode";
-        return "noise_control_off";
-    }
-
     Rectangle {
         width: 270; height: 270; radius: 135
         anchors.horizontalCenter: parent.horizontalCenter
@@ -226,7 +219,7 @@ Rectangle {
                                 id: caseFillImage
                                 anchors.centerIn: parent
                                 width: 54; height: 56
-                                source: Qt.resolvedUrl("assets/icons/case_fill.svg")
+                                source: Qt.resolvedUrl("../assets/icons/case_fill.svg")
                                 sourceSize.width: 128
                                 sourceSize.height: 128
                                 fillMode: Image.PreserveAspectFit
@@ -245,7 +238,7 @@ Rectangle {
                                 id: caseStrokeImage
                                 anchors.centerIn: parent
                                 width: 54; height: 56
-                                source: Qt.resolvedUrl("assets/icons/case_stroke.svg")
+                                source: Qt.resolvedUrl("../assets/icons/case_stroke.svg")
                                 sourceSize.width: 128
                                 sourceSize.height: 128
                                 fillMode: Image.PreserveAspectFit
@@ -359,11 +352,11 @@ Rectangle {
                 elide: Text.ElideRight
                 anchors.verticalCenter: parent.verticalCenter
             }
-            DIcon {
+            NoiseModeIcon {
                 visible: root.connected && !!root.status.noise_control
-                name: root.modeIcon(root.status.noise_control)
-                size: 16
-                color: Theme.success
+                mode: root.status.noise_control || "OFF"
+                size: 24
+                color: Theme.primary
                 anchors.verticalCenter: parent.verticalCenter
             }
         }

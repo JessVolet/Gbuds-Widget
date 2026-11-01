@@ -64,7 +64,7 @@ Item {
             return "";
         var colorName = (device.color || "").toLowerCase();
         var color = colorName.indexOf("white") >= 0 ? "White" : model === "BudsFe" ? "Graphite" : "Silver";
-        return Qt.resolvedUrl("assets/device/" + model + color + "-" + side + ".png");
+        return Qt.resolvedUrl("../assets/device/" + model + color + "-" + side + ".png");
     }
 
     function modeLabel(value) {

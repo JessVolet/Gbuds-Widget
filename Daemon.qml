@@ -4,6 +4,7 @@ import qs.Common
 import qs.Services
 import qs.Modules.Plugins
 import "."
+import "./presentation" as Gbuds
 
 PluginComponent {
     id: root
@@ -487,7 +488,7 @@ PluginComponent {
         }
     }
 
-    BudsEventPopup {
+    Gbuds.BudsEventPopup {
         id: eventPopup
         config: root.pluginData
     }

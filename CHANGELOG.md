@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0
+
+- Apply the approved mockup using the supplied editable SVG earbuds, recovered
+  ear artwork, vectorized waves, and timer. Left and right are independent assets.
+- Large idle badges appear independently; noise mode icons match the bar's
+  earbud size and are shared by the compact desktop, popout, and event popup.
+- Compact desktop uses a taller layout with large device icons and labeled
+  mode buttons. Existing placements retain their saved width/height, clamped
+  to the new readable minimum of 300 × 220.
+- Shared UI and its generated SVG library live in presentation/ so they load together during
+  hot reload without reusing Qt's cached previous UI.
+
 ## 0.2.1
 
 - Increase bar glyph boxes to square proportions so the narrow SVGs keep their

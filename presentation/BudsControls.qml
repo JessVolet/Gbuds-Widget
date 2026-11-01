@@ -59,7 +59,7 @@ Column {
                 width: parent.width
                 height: 20
                 spacing: Theme.spacingS
-                DIcon { name: "noise_control_on"; size: 18; color: Theme.primary; anchors.verticalCenter: parent.verticalCenter }
+                NoiseModeIcon { mode: root.status.noise_control || "OFF"; size: 22; color: Theme.primary; anchors.verticalCenter: parent.verticalCenter }
                 StyledText {
                     width: parent.width * 0.44
                     text: "Noise control"
@@ -92,6 +92,7 @@ Column {
                     Repeater {
                         model: root.modeOptions
                         delegate: Rectangle {
+                            id: modeButton
                             required property var modelData
                             readonly property bool selected: root.status.noise_control === modelData.mode
                             width: (parent.width - (root.modeOptions.length - 1) * 4) / Math.max(1, root.modeOptions.length)
@@ -109,16 +110,16 @@ Column {
                             Column {
                                 anchors.centerIn: parent
                                 spacing: 1
-                                DIcon {
+                                NoiseModeIcon {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    name: modelData.icon
-                                    size: 18
-                                    color: selected ? Theme.primary : Theme.surfaceVariantText
+                                    mode: modelData.mode
+                                    size: 28
+                                    color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceVariantText
                                 }
                                 StyledText {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: modelData.label
-                                    color: selected ? Theme.primary : Theme.surfaceVariantText
+                                    color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceVariantText
                                     font.pixelSize: Theme.fontSizeSmall
                                     font.weight: selected ? Font.Bold : Font.Medium
                                 }

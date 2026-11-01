@@ -91,7 +91,7 @@ Item {
 
         Row {
             width: parent.width
-            height: 62
+            height: 80
             spacing: 5
             Repeater {
                 model: [
@@ -107,13 +107,14 @@ Item {
                         anchors.centerIn: parent
                         spacing: 1
                         Gbuds.EarbudGlyph {
-                            width: 32; height: 36
+                            width: 48; height: 48
                             anchors.horizontalCenter: parent.horizontalCenter
                             part: modelData.key
                             modelCode: root.device.model_code || ""
                             available: root.partAvailable(modelData.key)
                             idle: root.config.warnOutOfEar !== false && root.status["placement_" + modelData.key] === "IDLE"
                             tint: root.batteryColor(modelData.key)
+                            badgeColor: Theme.surfaceContainer
                         }
                         StyledText {
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -129,7 +130,7 @@ Item {
 
         Rectangle {
             width: parent.width
-            height: 34
+            height: 80
             radius: Theme.cornerRadiusS
             visible: root.modeOptions.length > 0
             color: Theme.surfaceContainerHigh
@@ -157,11 +158,22 @@ Item {
                         border.width: activeFocus ? 2 : 0
                         border.color: Theme.primary
                         Behavior on color { ColorAnimation { duration: 200 } }
-                        DIcon {
+                        Column {
                             anchors.centerIn: parent
-                            name: modelData.icon
-                            size: 18
-                            color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceText
+                            spacing: Theme.spacingXS
+                            NoiseModeIcon {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                mode: modelData.mode
+                                size: 36
+                                color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceText
+                            }
+                            StyledText {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: modelData.label
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Font.DemiBold
+                                color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceText
+                            }
                         }
                         MouseArea { anchors.fill: parent; onClicked: root.requestMode(modelData.action) }
                         Keys.onReturnPressed: root.requestMode(modelData.action)

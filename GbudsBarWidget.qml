@@ -4,7 +4,7 @@ import qs.Widgets
 import qs.DCommon.Widgets
 import qs.Modules.Plugins
 import "."
-import "./ui" as Gbuds
+import "./presentation" as Gbuds
 
 PluginComponent {
     id: root
@@ -17,6 +17,7 @@ PluginComponent {
     readonly property bool activeConnection: connected && !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
     readonly property string pillMode: pluginData.pillMode || "compact"
     readonly property string batteryStyle: pluginData.batteryIndicatorStyle || "clean"
+    readonly property int glyphSize: Math.max(root.iconSize, Math.max(28, Math.min(32, root.widgetThickness)))
     function themeColor(mode, custom, fallback) {
         if (mode === "primary" || mode === "secondary" || mode === "tertiary") return Theme[mode];
         // Preserve color presets saved by older local versions.
@@ -31,7 +32,7 @@ PluginComponent {
         if (mode === "amber") return Theme.warning;
         if (mode === "error") return Theme.error;
         if (mode === "muted") return Theme.widgetInactiveIconColor;
-        return themeColor(mode, pluginData.customIdleColor, root.iconTint);
+        return themeColor(mode, pluginData.customIdleColor, Theme.warning);
     }
     readonly property color caseTint: pluginData.caseColorMode === "match"
         ? themeColor(pluginData.colorMode || "primary", pluginData.customColor, Theme.primary)
@@ -46,15 +47,9 @@ PluginComponent {
         if (root.status[part] <= 30) return Theme.warning;
         return part === "case" ? root.caseTint : root.iconTint;
     }
-    function modeIcon(mode) {
-        if (mode === "NOISE_REDUCTION") return "noise_control_on";
-        if (mode === "AMBIENT_SOUND") return "hearing";
-        if (mode === "ADAPTIVE") return "auto_mode";
-        return "noise_control_off";
-    }
     component Pill: Grid {
         columns: root.isVertical ? 1 : 5
-        spacing: Theme.spacingXS
+        spacing: Theme.spacingS
         DIcon {
             visible: !root.activeConnection || root.pillMode === "icon-only"
             name: root.activeConnection ? "earbuds" : "bluetooth_disabled"
@@ -70,17 +65,17 @@ PluginComponent {
                 Gbuds.EarbudGlyph {
                     part: modelData
                     modelCode: root.device.model_code || ""
-                    // SVG view boxes are square: a narrow item also shrinks their height.
-                    width: root.iconSize + 2
-                    height: root.iconSize + 4
+                    width: root.glyphSize
+                    height: root.glyphSize
                     available: root.available(modelData)
                     idle: root.pluginData.warnOutOfEar !== false && root.status["placement_" + modelData] === "IDLE"
                     idleColor: root.idleTint
+                    badgeColor: Theme.surfaceContainer
                     tint: root.batteryStyle === "tint" || root.batteryStyle === "border" || root.batteryStyle === "clean"
                         ? root.batteryTint(modelData) : modelData === "case" ? root.caseTint : root.iconTint
                     fillTint: root.batteryStyle === "tint" ? root.batteryTint(modelData)
                         : Theme.withAlpha(root.batteryStyle === "glow" ? root.batteryTint(modelData) : tint, 0.16)
-                    filled: root.batteryStyle !== "none"
+                    filled: root.batteryStyle === "tint" || root.batteryStyle === "glow"
                 }
                 StyledText {
                     visible: root.pluginData.showBatteryPercentages === true
@@ -91,10 +86,10 @@ PluginComponent {
                 }
             }
         }
-        DIcon {
+        Gbuds.NoiseModeIcon {
             visible: root.activeConnection && root.pillMode !== "icon-only" && root.pluginData.showModeIcon !== false && !!root.status.noise_control
-            name: root.modeIcon(root.status.noise_control)
-            size: root.iconSize - 2
+            mode: root.status.noise_control || "OFF"
+            size: root.glyphSize
             color: root.iconTint
         }
     }
@@ -104,7 +99,7 @@ PluginComponent {
         Item {
             width: parent.width
             implicitHeight: panel.implicitHeight
-            GbudsPanel {
+            Gbuds.GbudsPanel {
                 id: panel
                 anchors.fill: parent
                 pluginId: root.pluginId

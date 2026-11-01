@@ -112,17 +112,17 @@ PluginSettings {
 
     ToggleSetting {
         settingKey: "warnOutOfEar"
-        label: "Show waiting clock outside ear"
-        description: "Display a small clock indicator when an earbud is removed from the ear."
+        label: "Show out-of-ear timer"
+        description: "Display a large timer on each idle earbud. In-case and disconnected earbuds do not show it."
         defaultValue: true
     }
 
     SelectionSetting {
         settingKey: "idleColorMode"
-        label: "Idle clock color"
-        description: "Color for the waiting clock indicator when an earbud is outside the ear."
+        label: "Idle timer color"
+        description: "Color of the timer on an earbud outside the ear."
         options: [
-            { value: "auto", label: "Bar / Theme color [Default]" },
+            { value: "auto", label: "Theme warning color [Default]" },
             { value: "amber", label: "Amber (Waiting)" },
             { value: "primary", label: "Primary" },
             { value: "secondary", label: "Secondary" },
@@ -136,8 +136,8 @@ PluginSettings {
 
     StringSetting {
         settingKey: "customIdleColor"
-        label: "Custom idle clock color"
-        description: "Hex color for the idle clock indicator (e.g. #f59e0b)"
+        label: "Custom idle timer color"
+        description: "Hex color for the idle timer (e.g. #f59e0b)"
         placeholder: "#f59e0b"
         defaultValue: "#f59e0b"
     }

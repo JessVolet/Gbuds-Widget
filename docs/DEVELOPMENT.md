@@ -1,5 +1,17 @@
 # Development and live testing
 
+## Editing the approved SVGs
+
+The L/R drawings, timer, and noise modes live separately in `assets/approved/`.
+Run `python3 scripts/build-icons.py` after editing. Keep the generated
+`presentation/ApprovedIcons.js` in the same commit so installed plugins use the edits.
+Use `node tests/icons.test.cjs` to validate the generated asset set.
+After a dependency edit, Qt may cache the old local component or JavaScript;
+verify the result after reload, or restart Dux if that dependency stays cached.
+
+The 0.3.0 compact desktop requires at least 300 × 220. The timer is a separate
+overlay, about 57% of the glyph height, controlled independently for each side.
+
 Run the daemon regression checks with `node tests/daemon.test.cjs`.
 They execute the functions extracted from the QML source with simulated state.
 They cover device-bound requests, queue limits, failure recovery, and target-switch

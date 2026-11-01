@@ -48,16 +48,16 @@ PanelWindow {
     }
 
     function render(part) {
-        if (part === "case") return Qt.resolvedUrl("assets/icons/case.svg");
+        if (part === "case") return Qt.resolvedUrl("../assets/icons/case.svg");
         var code = device.model_code || "";
         var model = code === "SM-R630" ? "Buds3Pro" : code === "SM-R530" ? "Buds3" : code === "SM-R420" ? "Buds3Fe" : code === "SM-R400N" ? "BudsFe" : "";
         if (model) {
             var colorName = (device.color || "").toLowerCase();
             var color = colorName.indexOf("white") >= 0 ? "White" : model === "BudsFe" ? "Graphite" : "Silver";
-            return Qt.resolvedUrl("assets/device/" + model + color + "-" + (part === "left" ? 0 : 1) + ".png");
+            return Qt.resolvedUrl("../assets/device/" + model + color + "-" + (part === "left" ? 0 : 1) + ".png");
         }
         var small = /SM-R400|SM-R177|SM-R170|SM-R175|SM-R180|SM-R190|SM-R510/.test(code);
-        return Qt.resolvedUrl("assets/icons/" + (small ? "s_" : "L_") + part + ".svg");
+        return Qt.resolvedUrl("../assets/icons/" + (small ? "s_" : "L_") + part + ".svg");
     }
 
     function batteryLabel(part) {
@@ -143,10 +143,10 @@ PanelWindow {
             Item {
                 width: parent.width
                 height: 91
-                DIcon {
+                NoiseModeIcon {
                     anchors.centerIn: parent
                     visible: root.subject === "mode"
-                    name: root.eventData ? root.eventData.icon : "noise_control_off"
+                    mode: root.status.noise_control || "OFF"
                     size: 56
                     color: Theme.primary
                 }

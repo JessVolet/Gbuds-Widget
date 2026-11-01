@@ -10,6 +10,12 @@ A Dux Shell 2.0 plugin for Galaxy Buds. It adds a status item to the bar, a cont
 
 ## What it does
 
+Version 0.3.0 uses independent L/R SVGs, large per-earbud idle timers, and shared
+noise-mode artwork across the bar, compact desktop, and popout. The editable
+sources are in `assets/approved/`; rebuild them with
+`python3 scripts/build-icons.py`. The compact desktop needs at least 300 × 220.
+The screenshots above predate this visual update.
+
 - Shows each earbud's and the case's battery and placement, plus the current noise mode.
 - Offers noise control, touch lock, equalizer, ambient volume, voice detection, and Blade Lights **only when the connected model and CLI report support**.
 - Shows a floating square popup for connection, placement, noise-mode, and low-battery changes. It selects the affected earbud, case, or mode icon.

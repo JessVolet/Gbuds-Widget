@@ -4,16 +4,16 @@ import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
 import "."
-import "./ui" as Gbuds
+import "./presentation" as Gbuds
 
 DesktopPluginComponent {
     id: root
 
     readonly property bool compact: pluginData.desktopLayout === "compact"
-    property real defaultWidth: compact ? 330 : 380
-    property real defaultHeight: compact ? 150 : 570
-    minWidth: compact ? 260 : 330
-    minHeight: compact ? 140 : 570
+    property real defaultWidth: compact ? 360 : 380
+    property real defaultHeight: compact ? 230 : 570
+    minWidth: compact ? 300 : 330
+    minHeight: compact ? 220 : 570
     readonly property var snapshot: telemetry.value || ({})
     readonly property var status: snapshot.status || ({})
     readonly property bool connected: (snapshot.phase === "connected" || snapshot.phase === "controlling") &&
@@ -39,7 +39,7 @@ DesktopPluginComponent {
 
     Component {
         id: fullView
-        GbudsPanel {
+        Gbuds.GbudsPanel {
             anchors.fill: parent
             anchors.margins: 1
             pluginId: root.pluginId
