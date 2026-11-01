@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.7
+
+- Start Popup and Waveup rings with zero width and height; animate real geometry instead of scaling preset-size circles.
+- Increase ring diameters and strokes, including a 360 logical-pixel Waveup size option.
+- Keep the 250 ms stagger and repeat one second after the complete sequence.
+
 ## 0.6.6
 
 - Animate each ring's actual width and height from zero, so its geometric radius is zero at the start.

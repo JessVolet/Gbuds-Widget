@@ -17,7 +17,7 @@ Item {
     property var waveQueue: []
     property double waveDeadline: 0
     readonly property int currentDurationMs: Math.max(1000, Math.min(30000, Number(config.notifyWaveDuration || 5) * 1000))
-    readonly property int surfaceSize: Math.max(180, Math.min(360, Number(config.notifyWaveSize || 240)))
+    readonly property int surfaceSize: Math.max(180, Math.min(400, Number(config.notifyWaveSize || 240)))
     readonly property int cornerInset: Math.max(0, Number(config.notifyMargin || 18))
     readonly property int ringDurationMs: eventData && eventData.kind === "battery-20" ? 1080 : 1450
     readonly property int sequenceDurationMs: ringDurationMs + Math.max(0, count() - 1) * 250
@@ -122,12 +122,12 @@ Item {
                 delegate: Rectangle {
                     id: ring
                     required property int index
-                    readonly property real finalDiameter: root.surfaceSize * (0.25 + index * 0.16)
+                    readonly property real finalDiameter: root.surfaceSize * (0.34 + index * 0.22)
                     width: 0
                     height: 0
                     radius: width / 2
                     color: "transparent"
-                    border.width: root.eventData && root.eventData.kind === "battery-20" ? 3 : 2
+                    border.width: root.eventData && root.eventData.kind === "battery-20" ? 6 : 4
                     border.color: root.accent()
                     opacity: 0
                     x: (emitterSide === "left" ? root.cornerInset : parent.width - root.cornerInset) - width / 2

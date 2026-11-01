@@ -18,6 +18,10 @@ PanelWindow {
     property var eventQueue: []
     property int waveRevision: 0
     property int queueLimit: 4
+    property double dismissDeadline: 0
+    readonly property int waveRingDurationMs: eventData && eventData.kind === "battery-20" ? 720 : 1100
+    readonly property int waveCount: Math.max(1, Math.min(3, Number(eventData && eventData.waves || 1)))
+    readonly property int waveSequenceDurationMs: waveRingDurationMs + Math.max(0, waveCount - 1) * 250
     readonly property string corner: {
         var vertical = config.notifyVerticalPosition || (config.statusCardPosition || "bottom-right").split("-")[0];
         var fixed = config.notifyFixedSide || (config.statusCardPosition || "bottom-right").split("-")[1] || "right";
@@ -83,13 +87,15 @@ PanelWindow {
         shown = false;
         dismissTimer.stop();
         wavePulseTimer.stop();
+        dismissDeadline = 0;
         unmapTimer.restart();
     }
 
     function startWaveCycle() {
         dismissTimer.interval = Math.max(1500, Number(config.dismissTimeout || 5) * 1000);
         dismissTimer.restart();
-        wavePulseTimer.interval = Math.max(1000, Math.min(5000, Number(config.notifyWaveInterval || 1500)));
+        dismissDeadline = Date.now() + dismissTimer.interval;
+        wavePulseTimer.interval = waveSequenceDurationMs + 1000;
         wavePulseTimer.restart();
     }
 
@@ -121,7 +127,7 @@ PanelWindow {
     visible: false
     color: "transparent"
     implicitWidth: 230
-    implicitHeight: 230 + Math.min(eventQueue.length, queueLimit) * 66
+    implicitHeight: 280 + Math.min(eventQueue.length, queueLimit) * 66
     WlrLayershell.namespace: "dms:gbuds-event"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
@@ -145,14 +151,19 @@ PanelWindow {
     }
 
     Timer { id: dismissTimer; repeat: false; onTriggered: root.dismiss() }
-    Timer { id: wavePulseTimer; repeat: true; onTriggered: root.waveRevision++ }
+    Timer { id: wavePulseTimer; repeat: true; onTriggered: {
+        if (Date.now() + root.waveSequenceDurationMs <= root.dismissDeadline)
+            root.waveRevision++;
+        else
+            wavePulseTimer.stop();
+    } }
     Timer { id: unmapTimer; interval: 250; repeat: false; onTriggered: if (!root.shown) { if (root.eventQueue.length) root.showNext(); else root.visible = false } }
     NumberAnimation { id: contentIn; target: body; property: "opacity"; from: 0; to: 1; duration: 220; easing.type: Easing.OutCubic }
 
     Rectangle {
         id: card
         x: 5; y: 5
-        width: root.width - 10; height: 220
+        width: root.width - 10; height: 270
         radius: Theme.cornerRadiusL
         color: Theme.withAlpha(Theme.surfaceContainerHigh, BlurService.enabled ? 0.8 : 0.97)
         border.width: 1
@@ -195,34 +206,46 @@ PanelWindow {
 
             Item {
                 width: parent.width
-                height: 91
+                height: 150
                 Repeater {
-                    model: Math.max(1, Math.min(3, Number(root.eventData && root.eventData.waves || 1)))
+                    model: root.waveCount
                     delegate: Rectangle {
                         id: popupRing
                         required property int index
-                        width: 46 + index * 22
-                        height: width
+                        readonly property real finalDiameter: 88 + index * 36
+                        width: 0
+                        height: 0
                         radius: width / 2
                         color: "transparent"
-                        border.width: 2
+                        border.width: root.eventData && root.eventData.kind === "battery-20" ? 5 : 4
                         border.color: root.eventData && root.eventData.kind === "battery-20" ? Theme.error : root.eventData && root.eventData.kind === "battery-50" ? Theme.warning : Theme.withAlpha(root.warning ? Theme.error : Theme.primary, 0.68)
                         opacity: 0
                         anchors.centerIn: parent
-                        ParallelAnimation {
+                        SequentialAnimation {
                             id: popupWave
-                            NumberAnimation { target: popupRing; property: "scale"; from: 0.7; to: 1.2; duration: root.eventData && root.eventData.kind === "battery-20" ? 720 : 1100; easing.type: Easing.OutCubic }
-                            NumberAnimation { target: popupRing; property: "opacity"; from: 0.52; to: 0; duration: root.eventData && root.eventData.kind === "battery-20" ? 720 : 1100; easing.type: Easing.OutQuad }
+                            PropertyAction { target: popupRing; property: "width"; value: 0 }
+                            PropertyAction { target: popupRing; property: "height"; value: 0 }
+                            PropertyAction { target: popupRing; property: "opacity"; value: 0 }
+                            PauseAnimation { duration: popupRing.index * 250 }
+                            ParallelAnimation {
+                                NumberAnimation { target: popupRing; property: "width"; from: 0; to: popupRing.finalDiameter; duration: root.waveRingDurationMs; easing.type: Easing.OutCubic }
+                                NumberAnimation { target: popupRing; property: "height"; from: 0; to: popupRing.finalDiameter; duration: root.waveRingDurationMs; easing.type: Easing.OutCubic }
+                                SequentialAnimation {
+                                    NumberAnimation { target: popupRing; property: "opacity"; from: 0; to: 0.8; duration: 100; easing.type: Easing.OutQuad }
+                                    PauseAnimation { duration: Math.max(0, root.waveRingDurationMs - 350) }
+                                    NumberAnimation { target: popupRing; property: "opacity"; to: 0; duration: 250; easing.type: Easing.OutQuad }
+                                }
+                            }
                         }
                         Connections {
                             target: root
                             function onWaveRevisionChanged() {
-                                if (root.config.notifyReduceMotion === true) { popupWave.stop(); popupRing.opacity = 0.25; }
+                                if (root.config.notifyReduceMotion === true) { popupWave.stop(); popupRing.width = popupRing.finalDiameter; popupRing.height = popupRing.finalDiameter; popupRing.opacity = 0.25; }
                                 else popupWave.restart();
                             }
                         }
                         Component.onCompleted: {
-                            if (root.config.notifyReduceMotion === true) popupRing.opacity = 0.25;
+                            if (root.config.notifyReduceMotion === true) { popupRing.width = popupRing.finalDiameter; popupRing.height = popupRing.finalDiameter; popupRing.opacity = 0.25; }
                             else popupWave.restart();
                         }
                     }
@@ -300,7 +323,7 @@ PanelWindow {
             required property int index
             required property var modelData
             x: 5
-            y: 230 + index * 66
+            y: 280 + index * 66
             width: root.width - 10
             height: 60
             radius: Theme.cornerRadiusM
