@@ -20,6 +20,8 @@ PluginComponent {
     property bool checkingCli: false
     property var actionProcess: null
     property var actionQueue: []
+    readonly property int actionTimeoutMs: 15000
+    property var infoProcess: null
     property string lastRequestId: ""
     property int eventSequence: 0
     property bool disconnectedSinceLastStatus: false
@@ -170,10 +172,10 @@ PluginComponent {
             if (exitCode === 0) {
                 root.refreshTargetFromBluetooth();
                 root.startWatcher();
-                if (!root.device) {
-                    var info = infoComponent.createObject(root, { targetAddress: root.targetMac });
-                    if (info)
-                        info.running = true;
+                if (!root.device && !root.infoProcess) {
+                    root.infoProcess = infoComponent.createObject(root, { targetAddress: root.targetMac });
+                    if (root.infoProcess)
+                        root.infoProcess.running = true;
                 }
             } else {
                 root.publish("missing-cli", "Install Gbuds CLI to enable live telemetry.", null, "");
@@ -184,7 +186,7 @@ PluginComponent {
     function refreshTargetFromBluetooth() {
         var connected = root.connectedBuds;
         if (connected.length === 1)
-            root.setTarget(connected[0].address, false, false);
+            root.setTarget(connected[0].address, false, true);
         else if (!root.targetMac && pluginData.targetMac)
             root.setTarget(pluginData.targetMac, false);
     }
@@ -194,6 +196,12 @@ PluginComponent {
         if (!normalized || normalized === root.targetMac)
             return;
         root.targetMac = normalized;
+        // Discard metadata for the previous target, including an in-flight read.
+        if (root.infoProcess) {
+            root.infoProcess.running = false;
+            root.infoProcess.destroy();
+            root.infoProcess = null;
+        }
         // Do not compare one device's first frame against the previous device.
         root.lastStatus = null;
         root.disconnectedSinceLastStatus = false;
@@ -256,6 +264,12 @@ PluginComponent {
         process.destroy();
         if (root.shuttingDown)
             return;
+        if (root.actionInFlight) {
+            root.targetSwitching = false;
+            root.restartAfterTargetSwitch = false;
+            root.runNextAction();
+            return;
+        }
         if (root.targetSwitching) {
             root.targetSwitching = false;
             if (root.restartAfterTargetSwitch) {
@@ -263,10 +277,6 @@ PluginComponent {
                 reconnectTimer.start();
             }
             root.restartAfterTargetSwitch = false;
-            return;
-        }
-        if (root.actionInFlight) {
-            root.runNextAction();
             return;
         }
         var detail = root.lastError || ("gbuds watch exited with code " + exitCode + ". Reconnecting…");
@@ -283,7 +293,10 @@ PluginComponent {
     }
 
     function enqueueAction(command, args, label) {
-        root.actionQueue = root.actionQueue.concat([{ command: command, args: args || [], label: label || command }]);
+        var allowed = ["battery", "anc", "touchpad", "eq", "ambient-volume", "voice-detect", "lights"];
+        if (allowed.indexOf(command) < 0 || !Array.isArray(args) || args.some(arg => typeof arg !== "string") || root.actionQueue.length >= 16)
+            return;
+        root.actionQueue = root.actionQueue.concat([{ command: command, args: args, label: label || command, targetAddress: root.targetMac }]);
         root.pluginService.setGlobalVar(root.pluginId, "commandState", { busy: true, label: label || command });
         if (root.actionInFlight)
             return;
@@ -305,15 +318,18 @@ PluginComponent {
         var action = root.actionQueue[0];
         root.actionQueue = root.actionQueue.slice(1);
         root.actionProcess = actionComponent.createObject(root, { actionData: action });
-        if (root.actionProcess)
+        if (root.actionProcess) {
             root.actionProcess.running = true;
-        else
+            root.actionProcess.watchdog.restart();
+        } else
             root.finishAction(action, { success: false, error: "Could not start Gbuds command." }, false);
     }
 
     function finishAction(action, result, succeeded) {
+        if (root.shuttingDown)
+            return;
         root.publishCommand("gbuds --json " + action.command + " " + action.args.join(" "), result, succeeded);
-        if (succeeded) {
+        if (action.targetAddress === root.targetMac && succeeded) {
             root.lastError = "";
             if (root.lastStatus) {
                 var updated = Object.assign({}, root.lastStatus);
@@ -329,15 +345,16 @@ PluginComponent {
             }
             if (root.lastStatus)
                 root.publish("connected", "", root.lastStatus, "");
-        } else {
+        } else if (action.targetAddress === root.targetMac) {
             root.lastError = result.error || "Gbuds command failed.";
+            root.publish("waiting", root.lastError, root.lastStatus, "");
         }
         if (root.actionQueue.length > 0)
             root.runNextAction();
         else {
             root.actionInFlight = false;
             root.pluginService.setGlobalVar(root.pluginId, "commandState", { busy: false, label: "" });
-            root.startWatcher();
+            root.checkCli();
         }
     }
 
@@ -364,6 +381,11 @@ PluginComponent {
         Process {
             id: infoRunner
             property string targetAddress: ""
+            property Timer timeout: Timer {
+                interval: 10000
+                running: infoRunner.running
+                onTriggered: infoRunner.signal(9)
+            }
             command: [root.cliCommand].concat(targetAddress ? ["--mac", targetAddress] : []).concat(["capabilities", "--json"])
             running: false
             property string output: ""
@@ -371,8 +393,10 @@ PluginComponent {
                 onRead: line => infoRunner.output += line + "\n"
             }
             onExited: (exitCode) => {
-                if (exitCode === 0)
+                if (exitCode === 0 && infoRunner.targetAddress === root.targetMac)
                     root.acceptDeviceInfo(infoRunner.output);
+                if (root.infoProcess === infoRunner)
+                    root.infoProcess = null;
                 infoRunner.output = "";
                 infoRunner.destroy();
             }
@@ -396,23 +420,37 @@ PluginComponent {
         Process {
             id: actionRunner
             property var actionData: ({ command: "", args: [], label: "" })
-            command: [root.cliCommand].concat(root.targetMac ? ["--mac", root.targetMac] : []).concat(["--json", actionData.command]).concat(actionData.args)
+            property bool timedOut: false
+            property bool completed: false
+            function complete(exitCode) {
+                if (completed) return;
+                completed = true;
+                watchdog.stop();
+                var result;
+                try { result = JSON.parse(actionOutput.text); }
+                catch (error) { result = { success: false, error: actionErrors.text.trim() || "Invalid response from Gbuds." }; }
+                if (timedOut)
+                    result = { success: false, error: "Gbuds command timed out after 15 seconds." };
+                var succeeded = !timedOut && exitCode === 0 && result && result.success !== false;
+                root.actionProcess = null;
+                root.finishAction(actionData, result || { success: false, error: "Gbuds command failed." }, succeeded);
+                destroy();
+            }
+            property Timer watchdog: Timer {
+                interval: root.actionTimeoutMs
+                onTriggered: {
+                    actionRunner.timedOut = true;
+                    if (actionRunner.running)
+                        actionRunner.signal(9);
+                    else
+                        actionRunner.complete(124);
+                }
+            }
+            command: [root.cliCommand].concat(actionData.targetAddress ? ["--mac", actionData.targetAddress] : []).concat(["--json", actionData.command]).concat(actionData.args)
             running: false
             stdout: StdioCollector { id: actionOutput }
             stderr: StdioCollector { id: actionErrors }
-            onExited: (exitCode) => {
-                var result = null;
-                try {
-                    result = JSON.parse(actionOutput.text);
-                } catch (error) {
-                    result = { success: false, error: actionErrors.text.trim() || "Invalid response from Gbuds." };
-                }
-                var succeeded = exitCode === 0 && result && result.success !== false;
-                var completedAction = actionRunner.actionData;
-                root.actionProcess = null;
-                actionRunner.destroy();
-                root.finishAction(completedAction, result || { success: false, error: "Gbuds command failed." }, succeeded);
-            }
+            onExited: exitCode => Qt.callLater(() => actionRunner.complete(exitCode))
         }
     }
 
@@ -431,6 +469,16 @@ PluginComponent {
     Component.onDestruction: {
         root.shuttingDown = true;
         reconnectTimer.stop();
+        if (root.actionProcess) {
+            root.actionProcess.signal(9);
+            root.actionProcess.destroy();
+            root.actionProcess = null;
+        }
+        if (root.infoProcess) {
+            root.infoProcess.running = false;
+            root.infoProcess.destroy();
+            root.infoProcess = null;
+        }
         if (root.watchProcess) {
             var process = root.watchProcess;
             root.watchProcess = null;
