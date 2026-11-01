@@ -2,3 +2,4 @@ module qs.DCommon.Widgets
 StyledText 1.0 StyledText.qml
 DIcon 1.0 DIcon.qml
 DButton 1.0 DButton.qml
+DToggle 1.0 DToggle.qml

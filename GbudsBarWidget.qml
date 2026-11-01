@@ -4,7 +4,7 @@ import qs.Widgets
 import qs.DCommon.Widgets
 import qs.Modules.Plugins
 import "."
-import "./interface-v050" as Gbuds
+import "./interface-v060" as Gbuds
 
 PluginComponent {
     id: root

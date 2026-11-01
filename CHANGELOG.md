@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.6.4
+
+- Remove the Waveup center dot.
+- Stagger each ring by 250 ms for a clearer wave sequence.
+
+## 0.6.3
+
+- Anchor each transparent Waveup surface to the full selected monitor and calculate the emitter from that monitor's actual width and height.
+- Keep wave size and corner inset independent, preventing the emitter from drifting with the surface dimensions.
+
+## 0.6.2
+
+- Anchor Waveup emitters precisely to the selected screen corner and grow rings inward.
+- Scale the transparent wave surface and ring diameters together; expose Wave size in Advanced settings.
+
+## 0.6.1
+
+- Stack concurrent Popup alerts so related changes remain separately visible.
+- Add a global Popup/Waveup/Both choice and move per-event controls into Advanced.
+- Repeat wave sequences for a configurable duration and interval.
+- Translate the settings editor into English.
+
+## 0.6.0
+
+- New desktop instances start with the Compact SVG layout. Each instance can
+  choose Compact, Minimal, Detailed, or Custom, hide while disconnected, and
+  configure artwork, blocks, spacing, size, background, and monitor placement.
+- Reorganized settings into per-widget desktop options and global Bar, Alerts,
+  and Device sections. Added multi-display selection and synchronized placement.
+- Added configurable Popup and Waveup channels per event. Popups include finite
+  waves; Waveups radiate from a monitor corner without focus or pointer input.
+- Added side-aware artwork selection, top/bottom and monitor routing, theme-aware
+  50%/20% battery waves, reduced-motion option, and cancelable out-of-ear reminders.
+- The event detector preserves simultaneous changes, snapshots device artwork
+  across disconnects, coalesces paired events, and applies 5-point battery
+  hysteresis. Notification previews use simulated events only.
+- Lock-screen instances default to hidden while disconnected and read-only;
+  optional noise controls stay within the lock-screen widget surface.
+- Bar appearance settings and approved icons remain unchanged.
+
+Validation: policy tests for defaults, migration, multi-event frames, battery
+hysteresis, paired thresholds, and notification routing; full regression and
+Wayland QML harness are run for this release.
+
 ## 0.4.1
 
 - Apply the selected filled ANC shield with a transparent ear cutout, reduced

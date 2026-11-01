@@ -4,9 +4,11 @@ import Quickshell.Io
 import qs.Common
 import qs.Services
 import qs.Modules.Plugins
+import qs.Widgets
 import "."
-import "./interface-v050" as Gbuds
-import "./interface-v050/ControlPolicy.js" as Policy
+import "./interface-v060" as Gbuds
+import "./interface-v060/ControlPolicy.js" as Policy
+import "./core-v060/NotificationPolicy.js" as NotificationPolicy
 
 PluginComponent {
     id: root
@@ -27,6 +29,9 @@ PluginComponent {
     property var infoProcess: null
     property string lastRequestId: ""
     property int eventSequence: 0
+    property var reminderSide: ({ left: false, right: false })
+    property var batteryThresholdState: ({})
+    property string lastNotificationTestId: ""
     property bool disconnectedSinceLastStatus: false
     property bool targetSwitching: false
     property bool restartAfterTargetSwitch: false
@@ -47,9 +52,16 @@ PluginComponent {
             else if (!reconnectTimer.running)
                 root.checkCli();
         } else {
+            var previousTelemetry = root.pluginService.getGlobalVar(root.pluginId, "telemetry", ({}));
+            var previousStatus = previousTelemetry.status || root.lastStatus;
+            var previousDevice = root.device;
+            var wasConnected = previousTelemetry.connected === true;
+            var voluntary = root.disconnectedByUser;
             reconnectTimer.stop();
             root.resetConnection();
             root.publish("disconnected", "", null, "");
+            if (wasConnected)
+                root.routeEvent({ kind: "disconnected", subject: "pair", title: "Galaxy Buds disconnected", detail: voluntary ? "Disconnected from this widget" : "Bluetooth connection ended", severity: voluntary ? "normal" : "warning", waves: 2, snapshot: previousStatus }, previousStatus, previousDevice);
             if (root.watchProcess)
                 root.watchProcess.running = false;
         }
@@ -66,57 +78,60 @@ PluginComponent {
             latestEvent: latestEvent || old.latestEvent || null,
             updatedAt: Date.now()
         });
-        if (latestEvent)
-            eventPopup.present(latestEvent, status || root.lastStatus, root.device);
     }
 
-    function recordEvent(kind, title, detail, severity, icon, subject) {
+    function routeEvent(value, status, snapshotDevice) {
+        var legacyNotificationsDisabled = root.pluginData.notificationsEnabled === undefined &&
+            (root.pluginData.showStatusCards === false ||
+             ((value && String(value.kind).indexOf("battery-") === 0) && root.pluginData.showBatteryCards === false));
+        if (!value || SessionService.locked || root.pluginData.notificationsEnabled === false || legacyNotificationsDisabled) return;
         root.eventSequence++;
-        return { id: root.eventSequence, kind: kind, title: title, detail: detail || "", at: Date.now(), severity: severity || "normal", icon: icon || "headphones", subject: subject || "pair" };
+        value.id = root.eventSequence;
+        value.at = Date.now();
+        if (!value.waves) value.waves = NotificationPolicy.waveCount(value);
+        var channel = NotificationPolicy.channelsFor(value, root.pluginData);
+        if (channel === "off") return;
+        if (channel === "popup" || channel === "both")
+            eventPopup.present(value, status, snapshotDevice);
+        if (channel === "waveup" || channel === "both")
+            waveup.present(value);
     }
 
-    function modeName(mode) {
-        if (mode === "NOISE_REDUCTION") return "Noise cancellation";
-        if (mode === "AMBIENT_SOUND") return "Ambient sound";
-        if (mode === "ADAPTIVE") return "Adaptive sound";
-        return "Normal mode";
+    function statusEvents(previous, next) {
+        return NotificationPolicy.detect(previous, next, root.device, root.disconnectedSinceLastStatus, root.batteryThresholdState);
     }
 
-    function statusEvent(previous, next) {
-        if (!previous || root.disconnectedSinceLastStatus)
-            return root.recordEvent("connected", "Galaxy Buds connected", root.device && root.device.model || "Ready to listen", "success", "bluetooth_connected", next.placement_left === "IN_CASE" && next.placement_right === "IN_CASE" ? "case" : "pair");
+    function updateIdleReminder(side, placement) {
+        var timer = side === "left" ? leftReminderTimer : rightReminderTimer;
+        var isIdle = placement === "IDLE" && root.pluginData.notifyIdleReminder === true;
+        if (!isIdle) {
+            timer.stop();
+            root.reminderSide[side] = false;
+            return;
+        }
+        if (!root.reminderSide[side]) {
+            root.reminderSide[side] = true;
+            timer.interval = Math.max(15000, Math.min(3600000, Number(root.pluginData.notifyIdleInterval || 60) * 1000));
+            timer.restart();
+        }
+    }
 
-        var parts = [{ key: "left", label: "Left earbud" }, { key: "right", label: "Right earbud" }, { key: "case", label: "Case" }];
-        for (var level of [10, 30]) {
-            for (var part of parts) {
-                var value = next[part.key];
-                var oldValue = previous ? previous[part.key] : null;
-                if (typeof value === "number" && value <= level && (!previous || typeof oldValue === "number" && oldValue > level))
-                    return root.recordEvent(level === 10 ? "critical-battery" : "low-battery", level === 10 ? "Critical battery" : "Battery at 30%", part.label + " · " + value + "%", "warning", "battery_alert", part.key);
+    function sendIdleReminder(side) {
+        if (SessionService.locked || !root.lastStatus || root.lastStatus["placement_" + side] !== "IDLE" || root.lastStatus.is_coupled === false) return;
+        var other = side === "left" ? "right" : "left";
+        var bothIdle = root.lastStatus.placement_left === "IDLE" && root.lastStatus.placement_right === "IDLE";
+        var reminder = { kind: "out-of-ear-reminder", subject: bothIdle ? "pair" : side, title: bothIdle ? "Both earbuds are out" : "Still out of ear", detail: bothIdle ? "Both earbuds are still out of ear" : (side === "left" ? "Left" : "Right") + " earbud is still out", severity: "normal", waves: 1, snapshot: root.lastStatus };
+        root.routeEvent(reminder, root.lastStatus, root.device);
+        if (root.pluginData.notifyIdleReminder === true) {
+            var timer = side === "left" ? leftReminderTimer : rightReminderTimer;
+            timer.interval = Math.max(15000, Math.min(3600000, Number(root.pluginData.notifyIdleInterval || 60) * 1000));
+            timer.restart();
+            if (bothIdle) {
+                var otherTimer = other === "left" ? leftReminderTimer : rightReminderTimer;
+                otherTimer.interval = timer.interval;
+                otherTimer.restart();
             }
         }
-
-        if (previous.is_coupled === true && next.is_coupled === false)
-            return root.recordEvent("disconnected", "Galaxy Buds disconnected", "Earbuds are no longer coupled", "warning", "bluetooth_disabled");
-        if (previous.is_coupled === false && next.is_coupled === true)
-            return root.recordEvent("connected", "Galaxy Buds connected", "Earbuds are coupled", "success", "bluetooth_connected", next.placement_left === "IN_CASE" && next.placement_right === "IN_CASE" ? "case" : "pair");
-
-        for (var side of [{ key: "placement_left", label: "Left earbud" }, { key: "placement_right", label: "Right earbud" }]) {
-            if (previous[side.key] !== next[side.key]) {
-                if (next[side.key] === "IN_CASE")
-                    return root.recordEvent("stored", "Earbud stored", side.label + " is in the case", "normal", "inventory_2", "case");
-                if (next[side.key] === "IDLE")
-                    return root.recordEvent("out-of-ear", "Earbud removed", side.label + " is out of ear", "normal", "earbuds", side.key === "placement_left" ? "left" : "right");
-                if (next[side.key] === "WEARING")
-                    return root.recordEvent("in-ear", "Earbud in ear", side.label + " is ready", "success", "earbuds", side.key === "placement_left" ? "left" : "right");
-                if (next[side.key] === "DISCONNECTED")
-                    return root.recordEvent("disconnected", "Earbud disconnected", side.label + " is unavailable", "warning", "bluetooth_disabled", side.key === "placement_left" ? "left" : "right");
-            }
-        }
-
-        if (previous.noise_control !== next.noise_control && next.noise_control)
-            return root.recordEvent("noise-mode", root.modeName(next.noise_control), "Noise control changed", "normal", next.noise_control === "AMBIENT_SOUND" ? "hearing" : next.noise_control === "ADAPTIVE" ? "auto_mode" : next.noise_control === "OFF" ? "noise_control_off" : "noise_control_on", "mode");
-        return null;
     }
 
     function publishCommand(command, result, success) {
@@ -151,14 +166,18 @@ PluginComponent {
         }
 
         var previous = root.lastStatus;
-        var event = root.statusEvent(previous, parsed);
+        var events = root.statusEvents(previous, parsed);
         root.disconnectedSinceLastStatus = false;
         root.lastStatus = parsed;
         if (root.findState.active && parsed["placement_" + root.findState.side] !== "IDLE")
             root.enqueueAction("find", ["stop"], "Stop finding");
         root.lastError = "";
         root.retryDelay = 500;
-        root.publish("connected", "", parsed, event ? event.title : "", event);
+        root.updateIdleReminder("left", parsed.placement_left);
+        root.updateIdleReminder("right", parsed.placement_right);
+        root.publish("connected", "", parsed, events.length ? events[0].title : "", events.length ? events[0] : null);
+        for (var eventIndex = 0; eventIndex < events.length; eventIndex++)
+            root.routeEvent(events[eventIndex], parsed, root.device);
     }
 
     function recordError(line) {
@@ -221,6 +240,7 @@ PluginComponent {
         }
         // Do not compare one device's first frame against the previous device.
         root.lastStatus = null;
+        root.batteryThresholdState = {};
         root.disconnectedSinceLastStatus = false;
         root.device = null;
         root.pluginService.setGlobalVar(root.pluginId, "device", ({}));
@@ -299,10 +319,9 @@ PluginComponent {
         }
         var detail = root.lastError || ("gbuds watch exited with code " + exitCode + ". Reconnecting…");
         var oldSnapshot = root.pluginService.getGlobalVar(root.pluginId, "telemetry", ({}));
-        var disconnectedEvent = oldSnapshot.phase === "connected" ? root.recordEvent("disconnected", "Galaxy Buds disconnected", "Connection lost", "warning", "bluetooth_disabled") : null;
-        if (disconnectedEvent)
+        if (oldSnapshot.phase === "connected")
             root.disconnectedSinceLastStatus = true;
-        root.publish("waiting", detail, root.lastStatus, disconnectedEvent ? disconnectedEvent.title : "", disconnectedEvent);
+        root.publish("waiting", detail, root.lastStatus, "");
         if (!root.disconnectedByUser && root.connectedBuds.length > 0) {
             reconnectTimer.interval = root.retryDelay;
             reconnectTimer.start();
@@ -330,6 +349,9 @@ PluginComponent {
         root.disconnectedSinceLastStatus = true;
         root.pluginService.setGlobalVar(root.pluginId, "device", ({}));
         findTimer.stop();
+        leftReminderTimer.stop();
+        rightReminderTimer.stop();
+        root.reminderSide = { left: false, right: false };
         root.publishFind({ active: false, side: "", targetAddress: "" });
     }
 
@@ -431,11 +453,14 @@ PluginComponent {
         if (action.targetAddress === root.targetMac && succeeded) {
             root.lastError = "";
             if (action.command === "disconnect") {
+                var disconnectedStatus = root.lastStatus;
+                var disconnectedDevice = root.device;
                 root.disconnectedByUser = true;
                 root.actionQueue = root.actionQueue.filter(item => item.command === "connect");
                 reconnectTimer.stop();
                 root.resetConnection();
                 root.publish("disconnected", "", null, "");
+                root.routeEvent({ kind: "disconnected", subject: "pair", title: "Galaxy Buds disconnected", detail: "Disconnected from this widget", severity: "normal", waves: 2, snapshot: disconnectedStatus }, disconnectedStatus, disconnectedDevice);
             } else if (action.command === "connect") {
                 root.disconnectedByUser = false;
                 root.resetConnection();
@@ -571,6 +596,22 @@ PluginComponent {
         onTriggered: if (root.findState.active) root.enqueueAction("find", ["stop"], "Stop finding");
     }
 
+    Timer { id: leftReminderTimer; repeat: false; onTriggered: root.sendIdleReminder("left") }
+    Timer { id: rightReminderTimer; repeat: false; onTriggered: root.sendIdleReminder("right") }
+    Connections {
+        target: SessionService
+        function onLockedChanged() {
+            if (SessionService.locked) {
+                leftReminderTimer.stop();
+                rightReminderTimer.stop();
+                root.reminderSide = { left: false, right: false };
+            } else if (root.lastStatus) {
+                root.updateIdleReminder("left", root.lastStatus.placement_left);
+                root.updateIdleReminder("right", root.lastStatus.placement_right);
+            }
+        }
+    }
+
     Timer {
         id: reconnectTimer
         repeat: false
@@ -613,6 +654,28 @@ PluginComponent {
 
     Gbuds.BudsEventPopup {
         id: eventPopup
+        objectName: "gbudsEventPopup"
         config: root.pluginData
+    }
+
+    Gbuds.GbudsWaveup { id: waveup; objectName: "gbudsWaveup"; config: root.pluginData }
+    property var popupPresenter: eventPopup
+    property var waveupPresenter: waveup
+
+    PluginGlobalVar {
+        id: notificationTest
+        varName: "notificationTest"
+        defaultValue: ({})
+        Component.onCompleted: root.lastNotificationTestId = String(value.id || "")
+    }
+    Connections {
+        target: notificationTest
+        function onValueChanged() {
+            var value = notificationTest.value || ({});
+            var id = String(value.id || "");
+            if (!id || id === root.lastNotificationTestId) return;
+            root.lastNotificationTestId = id;
+            root.routeEvent(value, value.snapshot || root.lastStatus || ({ left: 0, right: 0, case: 0 }), root.device);
+        }
     }
 }

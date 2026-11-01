@@ -10,6 +10,8 @@ ShellRoot {
     property var daemon
     property var compact
     property var actions
+    property var desktop
+    property var settings
     function assertThat(condition, label) {
         if (!condition) { console.error("FAIL " + label); Qt.exit(1); return; }
         checks++;
@@ -30,12 +32,41 @@ ShellRoot {
             return;
         }
         PluginService.values = {};
-        daemon = Qt.createComponent("Plugin/Daemon.qml").createObject(harness, {
+        var daemonComponent = Qt.createComponent("Plugin/Daemon.qml");
+        if (daemonComponent.status !== Component.Ready)
+            console.error("daemon component status=" + daemonComponent.status + " errors=" + daemonComponent.errorString());
+        daemon = daemonComponent.createObject(harness, {
             pluginData:{targetMac:"AA:BB:CC:DD:EE:FF",showStatusCards:false,gbudsCommand:Quickshell.env("GBUDS_FAKE_CLI")}
         });
-        compact = Qt.createComponent("Plugin/interface-v050/BudsCompact.qml").createObject(harness, {pluginId:"gbudsWatch",width:360,height:256});
-        actions = Qt.createComponent("Plugin/interface-v050/BudsActions.qml").createObject(harness,{pluginId:"gbudsWatch"});
+        compact = Qt.createComponent("Plugin/interface-v060/BudsCompact.qml").createObject(harness, {pluginId:"gbudsWatch",width:360,height:256});
+        actions = Qt.createComponent("Plugin/interface-v060/BudsActions.qml").createObject(harness,{pluginId:"gbudsWatch"});
         assertThat(!!daemon && !!compact && !!actions,"instantiate real daemon and compact UI");
+        var desktopComponent = Qt.createComponent("Plugin/Desktop.qml");
+        if (desktopComponent.status !== Component.Ready)
+            console.error("desktop component status=" + desktopComponent.status + " errors=" + desktopComponent.errorString());
+        desktop = desktopComponent.createObject(harness,{pluginId:"gbudsWatch",instanceId:"new-instance",instanceData:{config:{displayPreferences:["all"]}},pluginData:{}});
+        assertThat(!!desktop && desktop.effectiveConfig.desktopPreset === "compact" && !desktop.visible,"new desktop instance defaults compact and hidden offline");
+        desktop.instanceData = {config:{desktopOfflinePolicy:"connect",desktopLayout:"full",displayPreferences:["all"]}};
+        assertThat(desktop.shouldShow && desktop.effectiveConfig.desktopPreset === "detailed","explicit legacy Full and Connect migrate for this instance");
+        desktop.lockScreen = true;
+        desktop.instanceData = {config:{desktopOfflinePolicy:"connect",desktopLockControls:false,displayPreferences:["all"]}};
+        assertThat(desktop.effectiveConfig.desktopOfflinePolicy === "hide" && !desktop.visible,"lock-screen widget remains hidden offline");
+        var settingsComponent = Qt.createComponent("Plugin/Settings.qml");
+        if (settingsComponent.status !== Component.Ready)
+            console.error("settings component status=" + settingsComponent.status + " errors=" + settingsComponent.errorString());
+        settings = settingsComponent.createObject(harness,{pluginId:"gbudsWatch",pluginService:PluginService,instanceId:"new-instance",instanceData:{config:{displayPreferences:["all"]}}});
+        assertThat(!!settings,"global and per-instance settings editor loads");
+        var priorDaemonConfig = daemon.pluginData;
+        daemon.pluginData = {targetMac:"AA:BB:CC:DD:EE:FF",gbudsCommand:Quickshell.env("GBUDS_FAKE_CLI"),notificationsEnabled:true,notify_noise_mode:"both",notifyScreen:"active"};
+        daemon.routeEvent({kind:"noise-mode",subject:"mode",title:"ANC",detail:"Active",severity:"normal",mode:"NOISE_REDUCTION",waves:3,snapshot:{left:68,right:68,noise_control:"NOISE_REDUCTION"}},{left:68,right:68,noise_control:"NOISE_REDUCTION"},{model_code:"SM-R530"});
+        assertThat(daemon.popupPresenter.shown && daemon.waveupPresenter.active,"Popup and bilateral Waveup present the same simulated event");
+        daemon.popupPresenter.dismiss();
+        daemon.waveupPresenter.active = false;
+        SessionService.locked = true;
+        daemon.routeEvent({kind:"battery-20",subject:"right",title:"20%",detail:"Simulated",severity:"critical",waves:3},{right:18},{model_code:"SM-R530"});
+        assertThat(!daemon.popupPresenter.shown && !daemon.waveupPresenter.active,"notifications stay off while the session is locked");
+        SessionService.locked = false;
+        daemon.pluginData = priorDaemonConfig;
         poll.start();
     }
     Timer {

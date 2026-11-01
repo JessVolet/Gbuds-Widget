@@ -39,4 +39,5 @@ function url(name, tint, fill, filled) {
     return "data:image/svg+xml," + encodeURIComponent(svg);
 }
 """
-(root / "interface-v050/ApprovedIcons.js").write_text(source)
+for versioned_interface in ("interface-v050", "interface-v060"):
+    (root / versioned_interface / "ApprovedIcons.js").write_text(source)

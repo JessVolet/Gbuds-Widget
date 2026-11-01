@@ -1,5 +1,7 @@
 module qs.Services
 singleton PluginService 1.0 PluginService.qml
 singleton BluetoothService 1.0 BluetoothService.qml
+singleton SessionService 1.0 SessionService.qml
+singleton CompositorService 1.0 CompositorService.qml
 
 singleton BlurService 1.0 BlurService.qml

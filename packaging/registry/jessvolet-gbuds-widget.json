@@ -5,7 +5,7 @@
   "category": "monitoring",
   "repo": "https://github.com/JessVolet/Gbuds-Widget",
   "author": "JessVolet",
-  "description": "Galaxy Buds battery, controls, desktop widgets, and event popups for Dux Shell. Requires gbuds-cli.",
+  "description": "Galaxy Buds controls, configurable desktop widgets, and animated Popup/Waveup alerts for Dux Shell. Requires gbuds-cli.",
   "dependencies": ["gbuds", "bluez"],
   "compositors": ["hyprland"],
   "distro": ["any"],

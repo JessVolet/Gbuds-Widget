@@ -11,9 +11,12 @@ flowchart LR
     State --> Pill[Bar pill]
     State --> Panel[Control popout]
     State --> Desktop[Desktop widget]
+    Daemon --> Router[Notification event router]
+    Router --> Popup[Popup card + finite wave]
+    Router --> Waveup[Click-through corner waves]
     Panel -->|ANC / touchpad / EQ / sync request| Queue[Serialized action queue]
     Queue -->|stop watch, run command, apply result, restart| Daemon
-    Settings[Plugin settings] -->|CLI path, target, card and pill options| Daemon
+    Settings[Global and per-instance settings] -->|event policy, desktop config and native display preferences| Daemon
 ```
 
 ## Device selection
@@ -35,14 +38,18 @@ Find is offered only for `IDLE` ears, has an explicit Stop state, and requests S
 after 30 seconds or an incoming placement change. A timed-out start retains Stop
 because its Bluetooth packet may already have reached the earbuds.
 
-## State cards
+## Notification event pipeline
 
-The `telemetry` global variable contains the latest status and a transient `latestEvent`. The daemon creates events only for connection, earbud placement, noise-mode, and 30% / 10% battery transitions. Each event carries a subject (`left`, `right`, `case`, `pair`, or `mode`) so the square floating surface shows only the relevant artwork. The surface appears in the chosen screen corner for the selected duration, independently of the popout and desktop widget boundaries. No DMS notification toast is emitted.
+`core-v060/NotificationPolicy.js` converts each watch sample into an event list. It keeps simultaneous battery, placement, and mode changes, snapshots the affected model/status before disconnect cleanup, combines simultaneous left/right events, and applies 5-point battery hysteresis. Battery alerts trigger on downward crossings of 50% and 20%; a jump from 59% to 18% emits only the urgent crossing.
+
+The single daemon routes events through a global Popup/Waveup/Both preference with optional per-event overrides. Concurrent Popup events stack as separate cards in one corner; compact secondary cards promote to the main card without a gap. Waveup patterns repeat at a configurable interval for a finite duration, and simultaneous events rotate through a bounded queue. Both formats retain event identity, side, tone, wave count, artwork, selected screen, and top/bottom placement. R/L events follow their side; pair/noise events use both edges; case events use the configured fixed side. An SVG remains the fallback when a model render is missing. Simulated preview events use a separate global variable and never call Gbuds CLI.
+
+Two daemon timers can repeat out-of-ear reminders independently. Placement changes and disconnect cleanup stop the corresponding timer; if both ears are out, their next reminders share a bilateral event.
 
 ## UI surfaces
 
 - **Bar pill:** configurable battery layout, out-of-ear warning, and noise-mode icon; disconnected devices show only a disconnected icon.
 - **Control popout:** full-panel gradient, model renders, per-part battery, supported noise modes, touch controls, a collapsible sound list, and separate device/settings/console views without scrolling.
-- **Desktop widget:** each instance selects a full controls layout or a compact status layout with a capability-filtered noise-mode switcher. Both share daemon telemetry; their layout setting is stored per instance. When disconnected, only the Connect action is visible and interactive. L/R artwork starts/stops an individual search; Disconnect is below CASE.
+- **Desktop widget:** per-instance Compact, Minimal, Detailed, and Custom compositions. New instances start Compact with SVG artwork and hide while disconnected; optional offline policies show Connect or read-only status. Per-instance controls cover blocks, spacing, sizes, background, orientation, and monitor preferences. Dux owns per-screen geometry and placement synchronization. Lock-screen copies are independently configured, hidden offline, and read-only unless noise controls are explicitly enabled.
 
 Every control is capability-filtered or disabled when disconnected. Status remains read-only telemetry; user actions invoke the installed Gbuds CLI.

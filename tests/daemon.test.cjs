@@ -9,6 +9,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname,"../interface-v050/ControlPo
 function context() {
     const root = {
         actionQueue: [], actionInFlight: true, shuttingDown: false, targetMac: "NEW",
+        notificationEvents: [], routeEvent(value){this.notificationEvents.push(value);},
         lastStatus: {left:94,right:92,noise_control:"OFF"}, lastError: "",
         pluginService: {setGlobalVar(){}}, checkCli(){}, publish(){}, publishCommand(){},
         runNextAction(){}, acceptTelemetry(s){this.lastStatus=JSON.parse(s);}
@@ -84,6 +85,8 @@ test("connect can be queued without telemetry and disconnect clears stale batter
     r.finishAction({command:"disconnect",args:[],targetAddress:"NEW"},{success:true},true);
     assert.equal(r.lastStatus,null);
     assert.equal(r.disconnectedByUser,true);
+    assert.equal(r.notificationEvents.at(-1).kind,"disconnected");
+    assert.equal(r.notificationEvents.at(-1).severity,"normal");
 });
 test("disconnect stops a ringing earbud first and find stop remains queueable",()=>{
     const r=context(); r.findState={active:true,side:"left",targetAddress:"NEW"};

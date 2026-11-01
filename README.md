@@ -2,7 +2,7 @@
 
 ![Gbuds Widget presentation](assets/presentation.png)
 
-A Dux Shell 2.0 plugin for Galaxy Buds. It adds a status item to the bar, a control popout, a contextual event popup, and two desktop widget layouts. **[gbuds-cli](https://github.com/JessVolet/gbuds-cli/tree/main) is required**: this project does not communicate with the earbuds on its own.
+A Dux Shell 2.0 plugin for Galaxy Buds. It adds a status item to the bar, a control popout, animated Popup/Waveup alerts, and configurable desktop widgets. **[gbuds-cli](https://github.com/JessVolet/gbuds-cli/tree/main) is required**: this project does not communicate with the earbuds on its own.
 
 | Control popout | Compact desktop widget |
 | :---: | :---: |
@@ -10,7 +10,7 @@ A Dux Shell 2.0 plugin for Galaxy Buds. It adds a status item to the bar, a cont
 
 ## What it does
 
-Version 0.3.0 uses independent L/R SVGs, large per-earbud idle timers, and shared
+Version 0.6.0 uses independent L/R SVGs, large per-earbud idle timers, and shared
 noise-mode artwork across the bar, compact desktop, and popout. The editable
 sources are in `assets/approved/`; rebuild them with
 `python3 scripts/build-icons.py`. The compact desktop needs at least 300 × 220.
@@ -18,9 +18,12 @@ The screenshots above predate this visual update.
 
 - Shows each earbud's and the case's battery and placement, plus the current noise mode.
 - Offers noise control, touch lock, equalizer, ambient volume, voice detection, and Blade Lights **only when the connected model and CLI report support**.
-- Shows a floating square popup for connection, placement, noise-mode, and low-battery changes. It selects the affected earbud, case, or mode icon.
-- Provides full and compact desktop layouts. Add two instances to use both; they share live state and disappear when disconnected. The compact layout includes a noise-mode switcher.
-- Lets you select among paired Buds and configure the CLI path, bar appearance, desktop layout, and popup.
+- Provides Compact, Minimal, Detailed, and Custom desktop layouts. Each instance has its own visibility, artwork, block selection, spacing, size, style, and screen settings.
+- Hides a disconnected desktop widget by default. You can instead show a Connect action or a read-only status. The bar and popout remain independent.
+- Provides concurrent stacked Popup cards and repeating Waveups from the selected monitor corner. Choose a global Popup/Waveup/Both style, with per-event overrides under Advanced; match left/right placement and select SVG or device renders.
+- Reports 50% battery as a soft amber pattern and 20% as a stronger red pattern. Optional out-of-ear reminders repeat on a configurable timer and cancel when the earbud is worn, stored, or disconnected.
+- Select which monitors display each widget instance and synchronize or keep each position independent. A lock-screen copy is read-only by default and has independent settings.
+- Lets you select among paired Buds and configure the CLI path and bar appearance.
 
 ## Requirements and installation
 
@@ -29,7 +32,7 @@ The screenshots above predate this visual update.
 3. Install Gbuds Widget from the Dux plugin registry when listed, or clone this repository into `~/.config/dms/plugins/gbudsWatch` and enable it in **DMS Settings → Plugins**. Keep the directory/id `gbudsWatch`; the display name is **Gbuds Widget**.
 4. Add the bar widget and/or desktop widget from Dux settings. Open the bar item for controls. A uniquely connected Buds device is selected automatically; choose a device in the popout when several are paired.
 
-The desktop widget is intentionally invisible while disconnected. The bar item remains available to open the popout and troubleshoot the connection.
+The desktop widget is hidden while disconnected by default. In the settings for a widget instance, choose **Mostrar Conectar** or **Mostrar estado** if preferred. The bar item remains available to open the popout.
 
 ## Device support
 
@@ -69,7 +72,7 @@ One daemon owns the CLI connection and shares its telemetry with every UI surfac
 Click an out-of-ear L/R icon in the desktop widget or popout to find that earbud;
 click it again to stop. A search requests Stop after 30 seconds. **Desconectar**
 under CASE stops any active search before disconnecting. Offline, the widget
-shows only **Conectar** for the last selected device. Each reconnection refreshes
+is hidden by default; optional **Conectar** uses the last selected device. Each reconnection refreshes
 `capabilities`, and unsupported noise modes stay hidden. Capability metadata is
 not proof of a physical test; the CLI currently leaves Find support unclassified.
 
