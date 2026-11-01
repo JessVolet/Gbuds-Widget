@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.5
+
+- Start each wave at radius zero and stagger rings by 250 ms.
+- Repeat the whole sequence one second after the final ring completes.
+- Keep the configured display duration as the overall Waveup lifetime.
+
 ## 0.6.4
 
 - Remove the Waveup center dot.

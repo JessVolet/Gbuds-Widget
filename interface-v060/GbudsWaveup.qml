@@ -15,9 +15,12 @@ Item {
     property bool leftActive: false
     property bool rightActive: false
     property var waveQueue: []
+    property double waveDeadline: 0
     readonly property int currentDurationMs: Math.max(1000, Math.min(30000, Number(config.notifyWaveDuration || 5) * 1000))
     readonly property int surfaceSize: Math.max(180, Math.min(360, Number(config.notifyWaveSize || 240)))
     readonly property int cornerInset: Math.max(0, Number(config.notifyMargin || 18))
+    readonly property int ringDurationMs: eventData && eventData.kind === "battery-20" ? 1080 : 1450
+    readonly property int sequenceDurationMs: ringDurationMs + Math.max(0, count() - 1) * 250
 
     function prepareEvent(value) {
         eventData = value;
@@ -42,16 +45,19 @@ Item {
     function present(value) {
         if (!value) return;
         if (active && eventData) {
-            if (waveQueue.length < 4) waveQueue = waveQueue.concat([value]);
-            hideTimer.interval = currentDurationMs + waveQueue.length * pulseTimer.interval;
-            hideTimer.restart();
+            if (waveQueue.length < 4) {
+                waveQueue = waveQueue.concat([value]);
+                waveDeadline += currentDurationMs;
+                hideTimer.interval = Math.max(1000, waveDeadline - Date.now());
+                hideTimer.restart();
+            }
             return;
         }
         prepareEvent(value);
         active = true;
         pulseRevision++;
+        waveDeadline = Date.now() + currentDurationMs;
         hideTimer.interval = currentDurationMs;
-        pulseTimer.interval = Math.max(1000, Math.min(5000, Number(config.notifyWaveInterval || 1500)));
         pulseTimer.restart();
         hideTimer.restart();
     }
@@ -75,14 +81,17 @@ Item {
         return Theme.primary;
     }
 
-    Timer { id: hideTimer; interval: 5000; repeat: false; onTriggered: { root.active = false; root.waveQueue = []; pulseTimer.stop() } }
-    Timer { id: pulseTimer; interval: 1500; repeat: true; onTriggered: {
+    Timer { id: hideTimer; interval: 5000; repeat: false; onTriggered: { root.active = false; root.waveQueue = []; root.waveDeadline = 0; pulseTimer.stop() } }
+    Timer { id: pulseTimer; interval: root.sequenceDurationMs + 1000; repeat: true; onTriggered: {
         if (root.waveQueue.length) {
             var nextEvent = root.waveQueue[0];
             root.waveQueue = root.waveQueue.slice(1);
             root.prepareEvent(nextEvent);
         }
-        root.pulseRevision++;
+        if (Date.now() + root.sequenceDurationMs <= root.waveDeadline)
+            root.pulseRevision++;
+        else
+            pulseTimer.stop();
     } }
 
     Component {
@@ -120,15 +129,19 @@ Item {
                     border.width: root.eventData && root.eventData.kind === "battery-20" ? 3 : 2
                     border.color: root.accent()
                     opacity: 0
-                    scale: 0.62
+                    scale: 0
                     x: (emitterSide === "left" ? root.cornerInset : parent.width - root.cornerInset) - width / 2
                     y: (root.config.notifyVerticalPosition === "bottom" ? parent.height - root.cornerInset : root.cornerInset) - height / 2
                     SequentialAnimation {
                         id: waveSequence
                         PauseAnimation { duration: ring.index * 250 }
                         ParallelAnimation {
-                            NumberAnimation { target: ring; property: "scale"; from: 0.55; to: 1.28; duration: root.eventData && root.eventData.kind === "battery-20" ? 1080 : 1450; easing.type: Easing.OutCubic }
-                            NumberAnimation { target: ring; property: "opacity"; from: 0.8; to: 0; duration: root.eventData && root.eventData.kind === "battery-20" ? 1080 : 1450; easing.type: Easing.OutQuad }
+                            NumberAnimation { target: ring; property: "scale"; from: 0; to: 1.28; duration: root.ringDurationMs; easing.type: Easing.OutCubic }
+                            SequentialAnimation {
+                                NumberAnimation { target: ring; property: "opacity"; from: 0; to: 0.8; duration: 100; easing.type: Easing.OutQuad }
+                                PauseAnimation { duration: Math.max(0, root.ringDurationMs - 350) }
+                                NumberAnimation { target: ring; property: "opacity"; to: 0; duration: 250; easing.type: Easing.OutQuad }
+                            }
                         }
                     }
                     onIndexChanged: waveSequence.restart()
