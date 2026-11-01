@@ -4,7 +4,7 @@ import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
 import "."
-import "./presentation" as Gbuds
+import "./interface" as Gbuds
 
 DesktopPluginComponent {
     id: root

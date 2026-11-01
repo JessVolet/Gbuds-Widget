@@ -1,15 +1,19 @@
 # Device image credits
 
-## Approved 0.3.0 icon artwork
+## Selected 0.4.0 template
 
-`approved/bud-left.svg` and `bud-right.svg` preserve the path, head circle, and
-sensor from the user-supplied `gemini-svg(2).svg`, with the approved opposite poses.
-`mode-*.svg` use the embedded SVG ear recovered from `New Project.svg` (img3),
-plus the supplied wave image (img5) traced into vector curves. The idle timer
-preserves the previously supplied timer SVG. The neutral case is widget artwork.
+`approved/bud-left.svg` and `bud-right.svg` use the selected original Blade
+proposal with opposite diagonal poses, ordered as in the user's final template.
+`mode-anc.svg` combines the supplied `shield-alt-1-svgrepo-com.svg` and
+`ear-2-svgrepo-com.svg`. Ambient uses `ear-3-svgrepo-com.svg` including its
+original curved waves, and OFF uses `power-off-svgrepo-com.svg`.
+All original files are preserved under `source-icons/`; their path geometry is
+retained and only placement and theme coloring are adjusted.
+The idle timer preserves the previously supplied timer SVG. The neutral case
+is widget artwork.
 
 Edit those SVG files independently, then run `python3 scripts/build-icons.py`.
-That compiles `presentation/ApprovedIcons.js`, applies the QML theme color at runtime, and
+That compiles `interface/ApprovedIcons.js`, applies the QML theme color at runtime, and
 flattens nested SVG viewports into equivalent transforms for Qt SVG.
 The source files remain editable SVGs with no embedded raster images.
 

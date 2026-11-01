@@ -52,9 +52,9 @@ Item {
     }
     readonly property var modeOptions: [
         { mode: "NOISE_REDUCTION", action: "on", label: "ANC", icon: "noise_control_on" },
-        { mode: "AMBIENT_SOUND", action: "ambient", label: "Ambient", icon: "hearing" },
+        { mode: "AMBIENT_SOUND", action: "ambient", label: "AMBIENT", icon: "hearing" },
         { mode: "ADAPTIVE", action: "adaptive", label: "Adaptive", icon: "auto_mode" },
-        { mode: "OFF", action: "off", label: "Normal", icon: "noise_control_off" }
+        { mode: "OFF", action: "off", label: "OFF", icon: "noise_control_off" }
     ].filter(item => Array.isArray(device.supported_noise_modes) && device.supported_noise_modes.indexOf(item.action) >= 0)
 
     function render(side) {

@@ -114,12 +114,12 @@ Column {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     mode: modelData.mode
                                     size: 28
-                                    color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceVariantText
+                                    color: modeButton.selected ? Theme.primary : Theme.surfaceVariantText
                                 }
                                 StyledText {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: modelData.label
-                                    color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceVariantText
+                                    color: modeButton.selected ? Theme.primary : Theme.surfaceVariantText
                                     font.pixelSize: Theme.fontSizeSmall
                                     font.weight: selected ? Font.Bold : Font.Medium
                                 }

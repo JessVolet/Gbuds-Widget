@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const source = fs.readFileSync(path.join(__dirname,"../presentation/ApprovedIcons.js"),"utf8");
+const source = fs.readFileSync(path.join(__dirname,"../interface/ApprovedIcons.js"),"utf8");
 const icons = vm.createContext({});
 vm.runInContext(source.replace(/^\.pragma library\n/,""),icons);
 const pink={r:1,g:0.5,b:0.75,a:1};
@@ -16,19 +16,38 @@ test("approved SVGs are independent vectors and flattened for Qt",()=>{
   }
   assert.notEqual(icons.templates["bud-left"],icons.templates["bud-right"]);
 });
-test("theme coloring preserves timer cutouts and ANC mask semantics",()=>{
+test("theme coloring preserves timer cutouts and shield outline",()=>{
   for(const name of Object.keys(icons.templates)) {
     const svg=decodeURIComponent(icons.url(name,pink,pink,false).split(",").slice(1).join(","));
     assert.doesNotMatch(svg,/currentColor/);
     assert.match(svg,/rgb\(255,128,191\)/);
   }
   assert.match(icons.templates["idle-timer"],/fill-rule="evenodd"/);
-  assert.match(icons.templates["mode-anc"],/fill="white"/);
-  assert.match(icons.templates["mode-anc"],/fill="black"/);
+  assert.match(icons.templates["mode-anc"],/stroke="currentColor"/);
+  assert.match(icons.templates["mode-anc"],/fill="none"/);
 });
-test("both earbud SVGs retain the supplied head and sensor",()=>{
+test("Blade geometry uses the opposite poses selected in the template",()=>{
   for(const name of ["bud-left","bud-right"]) {
-    assert.match(icons.templates[name],/cx="245" cy="175" r="133"/);
-    assert.match(icons.templates[name],/cx="215" cy="118" r="20"/);
+    assert.ok(icons.templates[name].includes("rotate(54 24 24)"));
+    assert.ok(icons.templates[name].includes("M30 18V38L25.5 41L21 38"));
+  }
+  assert.ok(icons.templates["bud-left"].includes("rotate(180 24 24)"));
+  assert.ok(!icons.templates["bud-right"].includes("rotate(180 24 24)"));
+});
+test("noise controls retain the original paths from all four supplied SVGs",()=>{
+  function paths(svg) {
+    return [...svg.matchAll(/<path\b[^>]*\bd="([^"]*)"/g)].map(m=>m[1].replace(/\s+/g,""));
+  }
+  for(const [mode,files] of [
+    ["mode-anc",["shield-alt-1-svgrepo-com.svg","ear-2-svgrepo-com.svg"]],
+    ["mode-ambient",["ear-3-svgrepo-com.svg"]],
+    ["mode-normal",["power-off-svgrepo-com.svg"]]
+  ]) {
+    const rendered=paths(icons.templates[mode]);
+    for(const file of files) {
+      const original=fs.readFileSync(path.join(__dirname,"../assets/source-icons",file),"utf8");
+      assert.ok(paths(original).length > 0, "original contains paths: "+file);
+      for(const p of paths(original)) assert.ok(rendered.includes(p),mode+" / "+file);
+    }
   }
 });

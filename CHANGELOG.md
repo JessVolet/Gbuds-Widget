@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+
+- Match the user's final template: diagonal Blade earbuds with opposite poses,
+  shield plus the supplied ear for ANC, supplied ear with curved sound waves
+  for ambient, and the supplied power symbol for OFF.
+- Preserve the user's local bar tuning: glyph reduction of 5 px, zero horizontal
+  spacing, noise glyph 5 px smaller and 3 px lower, and OFF hidden in the bar.
+- Original SVG sources are saved under assets/source-icons/; editable themeable
+  versions remain in assets/approved/.
+
 ## 0.3.0
 
 - Apply the approved mockup using the supplied editable SVG earbuds, recovered

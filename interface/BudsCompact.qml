@@ -23,9 +23,9 @@ Item {
                                       !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
     readonly property var modeOptions: [
         { mode: "NOISE_REDUCTION", action: "on", label: "ANC", icon: "noise_control_on" },
-        { mode: "AMBIENT_SOUND", action: "ambient", label: "Ambient", icon: "hearing" },
+        { mode: "AMBIENT_SOUND", action: "ambient", label: "AMBIENT", icon: "hearing" },
         { mode: "ADAPTIVE", action: "adaptive", label: "Adaptive", icon: "auto_mode" },
-        { mode: "OFF", action: "off", label: "Normal", icon: "noise_control_off" }
+        { mode: "OFF", action: "off", label: "OFF", icon: "noise_control_off" }
     ].filter(item => Array.isArray(device.supported_noise_modes) && device.supported_noise_modes.indexOf(item.action) >= 0)
 
     function partAvailable(part) {
@@ -165,14 +165,14 @@ Item {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 mode: modelData.mode
                                 size: 36
-                                color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceText
+                                color: modeButton.selected ? Theme.primary : Theme.surfaceText
                             }
                             StyledText {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: modelData.label
                                 font.pixelSize: Theme.fontSizeSmall
                                 font.weight: Font.DemiBold
-                                color: modeButton.selected ? Theme.onPrimaryContainer : Theme.surfaceText
+                                color: modeButton.selected ? Theme.primary : Theme.surfaceText
                             }
                         }
                         MouseArea { anchors.fill: parent; onClicked: root.requestMode(modelData.action) }

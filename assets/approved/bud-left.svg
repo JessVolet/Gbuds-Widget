@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="45 35 390 450" color="#54223f"><title>bud-left</title><g transform="rotate(25 235 250)"><g xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" id="earbud-artwork">
-
-    <path d="M 118 215 C 100 275, 96 365, 130 435 C 146 470, 184 470, 200 430 C 206 400, 206 345, 206 304" />
-
-
-    <circle cx="245" cy="175" r="133" />
-
-
-    <circle cx="215" cy="118" r="20" />
-  </g>
-</g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="3 3 42 42"><g transform="rotate(180 24 24)"><g transform="rotate(54 24 24)" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linejoin="round" stroke-linecap="round"><path d="M30 18V38L25.5 41L21 38V23C17 25 11 23 10 18C8.5 13 11 7.8 17 6.5C22.5 5.2 28.5 8.3 30 13Z" /><path d="M21.5 24L29.5 19M25.5 25.8V36M14.5 14L18 12.5" /></g></g></svg>

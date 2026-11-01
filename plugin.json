@@ -3,7 +3,7 @@
   "id": "gbudsWatch",
   "name": "Gbuds Widget",
   "description": "Galaxy Buds battery, controls, and event popups for the Dux Shell bar and desktop. Requires gbuds-cli.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": "JessVolet",
   "license": "MIT",
   "icon": "headphones",

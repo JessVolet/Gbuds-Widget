@@ -4,7 +4,7 @@ import qs.Widgets
 import qs.DCommon.Widgets
 import qs.Modules.Plugins
 import "."
-import "./presentation" as Gbuds
+import "./interface" as Gbuds
 
 PluginComponent {
     id: root
@@ -17,7 +17,7 @@ PluginComponent {
     readonly property bool activeConnection: connected && !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
     readonly property string pillMode: pluginData.pillMode || "compact"
     readonly property string batteryStyle: pluginData.batteryIndicatorStyle || "clean"
-    readonly property int glyphSize: Math.max(root.iconSize, Math.max(28, Math.min(32, root.widgetThickness))) - 2
+    readonly property int glyphSize: Math.max(root.iconSize, Math.max(28, Math.min(32, root.widgetThickness))) - 5
     function themeColor(mode, custom, fallback) {
         if (mode === "primary" || mode === "secondary" || mode === "tertiary") return Theme[mode];
         // Preserve color presets saved by older local versions.
@@ -49,6 +49,7 @@ PluginComponent {
     }
     component Pill: Grid {
         columns: root.isVertical ? 1 : 5
+        columnSpacing: 0
         spacing: Theme.spacingS
         DIcon {
             visible: !root.activeConnection || root.pillMode === "icon-only"
@@ -87,10 +88,13 @@ PluginComponent {
             }
         }
         Gbuds.NoiseModeIcon {
-            visible: root.activeConnection && root.pillMode !== "icon-only" && root.pluginData.showModeIcon !== false && !!root.status.noise_control
+            visible: root.activeConnection && root.pillMode !== "icon-only" && root.pluginData.showModeIcon !== false && root.status.noise_control !== "OFF";
             mode: root.status.noise_control || "OFF"
-            size: root.glyphSize
+            size: root.glyphSize -5
             color: root.iconTint
+            transform: Translate {
+                y: 3
+            }
         }
     }
     horizontalBarPill: Component { Pill {} }
