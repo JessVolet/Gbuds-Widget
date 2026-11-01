@@ -17,7 +17,7 @@ PluginComponent {
     readonly property bool activeConnection: connected && !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
     readonly property string pillMode: pluginData.pillMode || "compact"
     readonly property string batteryStyle: pluginData.batteryIndicatorStyle || "clean"
-    readonly property int glyphSize: Math.max(root.iconSize, Math.max(28, Math.min(32, root.widgetThickness)))
+    readonly property int glyphSize: Math.max(root.iconSize, Math.max(28, Math.min(32, root.widgetThickness))) - 2
     function themeColor(mode, custom, fallback) {
         if (mode === "primary" || mode === "secondary" || mode === "tertiary") return Theme[mode];
         // Preserve color presets saved by older local versions.
