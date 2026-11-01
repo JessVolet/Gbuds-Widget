@@ -70,8 +70,9 @@ PluginComponent {
                 Gbuds.EarbudGlyph {
                     part: modelData
                     modelCode: root.device.model_code || ""
-                    width: modelData === "case" ? root.iconSize : Math.round(root.iconSize * 0.72)
-                    height: root.iconSize + 2
+                    // SVG view boxes are square: a narrow item also shrinks their height.
+                    width: root.iconSize + 2
+                    height: root.iconSize + 4
                     available: root.available(modelData)
                     idle: root.pluginData.warnOutOfEar !== false && root.status["placement_" + modelData] === "IDLE"
                     idleColor: root.idleTint

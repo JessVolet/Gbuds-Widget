@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- Increase bar glyph boxes to square proportions so the narrow SVGs keep their
+  height. Earbuds render about 50% taller at the default bar scale.
+
 ## 0.2.0
 
 - Slimmer mirrored SVG earbuds, shared between the bar and compact desktop.
