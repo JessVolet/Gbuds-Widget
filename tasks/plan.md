@@ -1,6 +1,6 @@
 # Gbuds Widget rewrite plan
 
-Status: proposed documentation, requested 2026-11-01. No runtime rewrite or deployment is performed by this documentation delivery.
+Status: user-approved rewrite implemented as a testing candidate on rewrite/modular-widget. Read rewrite/status.md for validation and remaining acceptance.
 
 Read in order:
 

@@ -17,7 +17,7 @@ The idle timer preserves the previously supplied timer SVG. The neutral case
 is widget artwork.
 
 Edit those SVG files independently, then run `python3 scripts/build-icons.py`.
-That compiles `interface-v041/ApprovedIcons.js`, applies the QML theme color at runtime, and
+That compiles `src/presentation/ApprovedIcons.js`, applies the QML theme color at runtime, and
 flattens nested SVG viewports into equivalent transforms for Qt SVG.
 The source files remain editable SVGs with no embedded raster images.
 

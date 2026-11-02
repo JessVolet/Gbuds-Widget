@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0-dev.1 — rewrite testing candidate
+
+- Rebuild the widget around shared state, transport, configuration, notification, artwork and motion controllers.
+- Replace all versioned UI folders with stable src modules and retain approved assets.
+- Share a measured zero-radius, linear wave timeline across Popup and Waveup, with 250 ms stagger and a 1000 ms repeat gap.
+- Add independent popup lifetimes, bounded scheduling, reactive settings and real block ordering.
+- Add startup/deadline recovery and preserve safe Stop-before-disconnect behavior.
+- Package committed artifacts with local backup and rollback tooling. Native visual/hardware review remains required before merge.
+
 ## 0.6.7
 
 - Start Popup and Waveup rings with zero width and height; animate real geometry instead of scaling preset-size circles.

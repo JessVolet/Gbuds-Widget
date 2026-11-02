@@ -1,6 +1,6 @@
 # Rewrite implementation TODO
 
-Status: planning complete; runtime implementation has not started. Tasks below are ordered by the capability map in roadmap.md. Apply specs.md, animations.md, and codestyle.md to every task. Proposed paths may be refined before implementation; update this plan when a boundary changes.
+Status: runtime candidate implemented on rewrite/modular-widget; see status.md for evidence and pending native/physical checks. Tasks below are ordered by the capability map in roadmap.md. Apply specs.md, animations.md, and codestyle.md to every task. Proposed paths may be refined before implementation; update this plan when a boundary changes.
 
 ## Documentation delivery
 
@@ -8,7 +8,7 @@ Status: planning complete; runtime implementation has not started. Tasks below a
 - [x] Define module ownership, dependency direction, migration and release gates.
 - [x] Specify behavior, shared animation timing, code quality and reusable controllers.
 - [x] Break implementation into dependent, verifiable slices.
-- [ ] Review proposed contracts and record accepted changes before runtime implementation.
+- [x] User approved implementation of the rewrite contracts on a separate branch.
 
 ## P0: Establish facts and reference scenes
 
@@ -34,9 +34,9 @@ Checkpoint P0: reproduction, identity and visual references are usable; no visua
 
 ### R03 — Implement the pure wave timeline
 
-- [ ] Produce radius/opacity/phase from explicit elapsed time, with radius zero before launch and a common final radius.
-- [ ] Enforce 250 ms launch spacing and repeat at last completion + 1000 ms.
-- [ ] Reject invalid inputs and prevent partial repeats beyond the deadline or callbacks from canceled generations.
+- [x] Produce radius/opacity/phase from explicit elapsed time, with radius zero before launch and a common final radius.
+- [x] Enforce 250 ms launch spacing and repeat at last completion + 1000 ms.
+- [x] Reject invalid inputs and prevent partial repeats beyond the deadline or callbacks from canceled generations.
 
 Dependencies: R02. Proposed files: src/motion/WaveTimeline.js, motion tokens, focused timeline tests (3). Verification: deterministic boundary tests at each launch, end, repeat, cancellation and insufficient remaining lifetime. These tests exercise timing semantics rather than QML property spelling.
 
@@ -62,33 +62,33 @@ Checkpoint P1: attach visual evidence to the exact commit. Only then create a ve
 
 ### R06 — Introduce reactive configuration and migration
 
-- [ ] Define one schema/default source for global and instance preferences, preserving false/zero and old choices.
-- [ ] Publish local changes within the response target while grouping persistence writes.
-- [ ] Migrate idempotently with backup; do not rewrite values merely by opening settings.
+- [x] Define one schema/default source for global and instance preferences, preserving false/zero and old choices.
+- [x] Publish local changes within the response target while grouping persistence writes.
+- [x] Migrate idempotently with backup; do not rewrite values merely by opening settings.
 
 Dependencies: R01. Proposed files: ConfigSchema.js, ConfigStore.qml, ConfigMigration.js, focused migration checks (4). Verification: old layouts and event overrides, missing/unknown keys, repeated migration, two independent instances and immediate subscriptions.
 
 ### R07 — Extract a reusable command registry/queue
 
-- [ ] Describe currently supported actions declaratively with validation, capability, priority, timeout and retry policy.
-- [ ] Serialize watcher/commands through one transport owner; preserve Stop priority and uncertain Find outcomes.
-- [ ] Reject stale device epochs, unsafe argument shapes and oversized output.
+- [x] Describe currently supported actions declaratively with validation, capability, priority, timeout and retry policy.
+- [x] Serialize watcher/commands through one transport owner; preserve Stop priority and uncertain Find outcomes.
+- [x] Reject stale device epochs, unsafe argument shapes and oversized output.
 
 Dependencies: R06. Proposed files: CommandRegistry.js, CommandController.qml, GbudsAdapter.qml, command checks (4). Verification: existing daemon/control tests plus fake-adapter timeout, failure, cancellation and device-switch cases. Adding a registry entry must not require a new process loop.
 
 ### R08 — Normalize state and reconciliation
 
-- [ ] Publish one immutable-by-convention snapshot with connection epoch, revision, capabilities and nullable readings.
-- [ ] Separate pending selections from confirmed hardware state and reconcile failures without stale overwrites.
-- [ ] Keep transport recovery distinct from Bluetooth disconnect.
+- [x] Publish one immutable-by-convention snapshot with connection epoch, revision, capabilities and nullable readings.
+- [x] Separate pending selections from confirmed hardware state and reconcile failures without stale overwrites.
+- [x] Keep transport recovery distinct from Bluetooth disconnect.
 
 Dependencies: R07. Proposed files: DeviceStore.qml, StateSelectors.js, TelemetryNormalizer.js, state checks (4). Verification: connect→command→confirmation→disconnect with fake CLI, old-device responses, unknown data and command echo.
 
 ### R09 — Extract event detection and reminders
 
-- [ ] Preserve independent placement/noise/battery causes, subjects and immutable snapshots; deduplicate echoes.
-- [ ] Implement threshold crossings and inclusive five-point hysteresis per device/part.
-- [ ] Centralize cancelable per-ear reminders with lock/suspend/freshness rules.
+- [x] Preserve independent placement/noise/battery causes, subjects and immutable snapshots; deduplicate echoes.
+- [x] Implement threshold crossings and inclusive five-point hysteresis per device/part.
+- [x] Centralize cancelable per-ear reminders with lock/suspend/freshness rules.
 
 Dependencies: R08. Proposed files: EventPolicy.js, EventController.qml, ReminderController.qml, event checks (4). Verification: simultaneous causes, 59→18, 25/55 rearm boundaries, unknown values, storing/wearing/disconnect and resume without backlog.
 
@@ -98,9 +98,9 @@ Checkpoint P2: existing control invariants pass through the new adapters. No sur
 
 ### R10 — Shared artwork and presentation tokens
 
-- [ ] Resolve correct model/color/part and same-side SVG fallback centrally.
-- [ ] Preserve approved diagonal poses, ANC cutouts, timer and theme coloring.
-- [ ] Define shared dimensions, spacing, focus and motion tokens rather than surface-specific magic values.
+- [x] Resolve correct model/color/part and same-side SVG fallback centrally.
+- [x] Preserve approved diagonal poses, ANC cutouts, timer and theme coloring.
+- [x] Define shared dimensions, spacing, focus and motion tokens rather than surface-specific magic values.
 
 Dependencies: R06, R08. Proposed files: ArtworkResolver.js, ThemeTokens.qml, LayoutTokens.js, asset checks (4). Verification: existing icon checks plus missing render, FE/Buds3 fixtures and same-scale visual comparisons.
 
@@ -170,9 +170,9 @@ Checkpoint P4: all options have an observed effect, events remain independent, a
 
 ### R18 — Retire legacy implementations
 
-- [ ] Switch all entry points/imports to the validated src modules and remove unused versioned UI/core folders.
-- [ ] Retain assets/licenses and adjust only the required packaging/import metadata.
-- [ ] Confirm no legacy process owner, duplicate wave formulas, orphan timers or unused settings remain.
+- [x] Switch all entry points/imports to the validated src modules and remove unused versioned UI/core folders.
+- [x] Retain assets/licenses and adjust only the required packaging/import metadata.
+- [x] Confirm no legacy process owner, duplicate wave formulas, orphan timers or unused settings remain.
 
 Dependencies: R17. Scope: mechanical legacy-folder retirement plus qmldir/import inventory; no new behavior in this change. Verification: reference search, full Node regressions, runtime QML loading and package asset/import audit. Keep the folder deletion isolated for easy review.
 
@@ -194,4 +194,4 @@ Dependencies: R19. Proposed files: package/deploy script, deployment manifest, r
 
 ## Completion rule
 
-A checked task needs its acceptance evidence and commit ID recorded beneath it. Keep blocked or unavailable checks pending. This documentation commit checks only the documentation delivery, not R01–R20 or any claimed animation fix.
+A checked task needs its acceptance evidence and commit ID recorded beneath it. Keep blocked or unavailable checks pending. Implemented code and automated evidence are recorded in status.md. Unchecked items retain native/physical or broader visual acceptance work; implementation alone does not check them.
