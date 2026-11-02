@@ -27,7 +27,7 @@ PanelWindow {
         lifetimeMs:root.lifetimeMs
         strokePx: root.event.kind === "battery-20" ? 6 : root.config.waveStrokePx
         tone: root.event.kind === "battery-20" ? Theme.error : root.event.kind === "battery-50" ? Theme.warning : Theme.primary
-        reducedMotion: root.config.notifyReduceMotion
+        reducedMotion: root.config.notifyReduceMotion || SettingsData.reduceMotion
         originX: root.side === "left" ? root.config.notifyMargin : width - root.config.notifyMargin
         originY: root.config.notifyVerticalPosition === "top" ? root.config.notifyMargin : height - root.config.notifyMargin
     }

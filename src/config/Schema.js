@@ -1,13 +1,13 @@
 .pragma library
 var defaults = {
-    schemaVersion: 2, panelArtwork:"auto", desktopPreset: "compact", desktopOfflinePolicy: "hide", desktopArtwork: "svg",
+    schemaVersion: 3, panelShowMixer:true, panelSearchHints:true, panelAnimations:true, panelArtwork:"auto", desktopPreset: "compact", desktopOfflinePolicy: "hide", desktopArtwork: "svg",
     desktopShowName: true, desktopShowCase: true, desktopShowBattery: true, desktopShowNoise: true,
     desktopShowDisconnect: true, desktopHorizontal: true, desktopEarOrder: "left-case-right",
     desktopBlockOrder: "name,parts,noise,disconnect", desktopGap: 8, desktopPadding: 12,
     desktopEarbudSize: 48, desktopCaseSize:48, desktopTextSize:11, desktopNameSize:14, desktopAlignment:"center", desktopNoiseSize: 36, desktopVerticalOffset: 0,
     desktopBackgroundMode: "theme", desktopBackgroundOpacity: 94, desktopShowBorder: true,
-    desktopLockControls: false, desktopLockAnimations:false, desktopLockAnimations: false, displayPreferences: ["all"],
-    syncPositionAcrossScreens: true, notificationsEnabled: true, notificationPresentation: "popup",
+    desktopLockControls: false, desktopLockAnimations: false, displayPreferences: ["all"],
+    syncPositionAcrossScreens: true, notificationsEnabled: true, notificationPresentation: "waveup", advancedNotifications:false, notificationRules:{}, notifyPopupPosition:"match", notifyWaveOrigin:"match",
     notificationArtwork: "auto", dismissTimeout: 5, notifyWaveDuration: 5, waveRadiusPx: 220,
     waveStrokePx: 4, notifyMatchPosition: true, notifyVerticalPosition: "bottom", notifyFixedSide: "right",
     notifyMargin: 18, notifyScreen: "active", notifyReduceMotion: false, notifyIdleReminder: false,
@@ -40,7 +40,8 @@ function resolve(input, locked) {
     if (source.desktopCaseSize === undefined) result.desktopCaseSize=result.desktopEarbudSize;
     if (["left","center","right"].indexOf(result.desktopAlignment)<0) result.desktopAlignment="center";
     if (locked) { result.desktopOfflinePolicy = "hide"; result.desktopShowDisconnect = false; }
-    result.schemaVersion = 2;
+    if (source.advancedNotifications === undefined) result.advancedNotifications = Object.keys(source).some(key => /^notify_/.test(key) && source[key] !== "default") || Object.keys(source.notificationRules || {}).length>0;
+    result.schemaVersion = 3;
     return result;
 }
 function blocks(config) {

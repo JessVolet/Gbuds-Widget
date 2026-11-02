@@ -37,7 +37,8 @@ Item {
     readonly property var output: Placement.screen(Quickshell.screens, CompositorService.getFocusedScreen(), payload.screenName)
     readonly property bool popup: payload.channel === "popup" || payload.channel === "both"
     readonly property bool waveup: payload.channel === "waveup" || payload.channel === "both"
-    readonly property bool bilateral: payload.subject === "pair" || payload.subject === "mode"
+    readonly property string waveOrigin:config.waveOrigin || (payload.subject === "pair" || payload.subject === "mode" ? "both" : payload.side)
+    readonly property bool bilateral:waveOrigin === "both"
     property real offsetPx:slot * 282
     Behavior on offsetPx { NumberAnimation { duration:180; easing.type:Easing.OutCubic } }
     signal dismissed(string id)
@@ -48,25 +49,21 @@ Item {
     WaveupSurface {
         screen: root.output
         event:root.payload; config:root.config; elapsedMs:clock.elapsedMs; lifetimeMs:root.waveMotionMs; side:"left"
-        visible: clock.active && !root.payload.closing && root.waveup && (root.bilateral || root.payload.side === "left") && root.ageMs < root.waveDurationMs
+        visible: clock.active && !root.payload.closing && root.waveup && (root.bilateral || root.waveOrigin === "left") && root.ageMs < root.waveDurationMs
     }
     WaveupSurface {
         screen: root.output
         event:root.payload; config:root.config; elapsedMs:clock.elapsedMs; lifetimeMs:root.waveMotionMs; side:"right"
-        visible: clock.active && !root.payload.closing && root.waveup && (root.bilateral || root.payload.side === "right") && root.ageMs < root.waveDurationMs
+        visible: clock.active && !root.payload.closing && root.waveup && (root.bilateral || root.waveOrigin === "right") && root.ageMs < root.waveDurationMs
     }
     PanelWindow {
         screen: root.output
         visible: clock.active && root.popup && root.ageMs < root.popupDurationMs
-        implicitWidth: 250
-        implicitHeight: 270
+        implicitWidth: root.payload.popupRect?.width || 250
+        implicitHeight: root.payload.popupRect?.height || 270
         color: "transparent"
-        anchors { left:root.payload.side === "left"; right:root.payload.side !== "left"; top:root.config.notifyVerticalPosition === "top"; bottom:root.config.notifyVerticalPosition !== "top" }
-        margins {
-            left: root.config.notifyMargin; right:root.config.notifyMargin
-            top: root.config.notifyMargin + root.offsetPx
-            bottom: root.config.notifyMargin + root.offsetPx
-        }
+        anchors { left:true; top:true }
+        margins { left:root.payload.popupRect?.x || 0; top:root.payload.popupRect?.y || 0 }
         WlrLayershell.namespace: "dms:gbuds-popup"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.exclusionMode: ExclusionMode.Ignore

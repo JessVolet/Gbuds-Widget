@@ -4,6 +4,7 @@ Item {
     id:root
     property alias model:items
     property var waiting:[]
+    property var placeJob:null
     property int revision:0
     readonly property int count:{ revision; let total=0; for(let i=0;i<items.count;i++) if(!items.get(i).payload.closing) total++; return total; }
     ListModel { id:items; dynamicRoles:true }
@@ -13,7 +14,8 @@ Item {
         return count;
     }
     function enqueue(job) {
-        if (occupied(job.group,items.count)>=job.capacity) {
+        const placed=root.placeJob ? root.placeJob(job,items) : job;
+        if (!placed || occupied(job.group,items.count)>=job.capacity) {
             waiting=waiting.filter(item=>item.expiresAt>Date.now() && item.uid!==job.uid);
             if (waiting.length>=16) {
                 if (job.priority>0) waiting=waiting.slice(0,15);
@@ -22,6 +24,7 @@ Item {
             waiting=waiting.concat([job]).sort((a,b)=>b.priority-a.priority);
             return;
         }
+        job=placed;
         items.append({uid:job.uid,payload:job.payload,group:job.group,deadline:Date.now()+job.durationMs});
         revision++;
     }

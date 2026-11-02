@@ -39,7 +39,7 @@ function detect(previous, next, memory, now) {
 }
 function label(part) { return part === "left" ? "Left earbud" : part === "right" ? "Right earbud" : "Case"; }
 function channel(event, config) {
-    const override = config["notify_" + event.kind.replace(/-/g,"_")];
+    const override = config.advancedNotifications === false ? "default" : config.notificationRules?.[event.kind]?.presentation || config["notify_" + event.kind.replace(/-/g,"_")];
     const value = override && override !== "default" ? override : config.notificationPresentation;
-    return ["off","popup","waveup","both"].indexOf(value) >= 0 ? value : "popup";
+    return ["off","popup","waveup","both"].indexOf(value) >= 0 ? value : "waveup";
 }
