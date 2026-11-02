@@ -1,28 +1,28 @@
 # Visual refinement implementation checklist
 
-Status: proposal only. All implementation tasks await user confirmation. Follow PLAN.md and the repository codestyle.
+Status: user approved and candidate 0.7.0-dev.7 installed. See status.md for implementation, tests and pending physical/native acceptance. Follow PLAN.md and the repository codestyle.
 
 ## V01 — Resolve theme contrast
 
 - [ ] Audit effective auto/custom preferences, actual bar background and generated SVG inputs.
-- [ ] Introduce shared theme roles and verify automatic updates while open.
+- [x] Introduce shared theme roles and verify automatic updates while open.
 - [ ] Record dark/light and custom-surface evidence with readable focus/idle/critical states.
 
 Files: VisualTokens.qml, PartIcon.qml, ModeIcon.qml, GbudsBarWidget.qml and relevant behavior checks. Dependencies: approval. Verify contrast against actual backgrounds and retain custom-color migration. Scope: medium.
 
 ## V02 — Restore the panel hierarchy
 
-- [ ] Build header/hero/footer using main as presentation reference and actual approved assets.
-- [ ] Display safe contextual search hints, aligned batteries and equal noise controls.
+- [x] Build header/hero/footer using main as presentation reference and actual approved assets.
+- [x] Display safe contextual search hints, aligned batteries and equal noise controls.
 - [ ] Remove fixed empty height and verify small-height scroll behavior and keyboard focus.
 
 Files: DevicePanel.qml, PanelHeader.qml, PanelHero.qml, GbudsBarWidget.qml. Dependencies: V01. Verify native screenshots, no unsafe Find and stable pending feedback. Scope: medium.
 
 ## V03 — Add bounded command history
 
-- [ ] Record job start/completion/uncertainty with a maximum of 80 entries and sanitized details.
-- [ ] Add History page, empty state, Clear and Back without executing commands on open.
-- [ ] Ensure watch telemetry never grows the log per packet.
+- [x] Record job start/completion/uncertainty with a maximum of 80 entries and sanitized details.
+- [x] Add History page, empty state, Clear and Back without executing commands on open.
+- [x] Ensure watch telemetry never grows the log per packet.
 
 Files: CommandHistory.qml, DeviceController.qml hooks, CommandHistoryPage.qml and focused lifecycle checks. Dependencies: V02. Verify bounded growth, failures and preservation of queue/transport ownership. Scope: medium.
 
@@ -33,23 +33,23 @@ Files: CommandHistory.qml, DeviceController.qml hooks, CommandHistoryPage.qml an
 
 ## V04 — Add the native mixer
 
-- [ ] Bind audio node identity to the selected Buds and support mute/volume.
-- [ ] Add application-stream disclosure and explicit inactive-output handling.
+- [x] Bind audio node identity to the selected Buds and support mute/volume.
+- [x] Add application-stream disclosure and explicit inactive-output handling.
 - [ ] Exercise missing/ambiguous node, volume feedback and disconnect cleanup.
 
 Files: AudioAdapter.qml, audio identity helper, AudioMixer.qml, DevicePanel.qml, focused adapter checks. Dependencies: V02. Verify with native PipeWire when available; fixture mapping does not certify physical audio. Scope: medium.
 
 ## V05 — Model notification exceptions
 
-- [ ] Add persisted Advanced switch and sparse per-event settings with explicit inheritance.
-- [ ] Migrate existing legacy channel overrides idempotently without losing intentional choices.
-- [ ] Resolve popup position independently from wave origin and preserve event snapshots.
+- [x] Add persisted Advanced switch and sparse per-event settings with explicit inheritance.
+- [x] Migrate existing legacy channel overrides idempotently without losing intentional choices.
+- [x] Resolve popup position independently from wave origin and preserve event snapshots.
 
 Files: Schema.js, NotificationPreferences.js, EventPolicy.js, NotificationController.qml and focused precedence/migration checks. Dependencies: V01. Verify global Waveup plus noise Popup/Center, Off/inherit and reset. Scope: medium.
 
 ## V06 — Support popup anchors and collision handling
 
-- [ ] Implement 3 × 3 popup anchors and explicit center placement.
+- [x] Implement 3 × 3 popup anchors and explicit center placement.
 - [ ] Keep deterministic occupancy/reflow within the screen, considering adjacent anchor collisions.
 - [ ] Verify mixed Popup/Waveup overlap, independent expiry, output removal and lock suppression.
 
@@ -57,9 +57,9 @@ Files: ScreenPlacement.js, AlertHost.qml, PopupController.qml and placement/runt
 
 ## V07 — Replace the flat notification editor
 
-- [ ] Add basic defaults, Advanced switch, event summaries and conditional event fields.
-- [ ] Add Preview/Reset and meaningful units while reusing ConfigStore/PreferenceRow.
-- [ ] Make inherited versus overridden values explicit at narrow widths.
+- [x] Add basic defaults, Advanced switch, event summaries and conditional event fields.
+- [x] Add Preview/Reset and meaningful units while reusing ConfigStore/PreferenceRow.
+- [x] Make inherited versus overridden values explicit at narrow widths.
 
 Files: NotificationSettings.qml, EventNotificationEditor.qml, SettingsModel.js, Settings.qml and editor scenario. Dependencies: V05–V06. Verify each visible option affects the next production preview; opening writes no defaults. Scope: medium.
 
@@ -71,23 +71,23 @@ Files: NotificationSettings.qml, EventNotificationEditor.qml, SettingsModel.js, 
 ## V08 — Organize the remaining settings
 
 - [ ] Add Device panel, Bar, Notifications, Desktop widgets and Advanced sections inside native plugin settings.
-- [ ] Keep global and per-instance controls separate and fix product-copy/schema duplication.
-- [ ] Restore the direct settings route and capability-based Sound & controls.
+- [x] Keep global and per-instance controls separate and fix product-copy/schema duplication.
+- [x] Restore the direct settings route and capability-based Sound & controls.
 
 Files: Settings.qml, SettingsModel.js, section delegates and Schema.js as needed. Dependencies: V02, V04, V07. Split into smaller commits if more than five files become necessary. Verify keyboard navigation, conditional controls and persistence. Scope: medium per slice.
 
 ## V09 — Apply restrained motion
 
-- [ ] Add host-compatible reveal, selection, disclosure and page transitions.
-- [ ] Respect reduced motion, cancellation and input responsiveness.
+- [x] Add host-compatible reveal, selection, disclosure and page transitions.
+- [x] Respect reduced motion, cancellation and input responsiveness.
 - [ ] Capture actual transitions without changing the shared wave engine contract.
 
 Files: panel/hero/mixer delegates and shared motion tokens. Dependencies: V02–V08. Verify rapid edits, disposal, open/close and reduced motion. Scope: medium.
 
 ## V10 — Package and acceptance
 
-- [ ] Run relevant logic/QML/native checks and capture light/dark final evidence.
-- [ ] Tag the tested commit, back up settings, package exact source and verify fresh-engine installation.
+- [x] Run relevant logic/QML/native checks and capture light/dark final evidence.
+- [x] Tag the tested commit, back up settings, package exact source and verify fresh-engine installation.
 - [ ] Complete physical controls/audio, visual acceptance and rollback before merge.
 
 Files: evidence report, deployment manifest and status documentation. Dependencies: V09. Preserve the functioning base candidate and immutable tags. Scope: small; physical acceptance remains explicit.
@@ -101,3 +101,7 @@ Files: evidence report, deployment manifest and status documentation. Dependenci
 - V07–V08: use native grouped Settings rows and explicit user-edit signals; the installed SliderSetting wrapper can save programmatic value changes.
 - V09: use verified global reduced motion and host motion tokens. Existing wave sequence timing remains unchanged.
 - V10: locally verified reload target is plugin-scan, whereas current web docs show plugins. Verify actual installed IPC and fresh-engine dependency loading.
+
+## Evidence index
+
+Checked implementation criteria map to the commit index and verification evidence in status.md. Unchecked acceptance items retain native keyboard, hardware, performance or mixed-display verification; they are not implied by fixture success.

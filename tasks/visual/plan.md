@@ -1,6 +1,6 @@
 # Gbuds visual refinement proposal
 
-Status: design only, awaiting user confirmation. Read DUX-INTEGRATION-RESEARCH.md first: its verified native integration corrections supersede speculative APIs and fixed timing suggestions below. No runtime source, installed plugin, settings, branch or tags were changed for this proposal.
+Status: approved and implemented as installed testing candidate 0.7.0-dev.7; see status.md. Read DUX-INTEGRATION-RESEARCH.md first: its verified native integration corrections supersede speculative APIs and fixed timing suggestions below. No runtime source, installed plugin, settings, branch or tags were changed for this proposal.
 
 ## Reference and scope
 
