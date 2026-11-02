@@ -4,19 +4,16 @@
 
 A Dux Shell 2.0 plugin for Galaxy Buds. It adds a status item to the bar, a control popout, animated Popup/Waveup alerts, and configurable desktop widgets. **[gbuds-cli](https://github.com/JessVolet/gbuds-cli/tree/main) is required**: this project does not communicate with the earbuds on its own.
 
-| Control popout | Compact desktop widget |
+| Control popout · light | Control popout · dark |
 | :---: | :---: |
-| ![Control popout showing Galaxy Buds FE](assets/screenshots/control-popout.png) | ![Compact desktop widget showing battery levels and noise modes](assets/screenshots/desktop-compact.png) |
+| ![Gbuds control popout in light mode](assets/screenshots/control-popout-light.png) | ![Gbuds control popout in dark mode](assets/screenshots/control-popout-dark.png) |
 
 ## What it does
 
-The `rewrite/modular-widget` branch is the 0.7.0-dev.9 testing candidate. It replaces the
-legacy UI and daemon with reusable controllers under `src/`, retaining the approved
-artwork in `assets/approved/`. The screenshots above show the earlier presentation.
-See [rewrite status](tasks/rewrite/status.md) and [development commands](docs/DEVELOPMENT.md).
+The `rewrite/modular-widget` branch is the 0.7.0-dev.9 testing candidate. It replaces the legacy UI and daemon with reusable controllers under `src/`, retaining the approved artwork in `assets/approved/`. The screenshots above show the current native Dux presentation. See [development commands](docs/DEVELOPMENT.md).
 
 - Shows each earbud's and the case's battery and placement, plus the current noise mode.
-- Offers noise control, touch lock, equalizer, ambient volume, voice detection, and Blade Lights **only when the connected model and CLI report support**.
+- Offers noise control, touch lock, equalizer presets, ambient volume, voice detection, and Blade Lights **only when the connected model and CLI report support**.
 - Provides Compact, Minimal, Detailed, and Custom desktop layouts. Each instance has its own visibility, artwork, block selection, spacing, size, style, and screen settings.
 - Hides a disconnected desktop widget by default. You can instead show a Connect action or a read-only status. The bar and popout remain independent.
 - Provides concurrent stacked Popup cards and repeating Waveups from the selected monitor corner. Choose a global Popup/Waveup/Both style, with per-event overrides under Advanced; match left/right placement and select SVG or device renders.
