@@ -5,7 +5,7 @@ Item {
     property alias model:items
     property var waiting:[]
     property int revision:0
-    readonly property int count:items.count
+    readonly property int count:{ revision; let total=0; for(let i=0;i<items.count;i++) if(!items.get(i).payload.closing) total++; return total; }
     ListModel { id:items; dynamicRoles:true }
     function occupied(group, before) {
         let count=0;
@@ -26,7 +26,10 @@ Item {
         revision++;
     }
     function dismiss(uid) {
-        for (let i=items.count-1;i>=0;i--) if (items.get(i).uid===uid) items.remove(i);
+        for (let i=items.count-1;i>=0;i--) if (items.get(i).uid===uid) {
+            items.setProperty(i,"payload",Object.assign({},items.get(i).payload,{closing:true}));
+            items.setProperty(i,"deadline",Math.min(items.get(i).deadline,Date.now()+140));
+        }
         revision++;
     }
     function clear() { items.clear(); waiting=[]; revision++; }

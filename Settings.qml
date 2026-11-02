@@ -53,6 +53,7 @@ PluginSettings {
             width:parent.width
             visible:(!modelData.advanced || root.expanded) &&
                 (modelData.key !== "customColor" || settingsStore.value.iconColorMode === "custom") &&
+                (modelData.key !== "customCaseColor" || settingsStore.value.caseColorMode === "custom") &&
                 (modelData.key !== "customIdleColor" || settingsStore.value.idleColorMode === "custom") &&
                 (modelData.key !== "desktopSurfaceColor" || settingsStore.value.desktopBackgroundMode === "custom")
             definition:modelData.key === "notifyScreen" ? Object.assign({},modelData,{options:modelData.options.concat(Quickshell.screens.map(s=>({value:s.name,label:s.name})))}) : modelData

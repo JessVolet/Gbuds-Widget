@@ -112,8 +112,8 @@ Item {
         action.start(job);
     }
     function finish(job, value, success) {
-        store.result(job, value, success);
         if (job.epoch !== store.epoch || job.target !== target) { pump(); return; }
+        store.result(job, value, success);
         if (job.command === "find") {
             if (job.args[0] !== "stop") {
                 store.findState = {active:true, side:job.args[0], uncertain:!success}; findDeadline.restart();

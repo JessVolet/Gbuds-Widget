@@ -35,6 +35,8 @@ function rows(instance) {
         ["string","customColor","Custom icon color"],
         ["select","idleColorMode","Idle timer color",[["auto","Theme warning"],["primary","Primary"],["secondary","Secondary"],["error","Red"],["custom","Custom"]]],
         ["string","customIdleColor","Custom idle color"],
+        ["select","caseColorMode","Case color",[["auto","System theme"],["primary","Primary"],["secondary","Secondary"],["custom","Custom"]]],
+        ["string","customCaseColor","Custom case color"],
         ["title","","Notifications"],
         ["toggle","notificationsEnabled","Enable notifications"],
         ["select","notificationPresentation","Notification style",[["popup","Popups"],["waveup","Waveups"],["both","Popups and Waveups"]]],

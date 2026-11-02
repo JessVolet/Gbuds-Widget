@@ -18,7 +18,7 @@ Column {
                 let values=modelData === "all" ? ["all"] : root.preferences.filter(p=>p!=="all");
                 if (modelData!=="all") values=values.indexOf(modelData)>=0 ? values.filter(p=>p!==modelData) : values.concat([modelData]);
                 if (!values.length) values=["all"];
-                root.preferences=values; root.changed(values);
+                root.changed(values);
             }
         }
     }

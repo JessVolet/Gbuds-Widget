@@ -56,7 +56,7 @@ Rectangle {
     }
     Component {
         id:noiseBlock
-        NoiseControls { state:root.state; readOnly:root.locked && root.config.desktopLockControls !== true; iconSize:root.config.desktopNoiseSize }
+        NoiseControls { state:root.state; animate:!root.locked || root.config.desktopLockAnimations === true; readOnly:root.locked && root.config.desktopLockControls !== true; iconSize:root.config.desktopNoiseSize }
     }
     Component {
         id:disconnectBlock

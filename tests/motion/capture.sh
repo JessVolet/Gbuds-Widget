@@ -13,4 +13,4 @@ cp -R "$repo/tests/runtime/qs" "$fixture/qs"
 cp "${GBUDS_CAPTURE_SCENE:-$repo/tests/motion/scene.qml}" "$fixture/qs/shell.qml"
 ln -s "$repo" "$fixture/qs/Plugin"
 mkdir -p "${EVIDENCE_DIR:?}"
-XDG_RUNTIME_DIR="$fixture/runtime" QT_QPA_PLATFORM=wayland timeout 40 qs -p "$fixture/qs" --no-color
+XDG_RUNTIME_DIR="$fixture/runtime" QT_QPA_PLATFORM=wayland timeout -k 2 40 qs -p "$fixture/qs" --no-color

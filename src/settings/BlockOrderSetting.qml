@@ -10,7 +10,7 @@ Column {
         const parts=order.split(","), next=index+delta;
         if (next<0 || next>=parts.length) return;
         const value=parts.splice(index,1)[0]; parts.splice(next,0,value);
-        order=parts.join(","); changed(order);
+        changed(parts.join(","));
     }
     StyledText { text:"Block order"; color:Theme.surfaceText; font.pixelSize:14 }
     Repeater {

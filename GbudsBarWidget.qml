@@ -17,6 +17,7 @@ PluginComponent {
         return mode === "custom" ? custom || fallback : palette[mode] || fallback;
     }
     readonly property color iconTint:tint(config.iconColorMode,config.customColor,Theme.widgetIconColor)
+    readonly property color caseTint:tint(config.caseColorMode,config.customCaseColor,iconTint)
     readonly property color idleTint:tint(config.idleColorMode,config.customIdleColor,Theme.warning)
     function batteryTint(part) {
         return Number(state.status[part]) <= 20 ? Theme.error : Number(state.status[part]) <= 50 ? Theme.warning : iconTint;
@@ -30,7 +31,7 @@ PluginComponent {
             Row {
                 required property string modelData
                 spacing:2
-                PartIcon { part:modelData; device:state.device; width:root.iconSize+3; height:width; idle:root.config.warnOutOfEar && state.status["placement_"+modelData] === "IDLE"; tint:root.config.batteryIndicatorStyle === "clean" ? root.iconTint : root.batteryTint(modelData); filled:root.config.batteryIndicatorStyle === "tint" || root.config.batteryIndicatorStyle === "glow"; idleTint:root.idleTint }
+                PartIcon { part:modelData; device:state.device; width:root.iconSize+3; height:width; idle:root.config.warnOutOfEar && state.status["placement_"+modelData] === "IDLE"; tint:root.config.batteryIndicatorStyle === "clean" ? (modelData === "case" ? root.caseTint : root.iconTint) : root.batteryTint(modelData); filled:root.config.batteryIndicatorStyle === "tint" || root.config.batteryIndicatorStyle === "glow"; idleTint:root.idleTint }
                 StyledText { visible:root.config.showBatteryPercentages; text:state.battery(modelData); color:Theme.widgetTextColor; font.pixelSize:root.textSize; anchors.verticalCenter:parent.verticalCenter }
             }
         }

@@ -8,7 +8,8 @@ PanelWindow {
     id: root
     property var event: ({})
     property var config: ({})
-    property real elapsedMs: 0
+    property real elapsedMs:0
+    property int lifetimeMs:config.notifyWaveDuration*1000
     property string side: "right"
     color: "transparent"
     anchors { left:true; right:true; top:true; bottom:true }
@@ -23,7 +24,7 @@ PanelWindow {
         elapsedMs: root.elapsedMs
         count: root.event.waves || 1
         radiusPx: root.config.waveRadiusPx
-        lifetimeMs: root.config.notifyWaveDuration * 1000
+        lifetimeMs:root.lifetimeMs
         strokePx: root.event.kind === "battery-20" ? 6 : root.config.waveStrokePx
         tone: root.event.kind === "battery-20" ? Theme.error : root.event.kind === "battery-50" ? Theme.warning : Theme.primary
         reducedMotion: root.config.notifyReduceMotion

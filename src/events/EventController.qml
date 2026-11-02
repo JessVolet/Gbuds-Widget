@@ -8,7 +8,11 @@ Item {
     property var config: ({})
     property var memory: ({})
     property var due: ({left:0, right:0})
-    property int sequence: 0
+    property int sequence:0
+    readonly property bool remindersEnabled:config.notifyIdleReminder === true && !SessionService.locked
+    readonly property int reminderIntervalMs:config.notifyIdleInterval*1000
+    onRemindersEnabledChanged:due=({left:0,right:0})
+    onReminderIntervalMsChanged:due=({left:0,right:0})
     signal emitted(var event)
     function publish(event, device) {
         event.id = String(++sequence) + ":" + Date.now();
@@ -34,7 +38,7 @@ Item {
     Timer {
         interval: 1000
         repeat: true
-        running: root.config.notifyIdleReminder === true && !SessionService.locked && root.backend.state.connected
+        running:root.remindersEnabled && root.backend.state.connected
         onTriggered: {
             ["left","right"].forEach(side => {
                 if (root.due[side] && Date.now() >= root.due[side]) {

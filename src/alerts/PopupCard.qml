@@ -8,12 +8,17 @@ Rectangle {
     id: root
     property var event: ({})
     property var config: ({})
-    property real elapsedMs: 0
+    property real elapsedMs:0
+    property real lifeElapsedMs:elapsedMs
+    property int lifetimeMs:config.dismissTimeout*1000
+    property int motionLifetimeMs:lifetimeMs
     signal dismissed()
     implicitWidth: 250
     implicitHeight: 270
-    opacity:Math.max(0,Math.min(1,elapsedMs/180,(config.dismissTimeout*1000-elapsedMs)/140))
-    scale:0.98+0.02*Math.min(1,elapsedMs/180)
+    property bool closing:event.closing === true
+    Behavior on opacity { enabled:root.closing; NumberAnimation { duration:140 } }
+    opacity:closing ? 0 : Math.max(0,Math.min(1,lifeElapsedMs/180,(lifetimeMs-lifeElapsedMs)/140))
+    scale:0.98+0.02*Math.min(1,lifeElapsedMs/180)
     radius: Theme.cornerRadiusL
     color: Theme.withAlpha(Theme.surfaceContainerHigh,0.98)
     border.color: Theme.withAlpha(event.kind === "battery-20" ? Theme.error : Theme.primary, 0.45)
@@ -36,7 +41,7 @@ Rectangle {
                 elapsedMs: root.elapsedMs
                 count: root.event.waves || 1
                 radiusPx: 72
-                lifetimeMs: root.config.dismissTimeout * 1000
+                lifetimeMs:root.motionLifetimeMs
                 strokePx: root.event.kind === "battery-20" ? 6 : root.config.waveStrokePx
                 tone: root.event.kind === "battery-20" ? Theme.error : root.event.kind === "battery-50" ? Theme.warning : Theme.primary
                 reducedMotion: root.config.notifyReduceMotion

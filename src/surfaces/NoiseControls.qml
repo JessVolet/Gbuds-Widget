@@ -7,6 +7,7 @@ Row {
     id: root
     required property var state
     property bool readOnly: false
+    property bool animate:true
     property int iconSize: 36
     spacing: 6
     readonly property var modes: state.device.supported_noise_modes || []
@@ -30,7 +31,7 @@ Row {
                 anchors.fill:parent; radius:14
                 color:button.selected ? Theme.primaryContainer : Theme.withAlpha(Theme.surfaceContainerHigh,0.8)
                 border.width:button.activeFocus ? 2 : 0; border.color:Theme.primary
-                Behavior on color { ColorAnimation { duration:160 } }
+                Behavior on color { enabled:root.animate; ColorAnimation { duration:160 } }
             }
             Column {
                 anchors.centerIn:parent; spacing:5

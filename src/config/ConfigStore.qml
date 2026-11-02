@@ -19,7 +19,7 @@ Item {
         const changes=pending; pending={};
         Object.keys(changes).forEach(key=>root.persist(key,changes[key]));
     }
-    onSourceChanged:overrides=({})
+    onSourceChanged:overrides=Object.assign({},pending)
     Timer { id:writer; interval:60; onTriggered:root.flush() }
     Component.onDestruction:flush()
 }

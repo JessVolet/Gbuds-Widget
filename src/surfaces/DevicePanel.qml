@@ -30,7 +30,7 @@ Item {
             StyledText { width:parent.width; visible:!!state.error; text:state.error; color:Theme.error; font.pixelSize:12; wrapMode:Text.WordWrap }
             Row {
                 width:parent.width; spacing:8
-                DButton { width:(parent.width-8)/2; text:"Devices"; onClicked:root.showDevices=!root.showDevices }
+                DButton { width:state.connected ? (parent.width-8)/2 : parent.width; text:"Devices"; onClicked:root.showDevices=!root.showDevices }
                 DButton { width:(parent.width-8)/2; text:root.showMore ? "Less" : "More controls"; visible:state.connected; onClicked:root.showMore=!root.showMore }
             }
             Column {

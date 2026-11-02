@@ -15,4 +15,4 @@ ln -s "$repo" "$fixture/qs/Plugin"
 GBUDS_FAKE_CLI="$repo/tests/runtime/fake-gbuds.py" \
 GBUDS_FAKE_FAIL_CLI="$repo/tests/runtime/fail-gbuds.py" \
 XDG_RUNTIME_DIR="$fixture/runtime" QT_QPA_PLATFORM=wayland \
-timeout 20 qs -p "$fixture/qs" --no-color
+timeout -k 2 20 qs -p "$fixture/qs" --no-color
