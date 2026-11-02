@@ -195,3 +195,15 @@ Dependencies: R19. Proposed files: package/deploy script, deployment manifest, r
 ## Completion rule
 
 A checked task needs its acceptance evidence and commit ID recorded beneath it. Keep blocked or unavailable checks pending. Implemented code and automated evidence are recorded in status.md. Unchecked items retain native/physical or broader visual acceptance work; implementation alone does not check them.
+
+## Checked-item commit and evidence index
+
+- Documentation delivery: 92dc1e3, rewrite contracts and user approval recorded before implementation.
+- R03: 49d7276, tests/motion.test.cjs; actual renderer samples and wave-contact-sheet.png in the evidence delivery.
+- R06: cf5eb3d, ea7a1bc, c6baaa7; Schema migration behavior checks and ConfigStore QML immediate/coalesced persistence checks.
+- R07–R08: cf5eb3d, c6baaa7; registry/telemetry/policy cases and fake-process QML connect, timeout, Find/Stop/disconnect flow. Physical device acceptance remains separate.
+- R09: cf5eb3d, c6baaa7; EventPolicy crossings, inclusive rearm and channel cases, plus runtime lock suppression and independent alerts.
+- R10: eb24a61, 0f1f52d, 24e1d84, 5615242; asset/subject/layout checks and final presentation capture. No mixed-scale visual certification is implied.
+- R18: b204e03; retired folders absent in source and installation, 104 final artifact files compared with no mismatches.
+
+The full outstanding acceptance matrix remains deliberately unchecked. See status.md for exact candidate/native identity and limitations.

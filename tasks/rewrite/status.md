@@ -37,3 +37,15 @@ Native smoke testing initially found a Qt Item.state name collision inside the b
 User-facing captures, contact sheet, radius samples and validation reports are delivered under outputs/gbuds-rewrite-evidence in the Codex workspace. Source scenarios and analysis commands live in tests/motion and tests/presentation. Deployment artifacts include exact commit/version/hash manifests.
 
 Keep the candidate branch separate from the original branch until the requested testing stage and remaining acceptance review are complete. Do not label this candidate as a verified release or silently mark unchecked physical TODO cells complete.
+
+## Final native deployment
+
+Candidate tag: rewrite-candidate-v5. Runtime commit: 5615242ef47e535566b674049f8b33130ffcafa0.
+Installed version: 0.7.0-dev.5. All 104 packaged files match the installed files byte for byte; no retired versioned directories remain.
+Native Dux instance efeucmtunt reports the plugin loaded. Its fresh-process log has no widget TypeError, ReferenceError or binding errors; the invisible Daemon graphical-object warning remains.
+
+A real deployment attempt exposed cached directory/module data in the existing QML engine. Candidate v4 failed its native import and was automatically rolled back. Candidate v5 loaded, but the old engine still held the previous placement script. A managed Dux restart cleared this cache and the final native log is clean of those import/function errors. Future changes to imported scripts may likewise need a managed shell restart; a loaded status alone does not establish fresh dependencies.
+
+The final pass repeats all 22 behavior checks, 25 QML checks, temporary deployment/rollback and presentation capture. A temporary mutation from 250 to 251 ms stagger fails the launch-boundary tests, and the source was restored immediately.
+
+No physical Find/disconnect commands were issued by the test harness. Merge and release remain pending the acceptance items above; no remote branch or tag was pushed.

@@ -2,7 +2,7 @@
 
 ## 0.7.0-dev.5
 
-- Keep shared geometry in the existing placement module so native hot reload can resolve it without restarting the shell.
+- Consolidate shared geometry in the placement module. Native QML script caches require a managed shell restart to load changed dependencies reliably.
 - A failed candidate deployment restores the previous installed candidate automatically.
 
 
