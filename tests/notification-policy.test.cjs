@@ -33,7 +33,7 @@ test('event channels follow the global style with explicit overrides',()=>{
     assert.equal(events.channel({kind:'noise-mode'},{notificationPresentation:'both',notify_noise_mode:'off'}),'off');
 });
 
-const layout=load('src/presentation/Layout.js');
+const layout=load('src/presentation/ScreenPlacement.js');
 test('case positioning and minimum width follow order and independent sizes',()=>{
     const config=schema.resolve({desktopCaseSize:80,desktopAlignment:'left',desktopTextSize:12});
     const parts=['case','left','right'];

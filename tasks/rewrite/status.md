@@ -1,6 +1,6 @@
 # Rewrite candidate status
 
-Branch: rewrite/modular-widget. Product version: 0.7.0-dev.4. Base: v0.6.7.
+Branch: rewrite/modular-widget. Product version: 0.7.0-dev.5. Base: v0.6.7.
 This is a new runtime implementation under src. Legacy UI/core folders have been removed in the branch. Approved vector artwork, renders and license files are retained.
 
 ## Implemented

@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import qs.Modules.Plugins
 import "src/config"
-import "src/presentation/Layout.js" as Layout
+import "src/presentation/ScreenPlacement.js" as Layout
 import "src/state"
 import "src/surfaces"
 

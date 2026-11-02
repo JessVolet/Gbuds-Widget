@@ -2,7 +2,7 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 import "../presentation"
-import "../presentation/Layout.js" as Layout
+import "../presentation/ScreenPlacement.js" as Layout
 
 FocusScope {
     id: root

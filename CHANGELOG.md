@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0-dev.5
+
+- Keep shared geometry in the existing placement module so native hot reload can resolve it without restarting the shell.
+- A failed candidate deployment restores the previous installed candidate automatically.
+
+
 ## 0.7.0-dev.4 — desktop layout completion
 
 - Add independent case/name/battery-label sizes and content alignment.

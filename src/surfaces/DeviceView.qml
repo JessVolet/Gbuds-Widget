@@ -1,7 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
-import "../presentation/Layout.js" as Layout
+import "../presentation/ScreenPlacement.js" as Layout
 import "../config/Schema.js" as Schema
 
 Rectangle {
