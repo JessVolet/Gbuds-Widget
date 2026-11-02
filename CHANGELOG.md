@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0-dev.6 — native visual refinement
+
+- Restore the expanded panel hierarchy with system-icon navigation, contextual Find hints, supported noise modes and a native audio mixer.
+- Add bounded command history with readable results and sanitized details.
+- Organize settings into native sections and conditional form rows.
+- Add advanced per-event notification rules, independent popup/wave placement, a nine-position picker and preview/reset.
+- Correct automatic icon contrast on opaque customized bar fills and follow native theme/motion preferences.
+- Preserve user preferences and the existing safe Find/Stop/disconnect path.
+
+
 ## 0.7.0-dev.5
 
 - Consolidate shared geometry in the placement module. Native QML script caches require a managed shell restart to load changed dependencies reliably.
