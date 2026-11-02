@@ -70,3 +70,27 @@ function rows(instance) {
     }
     return result;
 }
+
+function icon(key) {
+    const groups=[[/[Aa]rtwork/,"image"],[/[Cc]olor|[Aa]ppearance|[Bb]ackground/,"palette"],[/[Ss]creen|[Dd]isplay/,"monitor"],
+        [/[Nn]oise|[Mm]ode/,"noise_control_on"],[/[Bb]attery|[Pp]ercentage/,"battery_5_bar"],[/[Tt]imer|[Ii]dle|[Dd]uration|Timeout/,"timer"],
+        [/[Ss]ize|[Ss]pacing|[Gg]ap|[Pp]adding|[Oo]ffset/,"straighten"],[/[Pp]osition|[Aa]lignment|Origin/,"open_with"],
+        [/[Ll]ock/,"lock"],[/[Bb]order/,"border_style"],[/[Aa]nimation|Motion/,"animation"],[/[Mm]ixer/,"volume_up"],
+        [/[Ss]earch/,"search"],[/[Ll]ayout|Preset|Order|Horizontal/,"dashboard_customize"],[/targetMac/,"bluetooth"],[/Command/,"terminal"]];
+    return groups.find(pair=>pair[0].test(key || ""))?.[1] || "tune";
+}
+function sections() {
+    return [{text:"Device panel",icon:"earbuds"},{text:"Bar",icon:"dock_to_top"},{text:"Notifications",icon:"notifications"},{text:"Advanced",icon:"tune"}];
+}
+function sectionRows(section, instance) {
+    if (instance) return rows(true);
+    const all=rows(false);
+    if (section===0) return [
+        {kind:"select",key:"panelArtwork",label:"Artwork",icon:"image",options:choices([["auto","Automatic"],["svg","SVG icons"],["render","Device renders"]])},
+        {kind:"toggle",key:"panelShowMixer",label:"Audio mixer",description:"Control the selected Buds output and playback applications."},
+        {kind:"toggle",key:"panelSearchHints",label:"Search hints",description:"Explain when an earbud can be safely located."},
+        {kind:"toggle",key:"panelAnimations",label:"Panel animations",description:"Follow the shell motion settings."}];
+    const start=all.findIndex(row=>row.label === (section===1 ? "Bar" : "Device"));
+    const end=section===1 ? all.findIndex(row=>row.label === "Notifications") : all.length;
+    return all.slice(start+1,end);
+}
