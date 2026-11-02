@@ -3,3 +3,8 @@ StyledText 1.0 StyledText.qml
 DIcon 1.0 DIcon.qml
 DButton 1.0 DButton.qml
 DToggle 1.0 DToggle.qml
+
+DSlider 1.0 DSlider.qml
+
+DDropdown 1.0 DDropdown.qml
+DTextField 1.0 DTextField.qml

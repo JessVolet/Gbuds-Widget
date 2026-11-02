@@ -6,3 +6,5 @@ StringSetting 1.0 StringSetting.qml
 SelectionSetting 1.0 SelectionSetting.qml
 ColorSetting 1.0 ColorSetting.qml
 ToggleSetting 1.0 ToggleSetting.qml
+
+SliderSetting 1.0 SliderSetting.qml
