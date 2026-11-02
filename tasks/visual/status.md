@@ -1,6 +1,8 @@
 # Native visual refinement status
 
-Candidate: **0.7.0-dev.9** on `rewrite/modular-widget`. It removes all operating-system playback UI and adapters, refines Sound & controls around Buds equalizer presets and supported Buds features, and replaces noise-mode SVGs with Dux Material glyphs. The hero retains its clean layout without wave/gear decoration.
+Installed candidate: **0.7.0-dev.9**, branch `rewrite/modular-widget`, tag `visual-candidate-v4`, commit `cdae107a7a3944b507d75e7b1fa0ffde7a197216`.
+
+The update removes all operating-system playback controls, interfaces, preferences, adapters and mocks. Sound & controls focuses on Buds equalizer presets and supported Buds features. Noise-mode buttons use Dux Material glyphs and follow the active theme. The hero keeps its clean layout without animated wave or gear decoration.
 
 The approved presentation is implemented using native Dux/DCommon cards, icon buttons, sliders, disclosures, settings rows and tabs. System glyphs identify navigation/actions/settings; approved SVGs and model renders retain the device identity.
 
@@ -33,12 +35,13 @@ Other events inherit global defaults. Disable Advanced to suspend saved exceptio
 
 - Native DCommon captures in dark and light show the expanded device panel beside the redesigned Sound & controls; simulated state reports ANC, touch controls and EQ. Capture completed without QML binding, assignment, ReferenceError or TypeError warnings.
 - Operating-system playback controls, PipeWire adapter/service mocks and their identity policy were removed; no playback controls remain in the plugin.
-- Node behavior and end-to-end suites were not rerun for this visual-only update. Physical Buds controls, keyboard focus, motion smoothness on the user's display, multiple/mixed-scale outputs and rollback rehearsal remain acceptance items.
-- Temporary install/rollback test passes and preserves unrelated plugin preferences.
-- Native Dux restarted for new modules, then the final correction reloaded as revision 1. The first deployment found a missing DBar import; the final candidate fixes it and the fixture now supplies a non-null bar configuration. Old pre-reload warnings remain in the process log; the post-reload widget segment has no new QML binding errors.
-- **120 installed files** match the exact packaged artifact byte for byte.
+- Node behavior and end-to-end suites were not rerun for this visual-only update. Physical Buds control validation, keyboard focus and multiple/mixed-scale outputs remain acceptance items.
+- The previous installation is backed up at `/home/vsynlo/Documents/Codex/2026-11-01/pue/outputs/gbuds-visual-implementation/backups/gbuds-20261102T044443.452607Z`.
+- Dux was restarted; `plugin-scan status gbudsWatch` reports `loaded composite`. The fresh Quickshell log shows the Gbuds daemon loaded and no QML load, binding, assignment, ReferenceError or TypeError failures.
+- All **117 packaged files** match the installed plugin byte for byte.
+- Artifact SHA-256: `3dfd279e55b34130e430d583b5acc353a3e1fe11b0b5d04020c664a6e8978128`.
 
-No physical Buds commands were triggered during visual capture. Actual hardware behavior, user visual acceptance, multiple/mixed-scale outputs and a full native rollback rehearsal remain acceptance items. Main was not merged and nothing was pushed remotely.
+No physical Buds commands were triggered during visual capture. Actual hardware behavior, keyboard focus, multiple/mixed-scale outputs and rollback rehearsal remain acceptance items. Main was not merged and nothing was pushed remotely.
 
 ## Commit evidence index
 
@@ -50,5 +53,7 @@ No physical Buds commands were triggered during visual capture. Actual hardware 
 - 48fdb42: responsive event editor, nine-position picker, history correlation and native capture scenarios.
 - 3668bac: canonical native settings navigation.
 - ba18ece: native DBar import and non-null bar configuration regression coverage.
+- 43998e5: removed operating-system playback controls and redesigned Buds sound controls.
+- cdae107: removed animated hero decoration after visual review.
 
 User-facing reports/captures and deployment hashes are delivered under outputs/gbuds-visual-implementation. Manual acceptance cells in todo.md remain pending where hardware, keyboard/focus or mixed-display evidence is absent.

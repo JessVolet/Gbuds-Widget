@@ -80,7 +80,7 @@ Files: panel/hero delegates and shared motion tokens. Dependencies: V02–V07. V
 ## V09 — Package and acceptance
 
 - [x] Capture the native light/dark panel and sound-controls showcase.
-- [ ] Tag the reviewed commit, back up settings, package exact source and confirm plugin reload.
+- [x] Tag the reviewed commit, back up the installed candidate, package exact source, and confirm plugin reload.
 - [ ] Complete physical Buds controls, visual acceptance and rollback before merge.
 
 Files: evidence report, deployment manifest and status documentation. Dependencies: V08. Preserve the functioning base candidate and immutable tags. Scope: small; physical acceptance remains explicit.
