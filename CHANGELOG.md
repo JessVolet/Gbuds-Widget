@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0-dev.4 — desktop layout completion
+
+- Add independent case/name/battery-label sizes and content alignment.
+- Keep the Disconnect action aligned under CASE after changing part order.
+- Compute minimum geometry from actual part and text dimensions.
+
 ## 0.7.0-dev.3 — artwork contract completion
 
 - Respect render selection for noise-mode notifications, with the mode icon as a badge.

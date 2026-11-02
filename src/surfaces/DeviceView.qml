@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "../presentation/Layout.js" as Layout
 import "../config/Schema.js" as Schema
 
 Rectangle {
@@ -39,7 +40,16 @@ Rectangle {
     }
     Component {
         id: titleBlock
-        StyledText { text:root.state.device.name || root.state.device.model || "Galaxy Buds"; color:Theme.surfaceText; font.pixelSize:14; font.bold:true; horizontalAlignment:Text.AlignHCenter; elide:Text.ElideRight; height:24 }
+        StyledText {
+            text:root.state.device.name || root.state.device.model || "Galaxy Buds"
+            color:Theme.surfaceText
+            font.pixelSize:root.config.desktopNameSize || 14
+            font.bold:true
+            horizontalAlignment:root.config.desktopAlignment === "left" ? Text.AlignLeft
+                : root.config.desktopAlignment === "right" ? Text.AlignRight : Text.AlignHCenter
+            elide:Text.ElideRight
+            height:Math.max(24,font.pixelSize+6)
+        }
     }
     Component {
         id: partsBlock
@@ -47,7 +57,7 @@ Rectangle {
             implicitHeight: partsGrid.implicitHeight
             Grid {
                 id:partsGrid
-                anchors.horizontalCenter:parent.horizontalCenter
+                x:root.config.desktopAlignment === "left" ? 0 : root.config.desktopAlignment === "right" ? parent.width-width : (parent.width-width)/2
                 columns:root.config.desktopHorizontal === false ? 1 : Math.max(1,root.parts.length)
                 spacing:root.config.desktopGap
                 Repeater {
@@ -73,7 +83,15 @@ Rectangle {
         Item {
             implicitHeight: root.locked ? 0 : 32
             visible: !root.locked
-            DButton { objectName:"disconnectButton"; anchors.horizontalCenter:parent.horizontalCenter; width:116; text:"Disconnect"; enabled:!root.state.busy; onClicked:root.state.request("disconnect",[]) }
+            DButton {
+                objectName:"disconnectButton"
+                width:116
+                x:Math.max(0,Math.min(parent.width-width,
+                    Layout.partCenter(root.config,root.parts,"case",parent.width)-width/2))
+                text:"Disconnect"
+                enabled:!root.state.busy
+                onClicked:root.state.request("disconnect",[])
+            }
         }
     }
     Column {

@@ -35,7 +35,7 @@ Row {
             }
             Column {
                 anchors.centerIn:parent; spacing:5
-                ModeIcon { anchors.horizontalCenter:parent.horizontalCenter; mode:button.mode; size:root.iconSize }
+                ModeIcon { anchors.horizontalCenter:parent.horizontalCenter; mode:button.mode; size:Math.min(root.iconSize,button.width-16) }
                 StyledText { id:label; anchors.horizontalCenter:parent.horizontalCenter; text:({off:"OFF",on:"ANC",ambient:"Ambient",adaptive:"Adaptive"})[button.modelData]; color:Theme.surfaceText; font.pixelSize:11 }
             }
             MouseArea { anchors.fill:parent; onClicked:button.activate() }

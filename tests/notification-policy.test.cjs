@@ -32,3 +32,12 @@ test('event channels follow the global style with explicit overrides',()=>{
     assert.equal(events.channel({kind:'noise-mode'},{notificationPresentation:'waveup'}),'waveup');
     assert.equal(events.channel({kind:'noise-mode'},{notificationPresentation:'both',notify_noise_mode:'off'}),'off');
 });
+
+const layout=load('src/presentation/Layout.js');
+test('case positioning and minimum width follow order and independent sizes',()=>{
+    const config=schema.resolve({desktopCaseSize:80,desktopAlignment:'left',desktopTextSize:12});
+    const parts=['case','left','right'];
+    assert.equal(layout.partCenter(config,parts,'case',400),layout.partWidth(config,'case')/2);
+    assert.ok(layout.groupWidth(config,parts)>layout.groupWidth(schema.resolve({}),parts));
+    assert.equal(schema.resolve({desktopEarbudSize:72}).desktopCaseSize,72);
+});

@@ -13,7 +13,9 @@ function rows(instance) {
         ["select","desktopEarOrder","Earbud order",[["left-case-right","L · CASE · R"],["right-case-left","R · CASE · L"],["case-left-right","CASE · L · R"],["left-right-case","L · R · CASE"]]],
         ["toggle","desktopHorizontal","Horizontal arrangement"],
         ["title","","Size and spacing"],
-        ["slider","desktopEarbudSize","Earbud size",20,128], ["slider","desktopNoiseSize","Noise icon size",16,96],
+        ["slider","desktopEarbudSize","Earbud size",20,128], ["slider","desktopCaseSize","Case size",20,128],
+        ["slider","desktopTextSize","Battery label size",9,24], ["slider","desktopNameSize","Device name size",12,28],
+        ["select","desktopAlignment","Content alignment",[["left","Left"],["center","Center"],["right","Right"]]], ["slider","desktopNoiseSize","Noise icon size",16,96],
         ["slider","desktopGap","Spacing",0,48], ["slider","desktopPadding","Padding",0,40],
         ["slider","desktopVerticalOffset","Earbud vertical offset",-32,32],
         ["title","","Appearance"],
@@ -22,7 +24,8 @@ function rows(instance) {
         ["slider","desktopBackgroundOpacity","Background opacity",0,100],
         ["toggle","desktopShowBorder","Border"],
         ["toggle","syncPositionAcrossScreens","Sync position across displays"],
-        ["toggle","desktopLockControls","Allow noise control on the lock screen"]
+        ["toggle","desktopLockControls","Allow noise control on the lock screen"],
+        ["toggle","desktopLockAnimations","Allow lock-screen animations"]
     ] : [
         ["title","","Device panel"],
         ["select","panelArtwork","Artwork",[["svg","SVG icons"],["render","Device renders"],["auto","Automatic"]]],

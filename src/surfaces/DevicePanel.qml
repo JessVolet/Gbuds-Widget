@@ -25,7 +25,7 @@ Item {
                 width:parent.width
                 height:implicitHeight
                 state:state
-                config:Object.assign({},Schema.resolve(root.config,false),{desktopArtwork:root.config.panelArtwork || "auto", desktopEarbudSize:72, desktopPreset:"detailed", desktopPadding:16})
+                config:Object.assign({},Schema.resolve(root.config,false),{desktopArtwork:root.config.panelArtwork || "auto", desktopEarbudSize:72, desktopCaseSize:72, desktopPreset:"detailed", desktopPadding:16})
             }
             StyledText { width:parent.width; visible:!!state.error; text:state.error; color:Theme.error; font.pixelSize:12; wrapMode:Text.WordWrap }
             Row {
