@@ -24,6 +24,7 @@ Item {
     signal sample(var previous, var next, var device)
     signal disconnected(var previous, var device, bool voluntary)
 
+    CommandHistory { id:history; service:root.service; pluginId:root.pluginId }
     DeviceStore { id: store; service: root.service; pluginId: root.pluginId }
     function address(value) { return /^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i.test(value || "") ? value.toUpperCase() : ""; }
     function selectTarget(value, persist) {
@@ -140,18 +141,22 @@ Item {
     ProcessTask {
         id: watcher
         stream: true
+        onStarted:job=>history.begin(job)
         onLine: (job, value) => { if (job.epoch === store.epoch && root.targetConnected && !root.manualDisconnect) root.accept(value); }
         onFinished: (job, result, success) => {
+            history.finish(job,result,success);
             if (root.queue.length) { root.pump(); return; }
             if (!root.targetConnected || root.manualDisconnect) return;
             store.phase = "waiting"; store.error = result.error || "Waiting for the device."; store.publish();
             retry.interval = root.retryMs; retry.restart(); root.retryMs = Math.min(root.retryMs * 2, 30000);
         }
     }
-    ProcessTask { id: action; onFinished: (job, value, success) => root.finish(job, value, success) }
+    ProcessTask { id: action; onStarted:job=>history.begin(job); onFinished: (job, value, success) => { history.finish(job,value,success); root.finish(job,value,success); } }
     ProcessTask {
         id: metadata
+        onStarted:job=>history.begin(job)
         onFinished: (job, value, success) => {
+            history.finish(job,value,success);
             if (success && job.epoch === store.epoch && root.targetConnected) {
                 store.device = Policy.metadata(value); store.publish();
             }

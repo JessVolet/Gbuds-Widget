@@ -7,11 +7,13 @@ Item {
     property bool stream:false
     property bool disposing:false
     readonly property bool busy:process !== null
+    signal started(var job)
     signal line(var job, string value)
     signal finished(var job, var result, bool success)
     function start(job) {
         if (busy || disposing) return false;
         process=runner.createObject(root,{job:job});
+        started(job);
         process.running=true;
         return true;
     }

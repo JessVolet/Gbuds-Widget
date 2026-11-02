@@ -10,6 +10,10 @@ Item {
     PluginGlobalVar { id: metadata; varName:"device"; defaultValue:({}) }
     PluginGlobalVar { id: actions; varName:"commandState"; defaultValue:({}) }
     PluginGlobalVar { id: find; varName:"findState"; defaultValue:({active:false}) }
+    PluginGlobalVar { id:selected; varName:"selectedDevice"; defaultValue:"" }
+    PluginGlobalVar { id:history; varName:"commandHistory"; defaultValue:[] }
+    readonly property string selectedAddress:selected.value || ""
+    readonly property var commandHistory:history.value || []
     PluginGlobalVar { id: failure; varName:"actionError"; defaultValue:"" }
     readonly property var snapshot: telemetry.value || ({})
     readonly property var status: snapshot.status || ({})
