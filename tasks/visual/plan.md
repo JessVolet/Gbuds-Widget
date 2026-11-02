@@ -1,6 +1,6 @@
 # Gbuds visual refinement proposal
 
-Status: implemented on `rewrite/modular-widget` as testing candidate 0.7.0-dev.8; see status.md. Read DUX-INTEGRATION-RESEARCH.md first: verified native integration findings supersede speculative APIs and fixed timing suggestions below.
+Status: implemented on `rewrite/modular-widget` as testing candidate 0.7.0-dev.9; see status.md. Read DUX-INTEGRATION-RESEARCH.md first: verified native integration findings supersede speculative APIs and fixed timing suggestions below.
 
 ## Reference and scope
 
@@ -85,7 +85,7 @@ Resolve channel, popup placement and wave origin separately. Snapshot the resolv
 ## 5. Motion and presentation
 
 - Open: use the host transition and avoid competing opening effects.
-- Hero: restrained expanding rings and slow Material gear glyph rotation while visible. Stop when hidden or reduced motion is active. Hover/focus uses a small background/elevation change. Press feedback does not delay intents.
+- Hero: keep the earbud renders and battery hierarchy visually clear without animated wave or gear decoration. Hover/focus uses a small background/elevation change. Press feedback does not delay intents.
 - Noise selection: 140–180 ms highlight transition with immediate pending feedback; confirmation/failure reconciles through existing state.
 - Disclosures and internal pages: 160–200 ms height/opacity or short directional transition. Preserve scroll/focus and avoid recreating the device controller.
 - Battery: animate the indicator only when values change; never loop while idle.

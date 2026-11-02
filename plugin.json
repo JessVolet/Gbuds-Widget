@@ -3,7 +3,7 @@
   "id": "gbudsWatch",
   "name": "Gbuds Widget",
   "description": "Galaxy Buds status, configurable desktop widgets, and animated Popup/Waveup alerts for Dux Shell. Requires gbuds-cli.",
-  "version": "0.7.0-dev.8",
+  "version": "0.7.0-dev.9",
   "author": "JessVolet",
   "license": "MIT",
   "icon": "headphones",

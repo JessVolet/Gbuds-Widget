@@ -1,6 +1,6 @@
 # Native visual refinement status
 
-Candidate: **0.7.0-dev.8** on `rewrite/modular-widget`. It removes all operating-system playback UI and adapters, refines Sound & controls around Buds equalizer presets and supported Buds features, replaces noise-mode SVGs with Dux Material glyphs, and adds reduced-motion-aware hero ripples/gears. Deployment and final commit metadata are recorded below after installation.
+Candidate: **0.7.0-dev.9** on `rewrite/modular-widget`. It removes all operating-system playback UI and adapters, refines Sound & controls around Buds equalizer presets and supported Buds features, and replaces noise-mode SVGs with Dux Material glyphs. The hero retains its clean layout without wave/gear decoration.
 
 The approved presentation is implemented using native Dux/DCommon cards, icon buttons, sliders, disclosures, settings rows and tabs. System glyphs identify navigation/actions/settings; approved SVGs and model renders retain the device identity.
 
@@ -13,7 +13,6 @@ The approved presentation is implemented using native Dux/DCommon cards, icon bu
 - Command history is daemon-owned, in memory, sanitized and bounded to 80 entries. Watch packets are not logged as separate commands. Canceled watcher jobs are Stopped rather than Failed.
 - Sound & controls contains only controls for supported Galaxy Buds features. The equalizer exposes the named Gbuds presets; its curve is an illustrative visual guide, not a measured frequency response or manual frequency editor.
 - The native Material mode glyphs follow the selected/unselected Dux theme colors in both light and dark appearances.
-- The hero uses subtle expanding rings and slow gear glyphs while its popout is active. The animation stops when hidden, disabled in settings, or reduced motion is enabled.
 - Global notification defaults and sparse per-event overrides, with a persisted Advanced switch, conditional fields, nine-position picker, independent Waveup origins, display/duration/artwork/reach/stroke options, Preview and Reset.
 - A wide editor displays the event list beside its rules; a narrow editor uses a compact selector. Initialization does not persist defaults.
 - Native selection/disclosure motion follows global reduced motion; the panel page reveal also honors its local animation setting. Existing wave timing and safe Stop-before-disconnect behavior remain intact.

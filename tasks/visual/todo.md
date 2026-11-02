@@ -1,6 +1,6 @@
 # Visual refinement implementation checklist
 
-Status: candidate 0.7.0-dev.8 prepared on the rewrite branch. See status.md for the implementation and remaining native/hardware acceptance. Follow PLAN.md and the repository codestyle.
+Status: candidate 0.7.0-dev.9 prepared on the rewrite branch. See status.md for the implementation and remaining native/hardware acceptance. Follow PLAN.md and the repository codestyle.
 
 ## V01 — Resolve theme contrast
 
@@ -72,7 +72,7 @@ Files: Settings.qml, SettingsModel.js, section delegates and Schema.js as needed
 
 - [x] Add host-compatible reveal, selection, disclosure and page transitions.
 - [x] Respect reduced motion, cancellation and input responsiveness.
-- [x] Add visible-only hero ripples and slow gear glyphs, disabled with reduced motion.
+- [x] Keep the hero clear of animated background decoration after visual review.
 - [ ] Capture actual transitions without changing the shared wave engine contract.
 
 Files: panel/hero delegates and shared motion tokens. Dependencies: V02–V07. Verify rapid edits, disposal, open/close and reduced motion. Scope: medium.

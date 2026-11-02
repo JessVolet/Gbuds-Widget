@@ -1,11 +1,15 @@
 # Changelog
 
+## 0.7.0-dev.9
+
+- Remove the animated wave and gear decoration from the device hero; keep the focused sound-control redesign.
+
 ## 0.7.0-dev.8
 
 - Remove operating-system playback controls and keep Sound & controls focused on Buds features and equalizer presets.
 - Redesign sound controls with native Dux cards, Material controls, preset chips and an illustrative equalizer curve.
 - Replace noise-mode artwork in controls and alerts with theme-aware Dux Material glyphs.
-- Add restrained animated wave rings and rotating gear accents to the earbud hero; respect reduced motion and panel visibility.
+- Add restrained animated wave rings and rotating gear accents to the earbud hero; this decoration is removed in dev.9.
 
 ## 0.7.0-dev.7
 
