@@ -15,4 +15,11 @@ ln -s "$repo" "$fixture/qs/Plugin"
 GBUDS_FAKE_CLI="$repo/tests/runtime/fake-gbuds.py" \
 GBUDS_FAKE_FAIL_CLI="$repo/tests/runtime/fail-gbuds.py" \
 XDG_RUNTIME_DIR="$fixture/runtime" QT_QPA_PLATFORM=wayland \
-timeout -k 2 20 qs -p "$fixture/qs" --no-color
+timeout -k 2 20 qs -p "$fixture/qs" --no-color > "$fixture/runtime.log" 2>&1 || {
+    cat "$fixture/runtime.log"
+    exit 1
+}
+cat "$fixture/runtime.log"
+if rg -q 'TypeError|ReferenceError|Unable to assign|Binding loop|FAIL ' "$fixture/runtime.log"; then
+    exit 1
+fi

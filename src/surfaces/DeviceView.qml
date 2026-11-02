@@ -50,7 +50,17 @@ Rectangle {
                 anchors.horizontalCenter:parent.horizontalCenter
                 columns:root.config.desktopHorizontal === false ? 1 : Math.max(1,root.parts.length)
                 spacing:root.config.desktopGap
-                Repeater { model:root.parts; PartControl { required property string modelData; part:modelData; state:root.state; config:root.config; readOnly:root.locked; objectName:"find-"+modelData } }
+                Repeater {
+                    model: root.parts
+                    PartControl {
+                        required property string modelData
+                        part: modelData
+                        state: root.state
+                        config: root.config
+                        readOnly: root.locked
+                        objectName: "find-" + modelData
+                    }
+                }
             }
         }
     }

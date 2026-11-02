@@ -1,6 +1,6 @@
 # Rewrite candidate status
 
-Branch: rewrite/modular-widget. Product version: 0.7.0-dev.1. Base: v0.6.7.
+Branch: rewrite/modular-widget. Product version: 0.7.0-dev.2. Base: v0.6.7.
 This is a new runtime implementation under src. Legacy UI/core folders have been removed in the branch. Approved vector artwork, renders and license files are retained.
 
 ## Implemented
@@ -12,7 +12,7 @@ Settings publish immediately and persist in a 60 ms batch. Controls dispatch arg
 ## Evidence obtained
 
 - Twenty Node behavior checks across motion, registry/telemetry, events/config, capabilities/Find policy, and approved assets.
-- Twenty-three QML runtime checks: entry-point loading, compact hidden default, connect/BlueZ confirmation, capabilities, watch, immediate feedback, selected-ear Find, failed Stop cancellation, safe disconnect, missing executable, timeout, coalesced persistence, independent notifications, and lock suppression. The runtime uses fixture services and fake Gbuds processes.
+- Twenty-five QML runtime checks: entry-point loading, compact hidden default, connect/BlueZ confirmation, capabilities, watch, immediate feedback, selected-ear Find, failed Stop cancellation, safe disconnect, missing executable, timeout, coalesced persistence, independent notifications, and lock suppression. The runtime uses fixture services and fake Gbuds processes.
 - Thirteen image samples from the actual WaveEmitter renderer in a Wayland window. At 0 ms the image is empty; at 16 ms its nontransparent bounds are 6 × 6 logical pixels, versus approximately 2.51 px expected radius. Growth matches the linear timeline within 2 px. Completion/gap frames are empty, and the restart at 2916 ms returns to the same small radius.
 - A 30-second isolated animation-cadence sample produced 1872 updates, p95 17 ms, maximum 17 ms, and zero intervals over 50 ms. A second 30-second scene with concurrent Popup/Waveup hosts produced 1855 updates, p95 17 ms, maximum 44 ms, and zero intervals over 50 ms. Date.now integer precision limits interpretation; this is not a GPU/compositor latency benchmark or a GPU composition benchmark.
 - Four native Waveup corner captures reach the corresponding image edges. The reported logical surface was 1670 × 939 and captured images were 1920 × 1080; capture scaling is recorded separately rather than assuming devicePixelRatio alone converts coordinates.
@@ -29,6 +29,8 @@ The user's historical first-radius report is the baseline symptom. Its unique or
 - Multiple outputs, mixed scale and hotplug; all four corners and bilateral synchronization in that environment.
 - GPU/compositor presentation profiling and p95 local input feedback measurement on the reference system. The multi-overlay animation-cadence measurement is already available.
 - Actual installed-candidate rollback verification including the native settings cache.
+
+Native smoke testing initially found a Qt Item.state name collision inside the bar inline component. Candidate v2 names the model explicitly, and the harness now instantiates both bar components and rejects QML binding warnings.
 
 ## Evidence locations
 

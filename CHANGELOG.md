@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0-dev.2 — native smoke-test correction
+
+- Resolve the bar inline component's Qt state/model name collision.
+- Instantiate bar and popout components in runtime checks and reject QML binding warnings.
+
 ## 0.7.0-dev.1 — rewrite testing candidate
 
 - Rebuild the widget around shared state, transport, configuration, notification, artwork and motion controllers.

@@ -42,6 +42,10 @@ ShellRoot {
         desktop=create("Desktop.qml",{pluginId:"gbudsWatch",instanceId:"one",instanceData:{config:{}},pluginService:PluginService});
         check(desktop.effectiveConfig.desktopPreset === "compact" && !desktop.shouldShow,"new desktop defaults hidden offline");
         bar=create("GbudsBarWidget.qml",{pluginData:{},pluginService:PluginService});
+        const pill=bar.horizontalBarPill.createObject(root,{});
+        root.check(!!pill,"bar inline component instantiates");
+        const popout=bar.popoutContent.createObject(root,{width:390,height:560});
+        root.check(!!popout,"bar popout component instantiates");
         panel=create("src/surfaces/DevicePanel.qml",{width:390,height:560,service:PluginService});
         settings=create("Settings.qml",{pluginId:"gbudsWatch",pluginService:PluginService});
         daemon.controller.request("connect",[]);
