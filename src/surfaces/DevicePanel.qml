@@ -12,7 +12,9 @@ Item {
     property var config:({})
     property bool active:false
     property string page:"main"
-    property bool showMore:false
+    property real pageProgress:1
+    onPageChanged:{ pageProgress=0; pageReveal.restart(); }
+    NumberAnimation { id:pageReveal; target:root; property:"pageProgress"; to:1; duration:root.config.panelAnimations!==false && visual.motion ? visual.duration : 0 }
     property var parentPopout:null
     property var closePopout:null
     readonly property real availableHeight:parentPopout?.screen ? Math.max(280,parentPopout.screen.height-120) : 760
@@ -27,7 +29,7 @@ Item {
         anchors.fill:parent; contentHeight:body.implicitHeight; clip:true
         boundsBehavior:Flickable.StopAtBounds
         Column {
-            id:body; width:parent.width; spacing:10
+            id:body; width:parent.width; spacing:10; opacity:0.55+root.pageProgress*0.45
             PanelHeader { width:parent.width; deviceName:deviceState.device.name || "Galaxy Buds"; connected:deviceState.connected; page:root.page; onBack:root.page="main"; onHistory:root.page="history"; onSettings:root.settings() }
             Column {
                 width:parent.width; spacing:12; visible:root.page==="main"
@@ -46,7 +48,7 @@ Item {
                     width:parent.width; visible:deviceState.connected; title:"Sound & controls"; description:"Equalizer and supported device features"
                     AdvancedControls { width:parent.width; state:deviceState }
                 }
-                DButton { width:parent.width; text:"Manage connections"; iconName:"devices"; onClicked:root.page="devices" }
+                DButton { width:parent.width; text:"Manage connections"; backgroundColor:Theme.cardSurface; textColor:Theme.surfaceText; iconName:"devices"; onClicked:root.page="devices" }
             }
             CommandHistoryPage { width:parent.width; model:deviceState; service:root.service; pluginId:root.pluginId; visible:root.page==="history" }
             Column {

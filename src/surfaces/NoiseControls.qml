@@ -10,7 +10,7 @@ Row {
     property bool animate:true
     property int iconSize: 36
     spacing: 6
-    readonly property var modes: state.device.supported_noise_modes || []
+    readonly property var modes:["on","ambient","adaptive","off"].filter(mode=>(state.device.supported_noise_modes || []).indexOf(mode)>=0)
     height: modes.length ? iconSize + 38 : 0
     Repeater {
         model: root.modes

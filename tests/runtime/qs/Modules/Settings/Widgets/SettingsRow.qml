@@ -1,5 +1,8 @@
 import QtQuick
 Item {
+ property bool active:false
+ property bool clickable:false
+ signal clicked(bool keyboard)
  property string title
  property string subtitle
  property string iconName

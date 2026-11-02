@@ -27,7 +27,7 @@ function resolve(config, event) {
     const channel = custom.presentation && custom.presentation !== "default" ? custom.presentation : legacy && legacy !== "default" ? legacy : config.notificationPresentation;
     result.presentation = ["off","popup","waveup","both"].indexOf(channel)>=0 ? channel : "waveup";
     const position = custom.position || config.notifyPopupPosition || "match";
-    const side = config.notifyMatchPosition && ["left","right"].indexOf(event.subject)>=0 ? event.subject : config.notifyFixedSide || "right";
+    const side = (custom.position === "match" || config.notifyMatchPosition) && ["left","right"].indexOf(event.subject)>=0 ? event.subject : config.notifyFixedSide || "right";
     result.popupPosition = positions.indexOf(position)>=0 ? position : config.notifyVerticalPosition+"-"+side;
     result.notifyScreen = custom.screen && custom.screen !== "default" ? custom.screen : config.notifyScreen;
     result.dismissTimeout = clamp(custom.popupDuration,config.dismissTimeout,2,15);
@@ -35,7 +35,8 @@ function resolve(config, event) {
     result.waveRadiusPx = clamp(custom.radius,config.waveRadiusPx,80,400);
     result.waveStrokePx = clamp(custom.stroke,config.waveStrokePx,1,12);
     result.notificationArtwork = ["svg","render","auto"].indexOf(custom.artwork)>=0 ? custom.artwork : config.notificationArtwork;
-    result.waveOrigin = ["left","right","both"].indexOf(custom.waveOrigin)>=0 ? custom.waveOrigin : ["left","right","both"].indexOf(config.notifyWaveOrigin)>=0 ? config.notifyWaveOrigin : ["pair","mode"].indexOf(event.subject)>=0 ? "both" : side;
+    const matchedOrigin=["pair","mode"].indexOf(event.subject)>=0 ? "both" : side;
+    result.waveOrigin = custom.waveOrigin === "match" ? matchedOrigin : ["left","right","both"].indexOf(custom.waveOrigin)>=0 ? custom.waveOrigin : ["left","right","both"].indexOf(config.notifyWaveOrigin)>=0 ? config.notifyWaveOrigin : ["pair","mode"].indexOf(event.subject)>=0 ? "both" : side;
     if (["top","bottom"].indexOf(custom.waveEdge)>=0) result.notifyVerticalPosition=custom.waveEdge;
     return result;
 }

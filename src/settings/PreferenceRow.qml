@@ -13,7 +13,7 @@ Column {
     Loader {
         width:parent.width
         active:root.visible
-        sourceComponent:root.definition.kind === "title" ? heading : root.definition.kind === "toggle" ? toggle : root.definition.kind === "slider" ? slider : root.definition.kind === "select" ? select : input
+        sourceComponent:root.definition.kind === "title" ? heading : root.definition.kind === "position" ? position : root.definition.kind === "toggle" ? toggle : root.definition.kind === "slider" ? slider : root.definition.kind === "select" ? select : input
     }
     Component {
         id:heading
@@ -53,6 +53,13 @@ Column {
                 const option=(root.definition.options || []).find(option=>option.label===value);
                 if (option && option.value !== root.value) root.edited(option.value);
             }
+        }
+    }
+    Component {
+        id:position
+        SettingsRow {
+            title:root.definition.label; iconName:"open_with"
+            body:PositionPicker { width:parent.width; value:String(root.value || "match"); inherit:root.definition.inherit === true; onEdited:value=>root.edited(value) }
         }
     }
     Component {

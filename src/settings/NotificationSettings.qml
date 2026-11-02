@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.Common
 import qs.DCommon.Widgets
+import qs.Modules.Settings.Widgets
 import "../config/NotificationPreferences.js" as Rules
 
 Column {
@@ -23,7 +24,7 @@ Column {
             root.field("slider","dismissTimeout","Popup duration",{min:2,max:15,unit:"s",icon:"timer"}),
             root.field("slider","notifyWaveDuration","Wave duration",{min:3,max:15,unit:"s",icon:"waves"}),
             root.field("select","notificationArtwork","Artwork",{icon:"image",options:root.options([["auto","Automatic"],["svg","SVG icons"],["render","Device renders"]])}),
-            root.field("select","notifyPopupPosition","Popup position",{icon:"open_with",options:root.options([["match","Match earbud"]].concat(Rules.positions.map(p=>[p,p.replace(/-/g," ")]))) }),
+            root.field("position","notifyPopupPosition","Popup position",{icon:"open_with",options:root.options([["match","Match earbud"]].concat(Rules.positions.map(p=>[p,p.replace(/-/g," ")]))) }),
             root.field("select","notifyScreen","Display",{icon:"monitor",options:root.options([["active","Active display"],["primary","Primary display"]].concat(Quickshell.screens.map(s=>[s.name,s.name])))}),
             root.field("select","notifyWaveOrigin","Wave origin",{icon:"waves",options:root.options([["match","Match earbud"],["left","Left"],["right","Right"],["both","Both sides"]])}),
             root.field("select","notifyVerticalPosition","Wave edge",{icon:"vertical_align_bottom",options:root.options([["top","Top"],["bottom","Bottom"]])})]
@@ -38,14 +39,30 @@ Column {
     }
     DButton { text:"Preview default"; iconName:"play_arrow"; onClicked:root.preview({kind:"connected",subject:"pair",waves:2,title:"Galaxy Buds connected",detail:"Ready to listen"}) }
     PreferenceRow { width:parent.width; definition:root.field("toggle","advancedNotifications","Advanced notifications",{icon:"tune",description:"Choose a different style, position or duration for each event. Your exceptions stay saved when disabled."}); value:root.config.advancedNotifications; onEdited:value=>root.preferences.update("advancedNotifications",value) }
-    Column {
-        width:parent.width; spacing:6; visible:root.config.advancedNotifications
-        PreferenceRow {
-            width:parent.width
-            definition:root.field("select","eventKind","Event",{icon:Rules.events.find(e=>e.key===root.eventKind)?.icon || "notifications",options:Rules.events.map(e=>({value:e.key,label:e.label+" · "+Rules.summary(root.config,e.key)}))})
-            value:root.eventKind; onEdited:value=>root.eventKind=value
+    Grid {
+        id:eventGrid
+        objectName:"eventRules"
+        width:parent.width; spacing:10; columns:width>=760 ? 2 : 1
+        visible:root.config.advancedNotifications
+        Column {
+            width:eventGrid.columns===2 ? 250 : eventGrid.width
+            spacing:4
+            PreferenceRow {
+                width:parent.width; visible:eventGrid.columns===1
+                definition:root.field("select","eventKind","Event",{icon:Rules.events.find(e=>e.key===root.eventKind)?.icon || "notifications",options:Rules.events.map(e=>({value:e.key,label:e.label+" · "+Rules.summary(root.config,e.key)}))})
+                value:root.eventKind; onEdited:value=>root.eventKind=value
+            }
+            Repeater {
+                model:eventGrid.columns===2 ? Rules.events : []
+                SettingsRow {
+                    required property var modelData
+                    width:parent.width; title:modelData.label; subtitle:Rules.summary(root.config,modelData.key)
+                    iconName:modelData.icon; active:root.eventKind===modelData.key; clickable:true
+                    onClicked:root.eventKind=modelData.key
+                }
+            }
         }
-        EventNotificationEditor { width:parent.width; preferences:root.preferences; kind:root.eventKind; onPreview:event=>root.preview(event) }
+        EventNotificationEditor { width:eventGrid.columns===2 ? eventGrid.width-260 : eventGrid.width; preferences:root.preferences; kind:root.eventKind; onPreview:event=>root.preview(event) }
     }
     DCollapsibleSection {
         width:parent.width; title:"Wave appearance & reminders"; description:"Reach, stroke, corner inset and out-of-ear reminders."

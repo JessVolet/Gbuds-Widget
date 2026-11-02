@@ -19,17 +19,19 @@ Column {
     Repeater {
         model:[
             {kind:"select",key:"presentation",label:"Presentation",icon:"notifications",options:root.options([["off","Off"],["popup","Popup"],["waveup","Waveup"],["both","Both"]])},
-            {kind:"select",key:"position",label:"Popup position",icon:"open_with",options:root.options([["match","Match earbud"]].concat(Rules.positions.map(p=>[p,p.replace(/-/g," ")])))},
+            {kind:"position",inherit:true,key:"position",label:"Popup position",icon:"open_with",options:root.options([["match","Match earbud"]].concat(Rules.positions.map(p=>[p,p.replace(/-/g," ")])))},
             {kind:"select",key:"waveOrigin",label:"Wave origin",icon:"waves",options:root.options([["match","Match earbud"],["left","Left"],["right","Right"],["both","Both sides"]])},
             {kind:"select",key:"waveEdge",label:"Wave edge",icon:"vertical_align_bottom",options:root.options([["top","Top"],["bottom","Bottom"]])},
             {kind:"select",key:"screen",label:"Display",icon:"monitor",options:root.options([["active","Active display"],["primary","Primary display"]].concat(Quickshell.screens.map(s=>[s.name,s.name])))},
             {kind:"select",key:"popupDuration",label:"Popup duration",icon:"timer",options:root.options([2,3,4,5,6,8,10,15].map(v=>[v,v+" seconds"]))},
             {kind:"select",key:"waveDuration",label:"Wave duration",icon:"timer",options:root.options([3,4,5,6,8,10,15].map(v=>[v,v+" seconds"]))},
+            {kind:"select",key:"radius",label:"Wave reach",icon:"waves",options:root.options([80,120,180,220,280,350,400].map(v=>[v,v+" px"]))},
+            {kind:"select",key:"stroke",label:"Wave stroke",icon:"line_weight",options:root.options([1,2,3,4,6,8,10,12].map(v=>[v,v+" px"]))},
             {kind:"select",key:"artwork",label:"Artwork",icon:"image",options:root.options([["auto","Automatic"],["svg","SVG icons"],["render","Device renders"]])}]
         PreferenceRow {
             required property var modelData
             width:parent.width; definition:modelData; value:root.entry[modelData.key] ?? "default"
-            visible:modelData.key === "presentation" || root.effective.presentation!=="off" && (["position","popupDuration","artwork"].indexOf(modelData.key)>=0 ? root.effective.presentation!=="waveup" : ["waveOrigin","waveEdge","waveDuration"].indexOf(modelData.key)>=0 ? root.effective.presentation!=="popup" : true)
+            visible:modelData.key === "presentation" || root.effective.presentation!=="off" && (["position","popupDuration","artwork"].indexOf(modelData.key)>=0 ? root.effective.presentation!=="waveup" : ["waveOrigin","waveEdge","waveDuration","radius","stroke"].indexOf(modelData.key)>=0 ? root.effective.presentation!=="popup" : true)
             onEdited:value=>root.edit(modelData.key,value)
         }
     }

@@ -15,3 +15,9 @@ test('audio selection requires unique exact Bluetooth identity, never the defaul
  assert.equal(audio.output([speaker,buds],'AA:BB:CC:DD:EE:FF'),buds);
  assert.equal(audio.output([speaker],''),null);assert.equal(audio.output([buds,{...buds}], 'AA:BB:CC:DD:EE:FF'),null);
 });
+test('automatic icon color corrects an unreadable foreground while respecting transparent surfaces',()=>{
+ const colors=load('src/presentation/ColorPolicy.js');
+ const light={r:1,g:1,b:1,a:1}, dark={r:0,g:0,b:0,a:1};
+ assert.equal(colors.foreground(dark,dark,[dark,light]),light);
+ assert.equal(colors.foreground(dark,{...dark,a:.2},[light]),dark);
+});

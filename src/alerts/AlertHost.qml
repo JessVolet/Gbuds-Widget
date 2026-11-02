@@ -59,11 +59,11 @@ Item {
     PanelWindow {
         screen: root.output
         visible: clock.active && root.popup && root.ageMs < root.popupDurationMs
-        implicitWidth: root.payload.popupRect?.width || 250
-        implicitHeight: root.payload.popupRect?.height || 270
+        implicitWidth:Math.min(root.payload.popupRect?.width || 250,(root.output?.width || 250)-root.config.notifyMargin*2)
+        implicitHeight:Math.min(root.payload.popupRect?.height || 270,(root.output?.height || 270)-root.config.notifyMargin*2)
         color: "transparent"
         anchors { left:true; top:true }
-        margins { left:root.payload.popupRect?.x || 0; top:root.payload.popupRect?.y || 0 }
+        margins { left:Math.max(root.config.notifyMargin,Math.min(root.payload.popupRect?.x || 0,(root.output?.width || 250)-implicitWidth-root.config.notifyMargin)); top:Math.max(root.config.notifyMargin,Math.min(root.payload.popupRect?.y || 0,(root.output?.height || 270)-implicitHeight-root.config.notifyMargin)) }
         WlrLayershell.namespace: "dms:gbuds-popup"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.exclusionMode: ExclusionMode.Ignore

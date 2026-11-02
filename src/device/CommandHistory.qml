@@ -8,8 +8,7 @@ Item {
     property var entries:[]
     property int sequence:0
     function begin(job) {
-        job.historyId=String(++sequence);
-        entries=History.begin(entries,job,Date.now(),job.historyId);
+        entries=History.begin(entries,job,Date.now(),job.historyId || String(++sequence));
     }
     function finish(job,result,success) { entries=History.finish(entries,job.historyId,result,success,Date.now()); }
     onEntriesChanged:if (service) service.setGlobalVar(pluginId,"commandHistory",entries)

@@ -37,6 +37,6 @@ DCard {
             text:root.ringing ? "Stop search" : root.canSearch ? "Click for search" : root.model.status["placement_"+root.part]==="WEARING" ? "In ear" : root.model.status["placement_"+root.part]==="IN_CASE" ? "In case" : "Unavailable"
             font.pixelSize:10; color:root.canSearch ? Theme.primary : Theme.surfaceVariantText
         }
-        DButton { width:parent.width; buttonHeight:28; minimumWidth:0; text:"Disconnect"; visible:root.part==="case"; enabled:!root.model.busy; onClicked:root.model.request("disconnect",[]) }
+        DButton { width:parent.width; buttonHeight:28; minimumWidth:0; text:"Disconnect"; backgroundColor:Theme.surfaceContainerHigh; textColor:Theme.surfaceText; visible:root.part==="case"; enabled:!root.model.busy; onClicked:root.model.request("disconnect",[]) }
     }
 }

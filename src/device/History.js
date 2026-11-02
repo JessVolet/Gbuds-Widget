@@ -7,5 +7,5 @@ function begin(entries, job, now, id) {
     return [{id:id,command:job.command || (argv.indexOf("watch")>=0 ? "watch" : "capabilities"),argv:argv.join(" "),at:now,durationMs:0,status:"Pending",detail:""}].concat(entries).slice(0,80);
 }
 function finish(entries, id, result, success, now) {
-    return entries.map(entry=>entry.id!==id ? entry : Object.assign({},entry,{durationMs:Math.max(0,now-entry.at),status:success ? "Succeeded" : result.uncertain ? "Uncertain" : "Failed",detail:safe(result.error || (success ? "Completed" : "The command could not be completed."))}));
+    return entries.map(entry=>entry.id!==id ? entry : Object.assign({},entry,{durationMs:Math.max(0,now-entry.at),status:result.cancelled ? "Stopped" : success ? "Succeeded" : result.uncertain ? "Uncertain" : "Failed",detail:safe(result.error || (success ? "Completed" : "The command could not be completed."))}));
 }

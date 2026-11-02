@@ -12,5 +12,14 @@ mkdir -m 700 "$fixture/runtime"
 cp -R "$repo/tests/runtime/qs" "$fixture/qs"
 cp "${GBUDS_CAPTURE_SCENE:-$repo/tests/motion/scene.qml}" "$fixture/qs/shell.qml"
 ln -s "$repo" "$fixture/qs/Plugin"
+if [ -n "${GBUDS_NATIVE_COMMON:-}" ]; then
+    rm -rf "$fixture/qs/DCommon"
+    ln -s "$GBUDS_NATIVE_COMMON" "$fixture/qs/DCommon"
+fi
+if [ -n "${GBUDS_NATIVE_SETTINGS:-}" ]; then
+    rm -rf "$fixture/qs/Modules/Settings/Widgets"
+    ln -s "$GBUDS_NATIVE_SETTINGS" "$fixture/qs/Modules/Settings/Widgets"
+    cp "${GBUDS_NATIVE_SETTINGS%/Modules/Settings/Widgets}/Common/QmlUtils.js" "$fixture/qs/Common/QmlUtils.js"
+fi
 mkdir -p "${EVIDENCE_DIR:?}"
 XDG_RUNTIME_DIR="$fixture/runtime" QT_QPA_PLATFORM=wayland timeout -k 2 40 qs -p "$fixture/qs" --no-color

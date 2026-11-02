@@ -12,6 +12,7 @@ Item {
     signal finished(var job, var result, bool success)
     function start(job) {
         if (busy || disposing) return false;
+        job=Object.assign({},job,{historyId:String(Date.now())+":"+Math.random()});
         process=runner.createObject(root,{job:job});
         started(job);
         process.running=true;
@@ -19,7 +20,7 @@ Item {
     }
     function stop() {
         if (!process) return;
-        process.signal(15); killTimer.restart();
+        process.cancelled=true; process.signal(15); killTimer.restart();
     }
     Timer { id:killTimer; interval:1000; onTriggered:if (root.process) root.process.signal(9) }
     Component {
@@ -29,6 +30,7 @@ Item {
             property var job
             property string output:""
             property string errors:""
+            property bool cancelled:false
             property bool timedOut:false
             property bool completed:false
             function finish(code) {
@@ -37,6 +39,7 @@ Item {
                 let result={};
                 try { result=JSON.parse(output); }
                 catch (error) { result={error:errors.trim() || "Could not read the device response."}; }
+                if (cancelled) result={cancelled:true};
                 if (timedOut) result={error:"The device did not respond in time.",uncertain:true};
                 if (root.process===task) root.process=null;
                 if (!root.disposing) root.finished(job,result,code===0 && !timedOut && !result.error && result.success!==false);

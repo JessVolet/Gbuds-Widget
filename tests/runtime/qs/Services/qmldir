@@ -7,3 +7,4 @@ singleton CompositorService 1.0 CompositorService.qml
 singleton BlurService 1.0 BlurService.qml
 singleton AudioService 1.0 AudioService.qml
 singleton PopoutService 1.0 PopoutService.qml
+singleton SettingsSearchService 1.0 SettingsSearchService.qml
