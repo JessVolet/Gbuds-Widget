@@ -80,7 +80,7 @@ Global plugin values and per-instance desktop values remain distinct. Do not edi
 
 ### 8. Navigation has a real host API
 
-The installed PopoutService has openSettingsWithTab(tabName, returnOrigin, reopen), and main already uses the plugin_<pluginId> route. Reuse this behind a small compatibility boundary and verify the plugin route in the actual settings host. Use the corresponding native Bluetooth page for pairing once its route is confirmed. Do not guess a route solely from the visible tab label.
+The installed PopoutService has openSettingsWithTab(tabName, returnOrigin, reopen). Follow-up implementation inspection found that SettingsTabs.pluginPage(pluginId).id supplies the canonical plugin:<pluginId> route; main's older plugin_<pluginId> route must not be copied. Use the canonical helper. Use the corresponding native Bluetooth page for pairing once its route is confirmed. Do not guess a route solely from the visible tab label.
 
 The visual section navigation in the mockup is inside the plugin settings content. It is not a request to patch Dux's global sidebar. Its presentation should adapt to the native settings viewport.
 

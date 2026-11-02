@@ -36,13 +36,6 @@ PluginSettings {
         ignoreUnknownSignals:true
         function onPluginDataChanged(pid) { if (pid===root.pluginId) root.settingsRevision++; }
     }
-    function preview(kind, side, count) {
-        if (!pluginService) return;
-        settingsStore.flush();
-        pluginService.setGlobalVar(pluginId,"notificationTest",{id:String(Date.now()),kind:kind,subject:side,waves:count,
-            title:kind === "noise-mode" ? "Noise cancellation" : kind === "battery-20" ? "Battery at 20%" : "Earbud removed",
-            detail:side === "left" ? "Left earbud" : "Galaxy Buds",mode:"NOISE_REDUCTION",severity:kind === "battery-20" ? "critical" : "normal"});
-    }
     StyledText { width:parent.width; text:root.instanceScope ? "This widget" : "Gbuds Widget"; color:Theme.surfaceText; font.pixelSize:20; font.bold:true }
     StyledText { width:parent.width; text:root.instanceScope ? "Appearance and behavior for this instance." : "Appearance, sound and notifications. Desktop layout is configured per widget instance."; wrapMode:Text.WordWrap; color:Theme.surfaceVariantText; font.pixelSize:12 }
     DTabBar {

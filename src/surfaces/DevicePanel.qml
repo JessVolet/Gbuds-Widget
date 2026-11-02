@@ -23,7 +23,7 @@ Item {
     VisualTokens { id:visual }
     function settings() {
         if (root.closePopout) root.closePopout();
-        PopoutService.openSettingsWithTab("plugin_"+root.pluginId);
+        PopoutService.openSettingsWithTab(SettingsTabs.pluginPage(root.pluginId).id);
     }
     Flickable {
         anchors.fill:parent; contentHeight:body.implicitHeight; clip:true
@@ -57,8 +57,7 @@ Item {
                     model:BluetoothService.pairedDevices.filter(d=>/buds/i.test(d.name || ""))
                     DButton { required property var modelData; width:parent.width; text:modelData.name+(modelData.connected ? " · Connected" : " · Connect"); iconName:modelData.connected ? "bluetooth_connected" : "bluetooth"; enabled:!deviceState.busy; onClicked:{ root.service.setGlobalVar(root.pluginId,"deviceSelection",modelData.address); root.page="main"; } }
                 }
-                StyledText { width:parent.width; text:"Pair new devices in Bluetooth settings."; color:Theme.surfaceVariantText; font.pixelSize:12 }
-                DButton { text:"Bluetooth settings"; iconName:"settings_bluetooth"; onClicked:PopoutService.openSettingsWithTab("bluetooth") }
+                StyledText { width:parent.width; text:"Pair new devices from Control Center → Bluetooth."; color:Theme.surfaceVariantText; font.pixelSize:12 }
             }
             StyledText { width:parent.width; visible:!!deviceState.error; text:deviceState.error; color:Theme.error; font.pixelSize:12; wrapMode:Text.WordWrap }
         }
