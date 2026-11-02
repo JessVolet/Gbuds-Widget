@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const source = fs.readFileSync(path.join(__dirname,"../interface-v060/ApprovedIcons.js"),"utf8");
+const source = fs.readFileSync(path.join(__dirname,"../src/presentation/ApprovedIcons.js"),"utf8");
 const icons = vm.createContext({});
 vm.runInContext(source.replace(/^\.pragma library\n/,""),icons);
 const pink={r:1,g:0.5,b:0.75,a:1};
