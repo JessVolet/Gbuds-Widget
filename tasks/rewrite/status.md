@@ -1,6 +1,6 @@
 # Rewrite candidate status
 
-Branch: rewrite/modular-widget. Product version: 0.7.0-dev.2. Base: v0.6.7.
+Branch: rewrite/modular-widget. Product version: 0.7.0-dev.3. Base: v0.6.7.
 This is a new runtime implementation under src. Legacy UI/core folders have been removed in the branch. Approved vector artwork, renders and license files are retained.
 
 ## Implemented
@@ -11,7 +11,7 @@ Settings publish immediately and persist in a 60 ms batch. Controls dispatch arg
 
 ## Evidence obtained
 
-- Twenty Node behavior checks across motion, registry/telemetry, events/config, capabilities/Find policy, and approved assets.
+- Twenty-one Node behavior checks across motion, registry/telemetry, events/config, capabilities/Find policy, and approved assets.
 - Twenty-five QML runtime checks: entry-point loading, compact hidden default, connect/BlueZ confirmation, capabilities, watch, immediate feedback, selected-ear Find, failed Stop cancellation, safe disconnect, missing executable, timeout, coalesced persistence, independent notifications, and lock suppression. The runtime uses fixture services and fake Gbuds processes.
 - Thirteen image samples from the actual WaveEmitter renderer in a Wayland window. At 0 ms the image is empty; at 16 ms its nontransparent bounds are 6 × 6 logical pixels, versus approximately 2.51 px expected radius. Growth matches the linear timeline within 2 px. Completion/gap frames are empty, and the restart at 2916 ms returns to the same small radius.
 - A 30-second isolated animation-cadence sample produced 1872 updates, p95 17 ms, maximum 17 ms, and zero intervals over 50 ms. A second 30-second scene with concurrent Popup/Waveup hosts produced 1855 updates, p95 17 ms, maximum 44 ms, and zero intervals over 50 ms. Date.now integer precision limits interpretation; this is not a GPU/compositor latency benchmark or a GPU composition benchmark.

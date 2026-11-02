@@ -53,3 +53,11 @@ test("noise controls retain the original paths from all four supplied SVGs",()=>
     }
   }
 });
+
+const artwork=require('./load-module.cjs')('src/presentation/ArtworkResolver.js');
+test('notification artwork follows subject, storage and render selection',()=>{
+  assert.deepEqual(Array.from(artwork.notificationParts({subject:'right'},'svg')),['right']);
+  assert.deepEqual(Array.from(artwork.notificationParts({subject:'left',kind:'stored'},'auto')),['case']);
+  assert.deepEqual(Array.from(artwork.notificationParts({subject:'mode'},'render')),['left','right']);
+  assert.deepEqual(Array.from(artwork.notificationParts({subject:'mode'},'svg')),[]);
+});

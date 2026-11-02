@@ -3,9 +3,12 @@ import qs.Common
 import qs.DCommon.Widgets
 import "../motion"
 import "../presentation"
+import "../presentation/ArtworkResolver.js" as Artwork
 
 Rectangle {
     id: root
+    readonly property string rendererRevision:"subject-artwork-v2"
+    Component.onCompleted:console.debug("[Gbuds Popup] renderer="+rendererRevision)
     property var event: ({})
     property var config: ({})
     property real elapsedMs:0
@@ -50,11 +53,16 @@ Rectangle {
                 anchors.centerIn: parent
                 spacing: 8
                 Repeater {
-                    model: root.event.subject === "mode" ? [] : ["left","right"].indexOf(root.event.subject) >= 0 ? [root.event.subject] : root.event.subject === "case" ? ["case"] : ["left","right"]
+                    model:Artwork.notificationParts(root.event,root.config.notificationArtwork)
                     PartIcon { required property string modelData; part:modelData; device:root.event.device || {}; artwork:root.config.notificationArtwork; width:70; height:90 }
                 }
             }
-            ModeIcon { anchors.centerIn: parent; visible:root.event.subject === "mode"; mode:root.event.mode || "OFF"; size:58 }
+            ModeIcon { anchors.centerIn: parent; visible:root.event.subject === "mode" && root.config.notificationArtwork !== "render"; mode:root.event.mode || "OFF"; size:58 }
+            ModeIcon {
+                anchors.right:parent.right; anchors.bottom:parent.bottom
+                visible:root.event.subject === "mode" && root.config.notificationArtwork === "render"
+                mode:root.event.mode || "OFF"; size:24
+            }
         }
         StyledText { width:parent.width; text:root.event.title || ""; color:Theme.surfaceText; font.pixelSize:16; font.bold:true; horizontalAlignment:Text.AlignHCenter; wrapMode:Text.WordWrap }
         StyledText { width:parent.width; text:root.event.detail || ""; color:Theme.surfaceVariantText; font.pixelSize:12; horizontalAlignment:Text.AlignHCenter; wrapMode:Text.WordWrap }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0-dev.3 — artwork contract completion
+
+- Respect render selection for noise-mode notifications, with the mode icon as a badge.
+- Resolve stored/case and same-ear notification subjects centrally with behavioral coverage.
+
 ## 0.7.0-dev.2 — native smoke-test correction
 
 - Resolve the bar inline component's Qt state/model name collision.
