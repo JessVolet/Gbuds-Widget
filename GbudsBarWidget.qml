@@ -6,6 +6,7 @@ import "src/state"
 import "src/presentation"
 import "src/surfaces"
 import "src/config"
+import "src/presentation/ColorPolicy.js" as Colors
 
 PluginComponent {
     id: root
@@ -19,7 +20,8 @@ PluginComponent {
             error:Theme.error, amber:Theme.warning, muted:Theme.widgetInactiveIconColor};
         return mode === "custom" ? custom || fallback : palette[mode] || fallback;
     }
-    readonly property color iconTint: tint(config.iconColorMode, config.customColor, Theme.widgetIconColor)
+    readonly property color systemIconTint:Colors.foreground(Theme.widgetIconColor,root.barConfig ? BarMetrics.widgetFill(root.barConfig) : Theme.widgetBaseBackgroundColor,[Theme.surfaceText,Theme.surface,Theme.contrastLight,Theme.contrastDark])
+    readonly property color iconTint: tint(config.iconColorMode, config.customColor, systemIconTint)
     readonly property color caseTint: tint(config.caseColorMode, config.customCaseColor, iconTint)
     readonly property color idleTint: tint(config.idleColorMode, config.customIdleColor, Theme.warning)
 
@@ -67,7 +69,7 @@ PluginComponent {
                 && root.deviceState.mode !== "OFF" && root.config.pillMode !== "icon-only"
             mode: root.deviceState.mode
             size: root.iconSize + 3
-            tint: Theme.widgetIconColor
+            tint: root.systemIconTint
         }
     }
     horizontalBarPill: Component { Pill {} }
@@ -75,12 +77,12 @@ PluginComponent {
     popoutContent: Component {
         DevicePanel {
             width: parent.width
-            height: 560
+            active:root.interactionActive
             pluginId: root.pluginId
             service: root.pluginService
             config: root.config
         }
     }
-    popoutWidth: 390
-    popoutHeight: 560
+    popoutWidth: 420
+    popoutHeight: 0
 }

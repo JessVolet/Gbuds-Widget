@@ -3,6 +3,8 @@ import qs.Services
 Item {
 property var pluginData: ({})
 property string pluginId: "gbudsWatch"
+property bool interactionActive:false
+property var barConfig:null
 property var pluginService: PluginService
 property Component horizontalBarPill
 property Component verticalBarPill

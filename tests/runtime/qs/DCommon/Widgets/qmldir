@@ -8,3 +8,7 @@ DSlider 1.0 DSlider.qml
 
 DDropdown 1.0 DDropdown.qml
 DTextField 1.0 DTextField.qml
+DIconButton 1.0 DIconButton.qml
+DCard 1.0 DCard.qml
+DTabBar 1.0 DTabBar.qml
+DCollapsibleSection 1.0 DCollapsibleSection.qml

@@ -2,6 +2,14 @@ pragma Singleton
 import QtQuick
 QtObject {
 property bool dark: false
+property color cardSurface:surfaceContainer
+property color selectedContainer:primaryContainer
+property color onSelectedContainer:onPrimaryContainer
+property color contrastLight:"#ffffff"
+property color contrastDark:"#000000"
+property color widgetBaseBackgroundColor:surfaceContainer
+property int currentAnimationBaseDuration:250
+property int mediumDuration:150
 property color primary: dark ? "#f2b5cb" : "#824559"
 property color secondary: primary
 property color tertiary: primary

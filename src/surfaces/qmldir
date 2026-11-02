@@ -3,3 +3,8 @@ DevicePanel 1.0 DevicePanel.qml
 DeviceView 1.0 DeviceView.qml
 NoiseControls 1.0 NoiseControls.qml
 PartControl 1.0 PartControl.qml
+PanelHeader 1.0 PanelHeader.qml
+PanelHero 1.0 PanelHero.qml
+HeroPart 1.0 HeroPart.qml
+CommandHistoryPage 1.0 CommandHistoryPage.qml
+AudioMixer 1.0 AudioMixer.qml

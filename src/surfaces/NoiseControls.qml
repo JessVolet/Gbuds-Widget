@@ -17,7 +17,7 @@ Row {
         FocusScope {
             id: button
             required property string modelData
-            readonly property string mode: ({off:"OFF",on:"NOISE_REDUCTION",ambient:"AMBIENT_SOUND",adaptive:"ADAPTIVE"})[modelData]
+            readonly property string mode: ({off:"Off",on:"NOISE_REDUCTION",ambient:"AMBIENT_SOUND",adaptive:"ADAPTIVE"})[modelData]
             readonly property bool selected: root.state.mode === mode
             width: (root.width - Math.max(0,root.modes.length-1)*root.spacing) / Math.max(1,root.modes.length)
             height: root.height
@@ -29,16 +29,16 @@ Row {
             Keys.onSpacePressed: activate()
             Rectangle {
                 anchors.fill:parent; radius:14
-                color:button.selected ? Theme.primaryContainer : Theme.withAlpha(Theme.surfaceContainerHigh,0.8)
+                color:button.selected ? Theme.selectedContainer : Theme.withAlpha(Theme.surfaceContainerHigh,0.8)
                 border.width:button.activeFocus ? 2 : 0; border.color:Theme.primary
-                Behavior on color { enabled:root.animate; ColorAnimation { duration:160 } }
+                Behavior on color { enabled:root.animate && !SettingsData.reduceMotion; ColorAnimation { duration:Theme.mediumDuration } }
             }
             Column {
                 anchors.centerIn:parent; spacing:5
-                ModeIcon { anchors.horizontalCenter:parent.horizontalCenter; mode:button.mode; size:Math.min(root.iconSize,button.width-16) }
-                StyledText { id:label; anchors.horizontalCenter:parent.horizontalCenter; text:({off:"OFF",on:"ANC",ambient:"Ambient",adaptive:"Adaptive"})[button.modelData]; color:Theme.surfaceText; font.pixelSize:11 }
+                ModeIcon { anchors.horizontalCenter:parent.horizontalCenter; mode:button.mode; size:Math.min(root.iconSize,button.width-16); tint:button.selected ? Theme.onSelectedContainer : Theme.surfaceVariantText }
+                StyledText { id:label; anchors.horizontalCenter:parent.horizontalCenter; text:({off:"Off",on:"ANC",ambient:"Ambient",adaptive:"Adaptive"})[button.modelData]; color:button.selected ? Theme.onSelectedContainer : Theme.surfaceText; font.pixelSize:11 }
             }
-            MouseArea { anchors.fill:parent; onClicked:button.activate() }
+            MouseArea { anchors.fill:parent; cursorShape:Qt.PointingHandCursor; onClicked:button.activate() }
         }
     }
 }
