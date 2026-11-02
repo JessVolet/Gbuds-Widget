@@ -3,7 +3,7 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
 const policy=vm.createContext({});
-vm.runInContext(fs.readFileSync(require("node:path").join(__dirname,"../interface-v050/ControlPolicy.js"),"utf8").replace(/^\.pragma library\s*/,""),policy);
+vm.runInContext(fs.readFileSync(require("node:path").join(__dirname,"../src/device/Policy.js"),"utf8").replace(/^\.pragma library\s*/,""),policy);
 test("noise modes follow device capabilities, including Buds3 versus FE",()=>{
     const features={anc:{device_support:"supported",gbuds_support:"implemented"},ambient_sound:{device_support:"unsupported",gbuds_support:"rejected"}};
     const caps={noise_control_modes:["off","on","ambient"],features};
