@@ -1,53 +1,54 @@
-# Development and live testing
+# Development
 
-## Dux Shell QML environment
+Use tasks/rewrite/codestyle.md and the contracts beside it. Artwork remains in assets/approved and generated templates are rebuilt with:
 
-The project follows the Dux Shell 2.0 plugin guide. Its recommended development checkout is `~/repos/dux-shell` with submodules, so the QML language server can resolve the `qs.DCommon.Widgets` imports:
-
-```bash
-mkdir -p ~/repos
-git clone --recurse-submodules https://github.com/duxlabs-dev/dux-shell.git ~/repos/dux-shell
-cd ~/repos/dux-shell/quickshell
-touch .qmlls.ini
-qs -p .
+```sh
+python3 scripts/build-icons.py
 ```
 
-After Quickshell starts, stop it with Ctrl+C. The plugin's source of truth is this repository. For IDE imports, symlink its folder into `~/repos/dux-shell/quickshell/PLUGINS`; for runtime discovery, symlink it into `~/.config/dms/plugins`.
+Run focused policy, motion, asset and registry checks:
 
-From the Gbuds Widget repository directory:
-
-```bash
-ln -s "$PWD" ~/repos/dux-shell/quickshell/PLUGINS/gbudsWatch
+```sh
+node tests/motion.test.cjs
+node tests/daemon.test.cjs
+node tests/notification-policy.test.cjs
+node tests/policy.test.cjs
+node tests/icons.test.cjs
+python3 tests/deployment.test.py
 ```
 
-## Runtime symlink and reload
+The runtime check uses fake CLI processes, including failed Stop, timeout and missing-executable cases:
 
-```bash
-ln -s "$PWD" ~/.config/dms/plugins/gbudsWatch
-dms ipc call plugins reload gbudsWatch
+```sh
+sh tests/run-runtime.sh
 ```
 
-Enable the composite plugin in **DMS Settings → Plugins**, then add the widget to the bar and place the desktop widget from **Settings → Desktop widgets**. Plugin reload only reloads plugin QML; it does not require restarting the shell.
+Run inside a Wayland session. An absolute WAYLAND_DISPLAY can be provided if the test uses a temporary XDG_RUNTIME_DIR.
 
-## Real-device testing
+Capture actual renderer samples (EVIDENCE_DIR must be an absolute writable directory):
 
-1. Connect one paired, supported Galaxy Buds device.
-2. Confirm the CLI works: `gbuds watch --json`.
-3. Enable Gbuds Widget, add the bar pill, and place the desktop widget. Confirm all surfaces show the same current device and battery state.
-4. Open the popout. Use the device picker if multiple Buds are paired, then verify the model art and available noise modes match `gbuds info --json`.
-5. Change ANC mode, touchpad lock, and EQ from the popout. Confirm the console view shows each real command response and that the live watch resumes afterward.
-6. Change placement, ANC, or battery state in Samsung's app. Confirm the bar icon turns red when either earbud leaves the ear and that connection, placement, noise-mode, 30%, and 10% transitions produce their specific cards without desktop notifications.
-7. Switch between the paired FE and Buds3. The selected model, renders, supported controls, and stream should follow the active device; manually select it from the popout if BlueZ does not expose a unique connected device.
-8. Disconnect and reconnect the Buds. The bar pill should switch to its disconnected icon; the widget should clear displayed battery values and retry without restarting the shell.
-9. Add two desktop instances. Select **Full** for one and **Compact** for the other in their instance settings, then resize the compact instance. Confirm both update together and the compact noise-mode switcher lists only supported modes.
-10. Disconnect the Buds. Confirm both desktop instances become visually and interactively transparent, then reconnect and confirm they return.
-11. Trigger a connection while both Buds are in the case, remove only one earbud, then change the noise mode. Confirm the square floating card shows the case, that earbud, and the mode icon respectively; it must remain outside the widget and not appear as a DMS notification.
+```sh
+EVIDENCE_DIR=/tmp/gbuds-motion-evidence sh tests/motion/capture.sh
+python3 tests/motion/analyze.py /tmp/gbuds-motion-evidence
+```
 
-If DMS cannot find the CLI, set **Gbuds executable** in plugin settings to its absolute path. See the [Gbuds installation guide](https://github.com/JessVolet/gbuds-cli/blob/main/docs/INSTALLATION.md) if it is not installed.
+GBUDS_CAPTURE_SCENE may select tests/presentation/scene.qml or tests/motion/profile.qml by absolute path. Presentation captures use production layouts/assets with fixture Dux controls. They do not certify native Dux styling, physical Bluetooth or lock-screen input. The 30-second profile measures QML animation update cadence, not GPU presentation latency.
 
-## Current environment notes
+Package only a committed candidate:
 
-- Dux Shell installed in the development machine: `dms (git) v2.0.0-5380`.
-- `gbuds capabilities --json` supplies cached model metadata in parallel with the persistent `gbuds watch --json` stream; control commands resume the stream directly.
-- The developer has Galaxy Buds FE and Galaxy Buds3 available for hardware testing. Other models need user validation; missing artwork falls back to Material icons.
-- Copied GalaxyBudsClient renders are documented separately in `assets/README.md`; check individual redistribution rights before publishing a binary bundle.
+```sh
+python3 scripts/package.py rewrite-candidate-v1 /tmp/gbuds-candidate.tar.gz
+python3 scripts/deploy-local.py --artifact /tmp/gbuds-candidate.tar.gz --backup-dir /tmp/gbuds-backups
+```
+
+Deployment stages the artifact outside the scanned plugins directory, preserves local Git metadata, swaps directories, uses plugin-scan reload and checks loaded status. It restores the previous directory on failure. Matching artifact hashes and loaded status are deployment evidence, not visual acceptance.
+
+Rollback the resulting backup directory:
+
+```sh
+python3 scripts/deploy-local.py --restore /tmp/gbuds-backups/EXACT_BACKUP_DIRECTORY
+```
+
+Restoration merges the saved gbudsWatch preferences into current settings, preserving changes to other plugins. The deployment test rehearses install/restore against temporary directories. Verify native Dux settings reload and artwork/motion after an actual rollback.
+
+Never deploy an unreviewed working directory by copying every file. Do not publish remote tags or merge the candidate before the requested testing/review stage is complete.

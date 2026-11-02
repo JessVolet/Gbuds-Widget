@@ -1,0 +1,6 @@
+module qs.Common
+singleton Theme 1.0 Theme.qml
+singleton Proc 1.0 Proc.qml
+singleton SettingsData 1.0 SettingsData.qml
+singleton I18n 1.0 I18n.qml
+singleton SettingsTabs 1.0 SettingsTabs.qml

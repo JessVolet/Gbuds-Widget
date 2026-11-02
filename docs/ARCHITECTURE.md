@@ -1,41 +1,25 @@
 # Architecture
 
-Gbuds Widget is a composite Dux Shell plugin. One daemon owns Gbuds CLI processes and publishes shared state to the bar, popout, and desktop surfaces.
+The four root QML files are Dux adapters. All active implementation lives under stable src modules; there is no versioned UI directory.
 
-```mermaid
-flowchart LR
-    BlueZ[BlueZ paired and connected devices] -->|target selection| Daemon
-    Daemon -->|gbuds capabilities --json| Metadata[Cached model capabilities]
-    Daemon -->|one persistent gbuds watch --json| Watch[Live status stream]
-    Watch -->|telemetry and events| State[PluginGlobalVar]
-    State --> Pill[Bar pill]
-    State --> Panel[Control popout]
-    State --> Desktop[Desktop widget]
-    Panel -->|ANC / touchpad / EQ / sync request| Queue[Serialized action queue]
-    Queue -->|stop watch, run command, apply result, restart| Daemon
-    Settings[Plugin settings] -->|CLI path, target, card and pill options| Daemon
-```
+| Module | Owner and contract |
+|---|---|
+| config | Schema resolves defaults/migration; ConfigStore publishes edits immediately and batches persistence for 60 ms |
+| device | DeviceController owns the connection; CommandRegistry validates argv; ProcessTask bounds output, startup and deadlines |
+| state | DeviceStore publishes snapshots; Telemetry normalizes unknown readings; UiState exposes selectors and command intents |
+| events | EventPolicy derives independent causes with injected time; EventController owns threshold memory and reminders |
+| motion | WaveTimeline is pure; WaveController owns a finite clock; WaveEmitter renders the same radius function in both hosts |
+| presentation | Approved vector templates, artwork resolution and screen placement |
+| alerts | PopupController owns independent lifetimes/overflow; NotificationController applies event channels; AlertHost composes Popup/Waveup with one clock |
+| surfaces | DeviceView, bar, panel, desktop and lock-aware controls consume shared state |
+| settings | Declarative rows use the same schema; explicit user events publish edits, with no writes during default initialization |
 
-## Device selection
+Only the device layer executes Gbuds. Metadata uses the cached capabilities command; watcher and control commands never own concurrent RFCOMM sessions. Stop has priority, and an uncertain Find result retains a Stop action. Failed Stop cancels queued disconnect. Device epochs reject late responses from a previous target.
 
-The daemon follows a uniquely connected Galaxy Buds device detected by Dux Shell. If more than one is paired, the popout lists the paired Buds; selecting one asks BlueZ to connect it, persists its address, and passes that target to Gbuds using `--mac`. A uniquely connected device is followed automatically so switching between paired models updates the active stream.
+Notification events retain their ID, subject, snapshot and device artwork. Active model insertion/removal preserves sibling instances and clocks. Capacity is computed per monitor/corner; waiting entries have bounded length and expiry. Wave-only entries use bounded groups. Lock clears external alert surfaces.
 
-`gbuds capabilities --json` supplies model code, color, supported noise modes, and device name from cached BlueZ metadata. It runs alongside the watcher so telemetry does not wait for a second RFCOMM connection. These fields choose an available GalaxyBudsClient render and filter controls. Models without a copied render use Material icons.
+A wave uses radius = maximumRadius × elapsedFraction. Each ring has the same final radius and starts 250 ms after its predecessor. Repeat occurs 1000 ms after the last ring completes; a partial last sequence never starts. Opacity is present from the first measurable radius; there is no initial fade concealing an already growing ring. Frame captures, not source inspection alone, validate this behavior.
 
-## Watch lifecycle and actions
+Configuration changes update bindings immediately. Active alert geometry edits restart the motion phase within the existing event deadline, preserving identity, popup age and expiry. The desktop temporarily supplies an empty host input mask while hidden, restores the Dux binding on reconnect, and never alters the lock-window mask.
 
-The daemon starts one `gbuds watch --json` process only while BlueZ reports a connected Buds device. Each newline-delimited JSON object updates shared telemetry. If the process exits while the device remains connected, Gbuds Widget keeps the last sample and retries with exponential backoff up to 30 seconds. It stops retrying when the Buds disconnect and resumes on the next BlueZ connection change.
-
-Control requests enter a FIFO queue. The daemon stops the watch process first, then runs exactly one `gbuds --json <command>` process. It publishes the command and response, applies returned state immediately, and resumes the watch without another metadata lookup. This avoids running two CLI RFCOMM sessions at once.
-
-## State cards
-
-The `telemetry` global variable contains the latest status and a transient `latestEvent`. The daemon creates events only for connection, earbud placement, noise-mode, and 30% / 10% battery transitions. Each event carries a subject (`left`, `right`, `case`, `pair`, or `mode`) so the square floating surface shows only the relevant artwork. The surface appears in the chosen screen corner for the selected duration, independently of the popout and desktop widget boundaries. No DMS notification toast is emitted.
-
-## UI surfaces
-
-- **Bar pill:** configurable battery layout, out-of-ear warning, and noise-mode icon; disconnected devices show only a disconnected icon.
-- **Control popout:** full-panel gradient, model renders, per-part battery, supported noise modes, touch controls, a collapsible sound list, and separate device/settings/console views without scrolling.
-- **Desktop widget:** each instance selects a full controls layout or a compact status layout with a capability-filtered noise-mode switcher. Both share daemon telemetry; their layout setting is stored per instance. Their outer surface fades away and stops accepting input while disconnected.
-
-Every control is capability-filtered or disabled when disconnected. Status remains read-only telemetry; user actions invoke the installed Gbuds CLI.
+See tasks/rewrite/status.md for demonstrated behavior and remaining physical acceptance. The branch is a testing candidate until that review is complete.

@@ -1,5 +1,32 @@
 # Device image credits
 
+## Selected 0.4.0 template
+
+Version 0.4.1 uses the approved `source-icons/anc-C-centered.svg` refinement for ANC:
+a filled shield and transparent original ear, 15% smaller and optically centered.
+Keep the cutout mask black/white when recoloring the surrounding shield.
+
+`approved/bud-left.svg` and `bud-right.svg` use the selected original Blade
+proposal with opposite diagonal poses, ordered as in the user's final template.
+`mode-anc.svg` combines the supplied `shield-alt-1-svgrepo-com.svg` and
+`ear-2-svgrepo-com.svg`. Ambient uses `ear-3-svgrepo-com.svg` including its
+original curved waves, and OFF uses `power-off-svgrepo-com.svg`.
+All original files are preserved under `source-icons/`; their path geometry is
+retained and only placement and theme coloring are adjusted.
+The idle timer preserves the previously supplied timer SVG. The neutral case
+is widget artwork.
+
+Edit those SVG files independently, then run `python3 scripts/build-icons.py`.
+That compiles `src/presentation/ApprovedIcons.js`, applies the QML theme color at runtime, and
+flattens nested SVG viewports into equivalent transforms for Qt SVG.
+The source files remain editable SVGs with no embedded raster images.
+
+The earlier slim SVG earbud silhouettes in `icons/` are original widget artwork.
+The idle timer comes from the user-supplied `timer-svgrepo-com.svg`
+(SVG Repo; the supplied file does not include an author or license).
+Its geometry is preserved in `icons/idle-timer.svg` and `approved/idle-timer.svg`, with
+theme-controlled color. Confirm that asset's license before public distribution.
+
 The earbud renders in this directory are copied from the GalaxyBudsClient repository:
 
 - Source: `GalaxyBudsClient/Resources/Device/Realistic/`

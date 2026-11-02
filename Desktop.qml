@@ -1,60 +1,34 @@
 import QtQuick
 import Quickshell
-import qs.Common
-import qs.Widgets
 import qs.Modules.Plugins
-import "."
+import "src/config"
+import "src/presentation/ScreenPlacement.js" as Layout
+import "src/state"
+import "src/surfaces"
 
 DesktopPluginComponent {
-    id: root
-
-    readonly property bool compact: pluginData.desktopLayout === "compact"
-    property real defaultWidth: compact ? 330 : 380
-    property real defaultHeight: compact ? 150 : 570
-    minWidth: compact ? 260 : 330
-    minHeight: compact ? 140 : 570
-    widgetWidth: 380
-    widgetHeight: 570
-    readonly property var snapshot: telemetry.value || ({})
-    readonly property var status: snapshot.status || ({})
-    readonly property bool connected: (snapshot.phase === "connected" || snapshot.phase === "controlling") &&
-                                      !(status.placement_left === "DISCONNECTED" && status.placement_right === "DISCONNECTED")
-    opacity: connected ? 1 : 0
-    enabled: connected
-    Behavior on opacity { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
-
-    PluginGlobalVar { id: telemetry; varName: "telemetry"; defaultValue: ({ phase: "checking-cli", status: null }) }
-    Region { id: emptyInputMask; width: 0; height: 0 }
+    id:root
+    readonly property var effectiveConfig:preferences.value
+    ConfigStore { id:preferences; source:root.isInstance ? root.instanceConfig : root.pluginData; locked:root.lockScreen }
+    readonly property bool shouldShow:model.connected || effectiveConfig.desktopOfflinePolicy !== "hide"
+    property bool acceptsKeyboardFocus:!lockScreen
+    property real defaultWidth:336
+    property real defaultHeight:320
+    readonly property real noiseMinWidth:effectiveConfig.desktopShowNoise && effectiveConfig.desktopPreset !== "minimal"
+        ? (model.device.supported_noise_modes || []).length * (effectiveConfig.desktopNoiseSize+16) : 0
+    minWidth:Math.max(220,effectiveConfig.desktopPadding*2+Math.max(Layout.groupWidth(effectiveConfig,view.parts),noiseMinWidth))
+    minHeight:model.connected ? view.implicitHeight : 74
+    UiState { id:model; pluginId:root.pluginId; service:root.pluginService }
+    DeviceView { id:view; anchors.fill:parent; state:model; config:root.effectiveConfig; locked:root.lockScreen; offlinePolicy:root.effectiveConfig.desktopOfflinePolicy }
+    Region { id:emptyInput }
     Binding {
-        target: root.QsWindow.window
-        property: "mask"
-        value: emptyInputMask
-        when: !root.connected && root.QsWindow.window !== null
-        restoreMode: Binding.RestoreBinding
+        target:root.QsWindow.window
+        property:"mask"
+        value:emptyInput
+        when:!root.lockScreen && !root.shouldShow && root.QsWindow.window !== null
+        restoreMode:Binding.RestoreBindingOrValue
     }
-
-    Loader {
-        anchors.fill: parent
-        sourceComponent: root.compact ? compactView : fullView
-    }
-
-    Component {
-        id: fullView
-        GbudsPanel {
-            anchors.fill: parent
-            anchors.margins: 1
-            pluginId: root.pluginId
-            pluginService: root.pluginService
-            config: root.pluginData
-            desktopMode: true
-        }
-    }
-
-    Component {
-        id: compactView
-        BudsCompact {
-            anchors.fill: parent
-            pluginId: root.pluginId
-        }
-    }
+    function updateVisibility() { visible=shouldShow; }
+    onShouldShowChanged:updateVisibility()
+    Component.onCompleted:updateVisibility()
 }

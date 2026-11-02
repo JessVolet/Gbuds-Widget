@@ -1,6 +1,1 @@
-GbudsPanel 1.0 GbudsPanel.qml
-BudsHero 1.0 BudsHero.qml
-BudsControls 1.0 BudsControls.qml
-BudsOptions 1.0 BudsOptions.qml
-BudsCompact 1.0 BudsCompact.qml
-BudsEventPopup 1.0 BudsEventPopup.qml
+# Entry points compose stable modules under src/.
