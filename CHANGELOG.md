@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0-dev.8
+
+- Remove operating-system playback controls and keep Sound & controls focused on Buds features and equalizer presets.
+- Redesign sound controls with native Dux cards, Material controls, preset chips and an illustrative equalizer curve.
+- Replace noise-mode artwork in controls and alerts with theme-aware Dux Material glyphs.
+- Add restrained animated wave rings and rotating gear accents to the earbud hero; respect reduced motion and panel visibility.
+
 ## 0.7.0-dev.7
 
 - Resolve bar contrast metrics through the native DBar module; cover a non-null bar configuration in the QML harness.
@@ -7,7 +14,7 @@
 
 ## 0.7.0-dev.6 — native visual refinement
 
-- Restore the expanded panel hierarchy with system-icon navigation, contextual Find hints, supported noise modes and a native audio mixer.
+- Restore the expanded panel hierarchy with system-icon navigation, contextual Find hints, supported noise modes and Galaxy Buds sound controls.
 - Add bounded command history with readable results and sanitized details.
 - Organize settings into native sections and conditional form rows.
 - Add advanced per-event notification rules, independent popup/wave placement, a nine-position picker and preview/reset.

@@ -1,6 +1,6 @@
 import QtQuick
 import qs.Common
-import "ApprovedIcons.js" as Icons
+import qs.DCommon.Widgets
 Item {
     id: root
     property string mode: "OFF"
@@ -8,11 +8,11 @@ Item {
     property int size: 32
     implicitWidth: size
     implicitHeight: size
-    Image {
+    DIcon {
         anchors.fill: parent
-        source: Icons.url(root.mode === "NOISE_REDUCTION" ? "mode-anc" : root.mode === "AMBIENT_SOUND" || root.mode === "ADAPTIVE" ? "mode-ambient" : "mode-normal", root.tint, root.tint, false)
-        fillMode: Image.PreserveAspectFit
-        sourceSize.width: Math.ceil(width * 2)
-        sourceSize.height: Math.ceil(height * 2)
+        name: root.mode === "NOISE_REDUCTION" ? "noise_control_on" : root.mode === "AMBIENT_SOUND" || root.mode === "ADAPTIVE" ? "hearing" : "power_settings_new"
+        size: root.size
+        color: root.tint
+        Accessible.ignored: true
     }
 }

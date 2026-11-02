@@ -33,7 +33,7 @@ Item {
             PanelHeader { width:parent.width; deviceName:deviceState.device.name || "Galaxy Buds"; connected:deviceState.connected; page:root.page; onBack:root.page="main"; onHistory:root.page="history"; onSettings:root.settings() }
             Column {
                 width:parent.width; spacing:12; visible:root.page==="main"
-                PanelHero { width:parent.width; model:deviceState; config:root.config; visible:deviceState.connected }
+                PanelHero { width:parent.width; model:deviceState; config:root.config; motionEnabled:root.active && root.config.panelAnimations!==false && visual.motion; visible:deviceState.connected }
                 DCard {
                     width:parent.width; height:110; visible:!deviceState.connected; pad:14
                     Column { width:parent.width; spacing:8; StyledText { text:"Connect your Galaxy Buds"; color:Theme.surfaceText; font.pixelSize:16 } DButton { text:"Connect"; iconName:"bluetooth"; enabled:!deviceState.busy; onClicked:deviceState.request("connect",[]) } }
@@ -43,7 +43,6 @@ Item {
                     StyledText { text:"Noise control"; color:Theme.surfaceText; font.pixelSize:14; font.weight:Font.DemiBold }
                     NoiseControls { width:parent.width; state:deviceState; iconSize:32; animate:root.config.panelAnimations!==false && visual.motion }
                 }
-                AudioMixer { width:parent.width; visible:deviceState.connected && root.config.panelShowMixer!==false; active:visible && root.active; address:deviceState.selectedAddress; deviceName:deviceState.device.name || "Galaxy Buds" }
                 DCollapsibleSection {
                     width:parent.width; visible:deviceState.connected; title:"Sound & controls"; description:"Equalizer and supported device features"
                     AdvancedControls { width:parent.width; state:deviceState }

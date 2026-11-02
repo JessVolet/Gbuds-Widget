@@ -26,7 +26,12 @@ property color surfaceContainerHigh: dark ? "#3b3037" : "#f0dfe7"
 property color surfaceContainerLowest: surfaceContainer
 property color surface: surfaceContainer
 property color primaryContainer: dark ? "#60374a" : "#f7cddd"
+property color secondaryContainer: dark ? "#59404b" : "#f1d4df"
+property color tertiaryContainer: dark ? "#4f485e" : "#e4d9fa"
 property color onPrimaryContainer
+property color onSecondaryContainer: dark ? "#ffe8f0" : "#3b202b"
+property color onTertiaryContainer: dark ? "#f0eaff" : "#282238"
+property color surfaceContainerLow: dark ? "#292327" : "#fff6f8"
 property Binding primaryBinding:Binding { target:Theme; property:"onPrimaryContainer"; value:Theme.dark ? "#ffdae8" : "#3d1227" }
 property color outline: surfaceVariantText
 property color widgetIconColor: primary

@@ -75,7 +75,7 @@ function icon(key) {
     const groups=[[/[Aa]rtwork/,"image"],[/[Cc]olor|[Aa]ppearance|[Bb]ackground/,"palette"],[/[Ss]creen|[Dd]isplay/,"monitor"],
         [/[Nn]oise|[Mm]ode/,"noise_control_on"],[/[Bb]attery|[Pp]ercentage/,"battery_5_bar"],[/[Tt]imer|[Ii]dle|[Dd]uration|Timeout/,"timer"],
         [/[Ss]ize|[Ss]pacing|[Gg]ap|[Pp]adding|[Oo]ffset/,"straighten"],[/[Pp]osition|[Aa]lignment|Origin/,"open_with"],
-        [/[Ll]ock/,"lock"],[/[Bb]order/,"border_style"],[/[Aa]nimation|Motion/,"animation"],[/[Mm]ixer/,"volume_up"],
+        [/[Ll]ock/,"lock"],[/[Bb]order/,"border_style"],[/[Aa]nimation|Motion/,"animation"],
         [/[Ss]earch/,"search"],[/[Ll]ayout|Preset|Order|Horizontal/,"dashboard_customize"],[/targetMac/,"bluetooth"],[/Command/,"terminal"]];
     return groups.find(pair=>pair[0].test(key || ""))?.[1] || "tune";
 }
@@ -87,7 +87,6 @@ function sectionRows(section, instance) {
     const all=rows(false);
     if (section===0) return [
         {kind:"select",key:"panelArtwork",label:"Artwork",icon:"image",options:choices([["auto","Automatic"],["svg","SVG icons"],["render","Device renders"]])},
-        {kind:"toggle",key:"panelShowMixer",label:"Audio mixer",description:"Control the selected Buds output and playback applications."},
         {kind:"toggle",key:"panelSearchHints",label:"Search hints",description:"Explain when an earbud can be safely located."},
         {kind:"toggle",key:"panelAnimations",label:"Panel animations",description:"Follow the shell motion settings."}];
     const start=all.findIndex(row=>row.label === (section===1 ? "Bar" : "Device"));

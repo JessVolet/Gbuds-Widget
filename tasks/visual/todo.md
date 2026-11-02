@@ -1,6 +1,6 @@
 # Visual refinement implementation checklist
 
-Status: user approved and candidate 0.7.0-dev.7 installed. See status.md for implementation, tests and pending physical/native acceptance. Follow PLAN.md and the repository codestyle.
+Status: candidate 0.7.0-dev.8 prepared on the rewrite branch. See status.md for the implementation and remaining native/hardware acceptance. Follow PLAN.md and the repository codestyle.
 
 ## V01 — Resolve theme contrast
 
@@ -31,15 +31,7 @@ Files: CommandHistory.qml, DeviceController.qml hooks, CommandHistoryPage.qml an
 - [ ] Existing behavior/QML checks pass; native panel opens and themes correctly.
 - [ ] User can inspect the header, safe Find and readable command results.
 
-## V04 — Add the native mixer
-
-- [x] Bind audio node identity to the selected Buds and support mute/volume.
-- [x] Add application-stream disclosure and explicit inactive-output handling.
-- [ ] Exercise missing/ambiguous node, volume feedback and disconnect cleanup.
-
-Files: AudioAdapter.qml, audio identity helper, AudioMixer.qml, DevicePanel.qml, focused adapter checks. Dependencies: V02. Verify with native PipeWire when available; fixture mapping does not certify physical audio. Scope: medium.
-
-## V05 — Model notification exceptions
+## V04 — Model notification exceptions
 
 - [x] Add persisted Advanced switch and sparse per-event settings with explicit inheritance.
 - [x] Migrate existing legacy channel overrides idempotently without losing intentional choices.
@@ -47,7 +39,7 @@ Files: AudioAdapter.qml, audio identity helper, AudioMixer.qml, DevicePanel.qml,
 
 Files: Schema.js, NotificationPreferences.js, EventPolicy.js, NotificationController.qml and focused precedence/migration checks. Dependencies: V01. Verify global Waveup plus noise Popup/Center, Off/inherit and reset. Scope: medium.
 
-## V06 — Support popup anchors and collision handling
+## V05 — Support popup anchors and collision handling
 
 - [x] Implement 3 × 3 popup anchors and explicit center placement.
 - [ ] Keep deterministic occupancy/reflow within the screen, considering adjacent anchor collisions.
@@ -55,7 +47,7 @@ Files: Schema.js, NotificationPreferences.js, EventPolicy.js, NotificationContro
 
 Files: ScreenPlacement.js, AlertHost.qml, PopupController.qml and placement/runtime scenarios. Dependencies: V05. Verify actual compositor captures and unchanged wave-origin/timing behavior. Scope: medium.
 
-## V07 — Replace the flat notification editor
+## V06 — Replace the flat notification editor
 
 - [x] Add basic defaults, Advanced switch, event summaries and conditional event fields.
 - [x] Add Preview/Reset and meaningful units while reusing ConfigStore/PreferenceRow.
@@ -68,39 +60,39 @@ Files: NotificationSettings.qml, EventNotificationEditor.qml, SettingsModel.js, 
 - [ ] Requested global-Waveup / centered-noise-Popup scenario passes with simultaneous events.
 - [ ] Existing animation timing, process failure and safe Stop checks remain green.
 
-## V08 — Organize the remaining settings
+## V07 — Organize the remaining settings
 
 - [ ] Add Device panel, Bar, Notifications, Desktop widgets and Advanced sections inside native plugin settings.
 - [x] Keep global and per-instance controls separate and fix product-copy/schema duplication.
 - [x] Restore the direct settings route and capability-based Sound & controls.
 
-Files: Settings.qml, SettingsModel.js, section delegates and Schema.js as needed. Dependencies: V02, V04, V07. Split into smaller commits if more than five files become necessary. Verify keyboard navigation, conditional controls and persistence. Scope: medium per slice.
+Files: Settings.qml, SettingsModel.js, section delegates and Schema.js as needed. Dependencies: V02, V04, V06. Split into smaller commits if more than five files become necessary. Verify keyboard navigation, conditional controls and persistence. Scope: medium per slice.
 
-## V09 — Apply restrained motion
+## V08 — Apply restrained motion
 
 - [x] Add host-compatible reveal, selection, disclosure and page transitions.
 - [x] Respect reduced motion, cancellation and input responsiveness.
+- [x] Add visible-only hero ripples and slow gear glyphs, disabled with reduced motion.
 - [ ] Capture actual transitions without changing the shared wave engine contract.
 
-Files: panel/hero/mixer delegates and shared motion tokens. Dependencies: V02–V08. Verify rapid edits, disposal, open/close and reduced motion. Scope: medium.
+Files: panel/hero delegates and shared motion tokens. Dependencies: V02–V07. Verify rapid edits, disposal, open/close and reduced motion. Scope: medium.
 
-## V10 — Package and acceptance
+## V09 — Package and acceptance
 
-- [x] Run relevant logic/QML/native checks and capture light/dark final evidence.
-- [x] Tag the tested commit, back up settings, package exact source and verify fresh-engine installation.
-- [ ] Complete physical controls/audio, visual acceptance and rollback before merge.
+- [x] Capture the native light/dark panel and sound-controls showcase.
+- [ ] Tag the reviewed commit, back up settings, package exact source and confirm plugin reload.
+- [ ] Complete physical Buds controls, visual acceptance and rollback before merge.
 
-Files: evidence report, deployment manifest and status documentation. Dependencies: V09. Preserve the functioning base candidate and immutable tags. Scope: small; physical acceptance remains explicit.
+Files: evidence report, deployment manifest and status documentation. Dependencies: V08. Preserve the functioning base candidate and immutable tags. Scope: small; physical acceptance remains explicit.
 
 ## Research corrections before implementation
 
 - Native integration authority: DUX-INTEGRATION-RESEARCH.md and host-api-evidence.json.
 - V01: reuse Theme/Style and test DSVGIcon with the existing Qt-compatible artwork; do not introduce an independent palette engine.
 - V02: use native PluginPopout implicitHeight/padding, avoiding duplicate outer chrome and opening animations.
-- V04: balance AudioService references while active; setVolume targets the default output, so resolve the selected Buds first. Verify stream routing before labeling it device-specific.
 - V07–V08: use native grouped Settings rows and explicit user-edit signals; the installed SliderSetting wrapper can save programmatic value changes.
 - V09: use verified global reduced motion and host motion tokens. Existing wave sequence timing remains unchanged.
-- V10: locally verified reload target is plugin-scan, whereas current web docs show plugins. Verify actual installed IPC and fresh-engine dependency loading.
+- V09: locally verified reload target is plugin-scan, whereas current web docs show plugins. Verify actual installed IPC and fresh-engine dependency loading.
 
 ## Evidence index
 

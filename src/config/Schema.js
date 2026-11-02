@@ -1,6 +1,6 @@
 .pragma library
 var defaults = {
-    schemaVersion: 3, panelShowMixer:true, panelSearchHints:true, panelAnimations:true, panelArtwork:"auto", desktopPreset: "compact", desktopOfflinePolicy: "hide", desktopArtwork: "svg",
+    schemaVersion: 3, panelSearchHints:true, panelAnimations:true, panelArtwork:"auto", desktopPreset: "compact", desktopOfflinePolicy: "hide", desktopArtwork: "svg",
     desktopShowName: true, desktopShowCase: true, desktopShowBattery: true, desktopShowNoise: true,
     desktopShowDisconnect: true, desktopHorizontal: true, desktopEarOrder: "left-case-right",
     desktopBlockOrder: "name,parts,noise,disconnect", desktopGap: 8, desktopPadding: 12,

@@ -1,6 +1,6 @@
 # Gbuds visual refinement proposal
 
-Status: approved and implemented as installed testing candidate 0.7.0-dev.7; see status.md. Read DUX-INTEGRATION-RESEARCH.md first: its verified native integration corrections supersede speculative APIs and fixed timing suggestions below. No runtime source, installed plugin, settings, branch or tags were changed for this proposal.
+Status: implemented on `rewrite/modular-widget` as testing candidate 0.7.0-dev.8; see status.md. Read DUX-INTEGRATION-RESEARCH.md first: verified native integration findings supersede speculative APIs and fixed timing suggestions below.
 
 ## Reference and scope
 
@@ -20,8 +20,7 @@ Target width approximately 400–420 logical pixels, with content-driven height 
 | Device hero | Left render/icon, case, right render/icon; aligned labels, percentages and slim battery indicators | Each earbud remains its own Find target. Show `Click for search` only when safe/available; otherwise `In ear`, `In case`, or `Unavailable`. While searching show `Stop search`; an uncertain result retains Stop. |
 | Under case | Low-emphasis `Disconnect` action | Retain the existing safe Stop-before-disconnect path. It is not the dominant call to action. |
 | Noise control | ANC, Ambient/Adaptive, Off in equal-size slots, with selected state | Use the approved centered ANC and ear/power artwork. Show only capability-supported modes. Pending state is distinct from confirmed state. |
-| Mixer | Mute, device-specific output volume and percentage; `Apps` disclosure | Audio adapter binds the selected Buds output via native AudioService/PipeWire identity. Never change an unrelated default speaker. Show `Not the active output` / explicit `Use as output` if necessary; absence or ambiguous mapping disables the slider with an explanation. Apps shows relevant playback streams and their volumes. |
-| Sound & controls | Collapsed row | Expand equalizer, touch lock, ambient amplification, voice detect and lights only when supported. Reuse existing intents. Unsupported controls do not leave gaps. |
+| Sound & controls | Collapsed row with native Dux cards | Expand the equalizer presets, touch lock, ambient amplification, voice detect and lights only when supported. Reuse existing intents. Unsupported controls do not leave gaps. The equalizer curve is illustrative and does not claim to measure frequency response. |
 | Footer | `Manage connections` | Open the internal connections page, retaining name/header and a Back action. No second external modal is needed. |
 
 The sample hero assumes both earbuds are out of ear so both search hints are visible. Ambient in the mockup demonstrates layout; runtime capabilities remain authoritative.
@@ -46,7 +45,7 @@ Verify dark/light, selected/unselected, custom bar colors, transparent backgroun
 
 Use a small section selector inside the plugin's own settings content, adapting to tabs or a vertical section list with available width. The mockup's left navigation belongs to the plugin content; it does not require rewriting Dux's global settings sidebar.
 
-1. **Device panel:** SVG/render/automatic artwork, optional mixer and search hints, panel motion and reduced-motion preference. Show only useful controls; retain capability-driven Sound & controls in the popout.
+1. **Device panel:** SVG/render/automatic artwork, search hints, panel motion and reduced-motion preference. Show only useful controls; retain capability-driven Sound & controls in the popout.
 2. **Bar:** layout, icon size/spacing/alignment, percentages, noise icon visibility, automatic/custom icon colors and idle/battery appearance. Keep custom fields conditional on Custom.
 3. **Notifications:** enable, global default style, relevant duration controls, artwork, default placement/display, Preview; then Advanced notifications.
 4. **Desktop widgets:** explain global versus per-instance settings. Geometry, ordering and offline visibility remain in the instance editor; do not duplicate controls whose values cannot affect that instance.
@@ -85,8 +84,8 @@ Resolve channel, popup placement and wave origin separately. Snapshot the resolv
 
 ## 5. Motion and presentation
 
-- Open: approximately 180–220 ms opacity and 6 px upward reveal; integrate with the host transition to avoid two competing opening effects.
-- Hero: one restrained initial reveal, no perpetual floating/rotation. Hover/focus uses a small background/elevation change. Press feedback is 100 ms and does not delay intents.
+- Open: use the host transition and avoid competing opening effects.
+- Hero: restrained expanding rings and slow Material gear glyph rotation while visible. Stop when hidden or reduced motion is active. Hover/focus uses a small background/elevation change. Press feedback does not delay intents.
 - Noise selection: 140–180 ms highlight transition with immediate pending feedback; confirmation/failure reconciles through existing state.
 - Disclosures and internal pages: 160–200 ms height/opacity or short directional transition. Preserve scroll/focus and avoid recreating the device controller.
 - Battery: animate the indicator only when values change; never loop while idle.
@@ -102,7 +101,6 @@ Resolve channel, popup placement and wave origin separately. Snapshot the resolv
 | Panel-specific hero | src/surfaces/PanelHero.qml; reuse PartIcon and safe state intents, avoid coupling panel layout to desktop config |
 | Noise selection and secondary controls | Existing NoiseControls.qml / AdvancedControls.qml, with shared visual tokens |
 | Theme roles | src/presentation/VisualTokens.qml, consumed by bar, panel, SVG artwork and popup |
-| Native audio identity/actions | src/audio/AudioAdapter.qml and pure identity helper if needed; AudioMixer.qml view |
 | Bounded command log | src/device/CommandHistory.qml, fed from existing job start/result hooks; no extra process owner |
 | Event defaults/exceptions | src/config/NotificationPreferences.js, schema migration and existing ConfigStore |
 | Event editor | src/settings/NotificationSettings.qml / EventNotificationEditor.qml; reuse PreferenceRow |

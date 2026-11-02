@@ -58,19 +58,7 @@ SettingsData.reduceMotion, Style.reduceMotion, Theme durations/curves and DCommo
 
 Observe the plugin's interactionActive and lifecycle, so cached but closed popout content does not keep animations or optional audio work alive. Reduced motion and disabled animation speed must both be honored. Do not replace the user's established wave timing with a generic theme spring; the explicit 250 ms launch spacing and 1000 ms repeat gap remain product semantics.
 
-### 6. Reuse AudioService with explicit target identity
-
-AudioService provides node lists, available outputs, the current sink, default-sink selection and volume helpers. The built-in ControlCenter balances addRef/removeRef for audio subscriptions; its playback UI uses native node audio controls. The installed PipewireAudioBackend already binds its tracked nodes with PwObjectTracker.
-
-The adapter should acquire audio interest only while the panel/mixer is active and release it exactly once on hide/disposal. Reuse the existing backend; do not add a parallel watcher or blindly bind every PipeWire node again.
-
-Important: AudioService.setVolume updates the default sink. It is not a Galaxy-Buds-specific function. Resolve the selected Bluetooth device's output node before enabling the mixer. Control that node through the verified native node interface, or offer an explicit Use as output action before invoking default-output helpers. Never silently set the default output as a side effect of opening the widget.
-
-The built-in playback list is global. Showing only streams routed to the selected Buds requires verified routing/link metadata; a matching application name is not proof. If reliable routing information is unavailable, label the scope All playback instead of claiming it is Buds-only. Apply the native per-node maximum volume and keep EQ/ambient gain separate from OS output volume.
-
-Official source: [AudioService at v2.0.0](https://raw.githubusercontent.com/duxlabs-dev/dux-shell/v2.0.0/quickshell/Services/AudioService.qml). The actual local service is separately fingerprinted; public and local versions are not assumed identical.
-
-### 7. Use native settings persistence without initialization writes
+### 6. Use native settings persistence without initialization writes
 
 PluginSettings already wraps saveValue/loadValue, permission checking and pluginService integration. Keep ConfigStore as the immediate-update/batched-write boundary and persist through that API. The current manifest already grants settings_read/settings_write.
 
@@ -78,13 +66,13 @@ A subtle compatibility finding: the installed legacy SliderSetting wrapper saves
 
 Global plugin values and per-instance desktop values remain distinct. Do not edit plugin_settings.json from presentation code. Keep command history in a bounded daemon-owned in-memory model/global snapshot so closing a cached or reconstructed panel does not recreate its transport controller.
 
-### 8. Navigation has a real host API
+### 7. Navigation has a real host API
 
 The installed PopoutService has openSettingsWithTab(tabName, returnOrigin, reopen). Follow-up implementation inspection found that SettingsTabs.pluginPage(pluginId).id supplies the canonical plugin:<pluginId> route; main's older plugin_<pluginId> route must not be copied. Use the canonical helper. Use the corresponding native Bluetooth page for pairing once its route is confirmed. Do not guess a route solely from the visible tab label.
 
 The visual section navigation in the mockup is inside the plugin settings content. It is not a request to patch Dux's global sidebar. Its presentation should adapt to the native settings viewport.
 
-### 9. Per-event notification rules remain plugin logic
+### 8. Per-event notification rules remain plugin logic
 
 No built-in per-event Popup/Waveup rule editor was established in the plugin guide or inspected services. The proposed notification resolver/editor is Gbuds functionality, rendered with native controls. Clearly distinguish that feature from a Dux API.
 
@@ -92,7 +80,7 @@ Keep the existing single event detector, lifetime controller and wave renderer. 
 
 The platform uses Quickshell PanelWindow/Wayland layers for custom alert surfaces. Verify anchors, margins, output scale, empty wave input regions and no alert keyboard focus against this installed Quickshell build. The public Quickshell links retrieved redirected to older v0.1 documentation; those pages are conceptual background, not a verified 0.3.2 API reference.
 
-### 10. Reload commands are build-sensitive
+### 9. Reload commands are build-sensitive
 
 The current web guide shows `dms ipc call plugins reload <id>`. The installed PluginService registers target `plugin-scan`, including the reload/status methods used successfully in this session. Keep the locally verified command rather than replacing it solely to match a newer or differently packaged guide.
 
@@ -104,7 +92,7 @@ The prior native deployment exposed imported-script cache retention. A fresh-pro
 - Replace speculative fixed motion timings with host motion tokens and the confirmed reduced-motion setting.
 - Replace a generic theme subsystem with a small adapter over Theme/Style; test the actual customized bar background.
 - Size the panel through native implicitHeight/padding rules and bound its secondary scroll area.
-- Scope the mixer by verified output identity, balance subscriptions and expose stream scope honestly.
+- Keep Sound & controls limited to implemented Galaxy Buds capabilities; presets and ambient amplification are device controls, not operating-system audio controls.
 - Keep Advanced notifications as a custom event policy/editor using native form rows; it is not an undocumented Dux feature.
 - Keep code/UI in English, the functional controllers unchanged where possible, and use focused compatibility adapters for shell-internal APIs.
 

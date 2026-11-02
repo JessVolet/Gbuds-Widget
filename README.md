@@ -10,7 +10,7 @@ A Dux Shell 2.0 plugin for Galaxy Buds. It adds a status item to the bar, a cont
 
 ## What it does
 
-The `rewrite/modular-widget` branch is the 0.7.0-dev.7 testing candidate. It replaces the
+The `rewrite/modular-widget` branch is the 0.7.0-dev.8 testing candidate. It replaces the
 legacy UI and daemon with reusable controllers under `src/`, retaining the approved
 artwork in `assets/approved/`. The screenshots above show the earlier presentation.
 See [rewrite status](tasks/rewrite/status.md) and [development commands](docs/DEVELOPMENT.md).
@@ -83,8 +83,8 @@ This project was developed with AI assistance for QML implementation, documentat
 
 ## Native panel and notification rules
 
-The expanded panel includes contextual Find hints, an in-memory command history (80 entries), a target-specific output mixer, supported sound controls and connection management. Header actions use system icons and the canonical Dux settings route.
+The expanded panel includes contextual Find hints, an in-memory command history (80 entries), supported Galaxy Buds sound controls and connection management. Header actions use system icons and the canonical Dux settings route.
 
 Open Gbuds settings → Notifications. Choose the default style, enable Advanced notifications, then select an event. For the requested example choose Noise mode changed → Popup → Center. Reset restores inheritance; disabling Advanced keeps the exceptions saved but inactive. Preview uses simulated events, never hardware controls. Custom popup positions do not change Waveup corner origins.
 
-The Applications mixer explicitly lists all playback streams. Bluetooth output identity must be unique before the main mixer is enabled. Existing custom colors and presentation preferences are preserved; new configurations default to Waveups. The native controls honor the Dux theme and reduced-motion setting.
+The equalizer exposes the device presets reported by Gbuds; its small curve is an illustrative visual guide, not a measured frequency response. Existing custom colors and presentation preferences are preserved; new configurations default to Waveups. Native controls follow the Dux theme and reduced-motion setting.

@@ -65,12 +65,10 @@ ShellRoot {
                 root.check(device.state.device.supported_noise_modes.indexOf("ambient")<0,"capabilities suppress unsupported ambient");
                 root.check(device.state.status.placement_left === "IDLE","watch telemetry normalized");
                 root.check((PluginService.values.commandHistory || []).some(entry=>entry.command==="connect" && entry.status==="Succeeded"),"history publishes completed commands without device identifiers");
-                AudioService.pipewireNodes=[{name:"bluez_output.AA_BB_CC_DD_EE_FF.1",audio:{volume:.5,muted:false},isSink:true,isStream:false}];
                 root.panel.active=true;
-                root.check(AudioService.refCount===1,"visible panel acquires native audio once");
-                root.panel.page="history";
-                root.check(AudioService.refCount===0,"leaving the mixer releases native audio");
-                root.panel.active=false; root.panel.page="main";
+                root.check(root.panel.children.length>0,"device panel remains composed without system audio integration");
+                root.panel.active=false;
+                root.panel.page="main";
                 device.request("find",["left"]);
                 root.check(PluginService.values.commandState.busy,"input immediately publishes pending feedback"); root.stage=2;
             } else if (root.stage===2 && device.state.findState.active && !PluginService.values.commandState.busy) {
