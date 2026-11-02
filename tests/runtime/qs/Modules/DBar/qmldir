@@ -1,0 +1,2 @@
+module qs.Modules.DBar
+singleton BarMetrics 1.0 BarMetrics.qml

@@ -41,7 +41,7 @@ ShellRoot {
         daemon=create("Daemon.qml",{pluginData:{gbudsCommand:Quickshell.env("GBUDS_FAKE_CLI"),notificationsEnabled:false}});
         desktop=create("Desktop.qml",{pluginId:"gbudsWatch",instanceId:"one",instanceData:{config:{}},pluginService:PluginService});
         check(desktop.effectiveConfig.desktopPreset === "compact" && !desktop.shouldShow,"new desktop defaults hidden offline");
-        bar=create("GbudsBarWidget.qml",{pluginData:{},pluginService:PluginService});
+        bar=create("GbudsBarWidget.qml",{pluginData:{},barConfig:{widgetBackgroundColor:"custom"},pluginService:PluginService});
         const pill=bar.horizontalBarPill.createObject(root,{});
         root.check(!!pill,"bar inline component instantiates");
         const popout=bar.popoutContent.createObject(root,{width:390,height:560});

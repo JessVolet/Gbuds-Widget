@@ -10,7 +10,7 @@ A Dux Shell 2.0 plugin for Galaxy Buds. It adds a status item to the bar, a cont
 
 ## What it does
 
-The `rewrite/modular-widget` branch is the 0.7.0-dev.6 testing candidate. It replaces the
+The `rewrite/modular-widget` branch is the 0.7.0-dev.7 testing candidate. It replaces the
 legacy UI and daemon with reusable controllers under `src/`, retaining the approved
 artwork in `assets/approved/`. The screenshots above show the earlier presentation.
 See [rewrite status](tasks/rewrite/status.md) and [development commands](docs/DEVELOPMENT.md).

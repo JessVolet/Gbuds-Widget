@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0-dev.7
+
+- Resolve bar contrast metrics through the native DBar module; cover a non-null bar configuration in the QML harness.
+
+
 ## 0.7.0-dev.6 — native visual refinement
 
 - Restore the expanded panel hierarchy with system-icon navigation, contextual Find hints, supported noise modes and a native audio mixer.

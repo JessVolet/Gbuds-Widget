@@ -2,6 +2,7 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 import qs.Modules.Plugins
+import qs.Modules.DBar
 import "src/state"
 import "src/presentation"
 import "src/surfaces"
